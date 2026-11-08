@@ -8,6 +8,7 @@ import {
   type EnvironmentalInspection,
   type EnvironmentalMiningStats,
 } from '../../api/environmentalMining';
+import { BioEngineeringTrackerTab } from './components/BioEngineeringTrackerTab';
 import {
   Mountain,
   Waves,
@@ -42,7 +43,7 @@ const toNepaliDigits = (val: number | string | undefined | null): string => {
 
 export const EnvironmentalMiningPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'mining_sites' | 'iee_compliance' | 'community_forests' | 'inspections'>('mining_sites');
+  const [activeTab, setActiveTab] = useState<'mining_sites' | 'iee_compliance' | 'community_forests' | 'inspections' | 'bio_engineering'>('mining_sites');
   const [searchQuery, setSearchQuery] = useState('');
   const [wardFilter, setWardFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -265,6 +266,7 @@ export const EnvironmentalMiningPage: React.FC = () => {
         {[
           { key: 'mining_sites', label: 'नदीजन्य खानी तथा क्रसर अनुगमन', icon: <Waves size={16} />, count: sites.length },
           { key: 'iee_compliance', label: 'IEE वातावरणीय परीक्षण तथा मापदण्ड', icon: <FileCheck size={16} />, count: ieeRecords.length },
+          { key: 'bio_engineering', label: 'जैविक इन्जिनियरिङ (Bio-Engineering) ट्र्याकर', icon: <Mountain size={16} />, count: 3 },
           { key: 'community_forests', label: 'सामुदायिक वन तथा जलाधार संरक्षण', icon: <Trees size={16} />, count: communityForests.length },
           { key: 'inspections', label: 'स्थलगत निरीक्षण, अलर्ट तथा कारबाही', icon: <ShieldAlert size={16} />, count: inspections.length },
         ].map((tab) => (
@@ -622,6 +624,11 @@ export const EnvironmentalMiningPage: React.FC = () => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── TAB 5: BIO-ENGINEERING & BUFFER TRACKER ───────────────────── */}
+      {activeTab === 'bio_engineering' && (
+        <BioEngineeringTrackerTab />
       )}
 
       {/* ── MODAL: ADD MINING SITE ───────────────────────────────────────── */}

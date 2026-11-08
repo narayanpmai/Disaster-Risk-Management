@@ -56,6 +56,10 @@ import {
   Tent,
   Video,
   ChevronRight,
+  Coins,
+  Truck,
+  PhoneCall,
+  WifiOff,
 } from 'lucide-react';
 
 // ── Dark Sidebar Design Tokens ──────────────────────────────────────
@@ -125,25 +129,53 @@ export const adminNavSections: NavSection[] = [
         badgeColor: '#ef4444',
         children: [
           {
-            label: 'नदी जलसतह तथा बाढी गेज',
+            label: 'नदी जलसतह तथा ३D डुबान सिमुलेटर',
             path: '/app/disaster?tab=sensors',
             icon: <Waves size={14} style={{ color: '#0284c7' }} />,
-            badge: 'IoT Live',
+            badge: '३D Twin',
             badgeColor: '#0284c7',
           },
           {
-            label: 'पहिरो जोखिम तथा बस्तीहरू',
+            label: 'पहिरो जोखिम तथा इन्क्लिनोमिटर',
             path: '/app/disaster?tab=vulnerable_settlements',
             icon: <Mountain size={14} style={{ color: '#eab308' }} />,
-            badge: 'नक्सा',
+            badge: 'पूर्वसूचना',
             badgeColor: '#eab308',
           },
           {
-            label: 'स्वचालित साइरन तथा SMS',
+            label: 'स्वचालित IVR कल र मेश-साइरन',
             path: '/app/disaster?tab=broadcast',
             icon: <Radio size={14} style={{ color: '#ef4444' }} />,
-            badge: 'सतर्कता',
+            badge: 'Last-Mile',
             badgeColor: '#ef4444',
+          },
+          {
+            label: 'अति-संवेदनशील नागरिक (५,८०५ घरधुरी)',
+            path: '/app/disaster?tab=micro_vulnerability',
+            icon: <Users size={14} style={{ color: '#ec4899' }} />,
+            badge: 'उद्धार सूची',
+            badgeColor: '#ec4899',
+          },
+          {
+            label: 'डिजिटल क्षति मूल्याङ्कन (RDRA राहत)',
+            path: '/app/disaster?tab=rdra_damage',
+            icon: <Coins size={14} style={{ color: '#10b981' }} />,
+            badge: 'मापदण्ड २०७७',
+            badgeColor: '#10b981',
+          },
+          {
+            label: 'खोज-उद्धार (SAR) र डोजर डाइरेक्टरी',
+            path: '/app/disaster?tab=heavy_equipment',
+            icon: <Truck size={14} style={{ color: '#f59e0b' }} />,
+            badge: 'स्ट्यान्डबाइ',
+            badgeColor: '#f59e0b',
+          },
+          {
+            label: 'अफलाइन सञ्चालन र VHF रेडियो',
+            path: '/app/disaster?tab=offline_mesh',
+            icon: <WifiOff size={14} style={{ color: '#6366f1' }} />,
+            badge: 'PWA/VHF',
+            badgeColor: '#6366f1',
           },
           {
             label: 'सुरक्षित आश्रयस्थल र राहत मौज्दात',
@@ -291,10 +323,10 @@ export const publicNavSections: NavSection[] = [
         badgeColor: '#ef4444',
         children: [
           {
-            label: 'नदी जलसतह तथा बाढी गेज',
+            label: 'नदी जलसतह तथा ३D डुबान सिमुलेटर',
             path: '/disaster?tab=river_twin',
             icon: <Waves size={14} style={{ color: '#0284c7' }} />,
-            badge: 'IoT Live',
+            badge: '३D Twin',
             badgeColor: '#0284c7',
           },
           {
@@ -305,11 +337,39 @@ export const publicNavSections: NavSection[] = [
             badgeColor: '#eab308',
           },
           {
-            label: 'स्वचालित साइरन र नागरिक सुरक्षा',
+            label: 'स्वचालित IVR कल र मेश-साइरन',
             path: '/disaster?tab=siren',
             icon: <Radio size={14} style={{ color: '#ef4444' }} />,
-            badge: 'सतर्कता',
+            badge: 'Last-Mile',
             badgeColor: '#ef4444',
+          },
+          {
+            label: 'अति-संवेदनशील नागरिक (५,८०५ घरधुरी)',
+            path: '/disaster?tab=micro_vulnerability',
+            icon: <Users size={14} style={{ color: '#ec4899' }} />,
+            badge: 'उद्धार सूची',
+            badgeColor: '#ec4899',
+          },
+          {
+            label: 'डिजिटल क्षति मूल्याङ्कन (RDRA राहत)',
+            path: '/disaster?tab=rdra_damage',
+            icon: <Coins size={14} style={{ color: '#10b981' }} />,
+            badge: 'मापदण्ड २०७७',
+            badgeColor: '#10b981',
+          },
+          {
+            label: 'खोज-उद्धार (SAR) र डोजर डाइरेक्टरी',
+            path: '/disaster?tab=heavy_equipment',
+            icon: <Truck size={14} style={{ color: '#f59e0b' }} />,
+            badge: 'स्ट्यान्डबाइ',
+            badgeColor: '#f59e0b',
+          },
+          {
+            label: 'अफलाइन सञ्चालन र VHF रेडियो',
+            path: '/disaster?tab=offline_mesh',
+            icon: <WifiOff size={14} style={{ color: '#6366f1' }} />,
+            badge: 'PWA/VHF',
+            badgeColor: '#6366f1',
           },
           {
             label: 'सुरक्षित आश्रयस्थल र राहत मौज्दात',

@@ -50,6 +50,8 @@ import {
   CheckSquare,
   HardHat,
   Globe,
+  Truck,
+  WifiOff,
 } from 'lucide-react';
 import { DisasterModal } from './components/DisasterModal';
 import { EmergencyContactModal } from './components/EmergencyContactModal';
@@ -57,6 +59,11 @@ import { AddShelterModal } from './components/AddShelterModal';
 import { RecoveryProjectsTab } from './components/RecoveryProjectsTab';
 import { MsraMatrixTab } from './components/MsraMatrixTab';
 import { BipadPortalTab } from './components/BipadPortalTab';
+import { IvrVoiceSirenModule } from './components/IvrVoiceSirenModule';
+import { MicroVulnerabilityTab } from './components/MicroVulnerabilityTab';
+import { RdraAssessmentTab } from './components/RdraAssessmentTab';
+import { HeavyEquipmentSarTab } from './components/HeavyEquipmentSarTab';
+import { OfflineMeshRadioTab } from './components/OfflineMeshRadioTab';
 
 interface BroadcastRecord {
   id: string;
@@ -118,13 +125,21 @@ export const DisasterPage: React.FC = () => {
     | 'broadcast'
     | 'recovery_projects'
     | 'msra_matrix'
-    | 'bipad_sync';
+    | 'bipad_sync'
+    | 'micro_vulnerability'
+    | 'rdra_damage'
+    | 'heavy_equipment'
+    | 'offline_mesh';
 
   const mapParamToTab = (param: string | null): AdminTabType | null => {
     if (!param) return null;
     if (param === 'sensors' || param === 'hydromet' || param === 'river_twin') return 'hydromet';
     if (param === 'landslide' || param === 'settlements' || param === 'vulnerable_settlements') return 'vulnerable_settlements';
     if (param === 'siren' || param === 'broadcast' || param === 'sms') return 'broadcast';
+    if (param === 'micro_vulnerability' || param === 'vulnerability') return 'micro_vulnerability';
+    if (param === 'rdra_damage' || param === 'rdra' || param === 'damage') return 'rdra_damage';
+    if (param === 'heavy_equipment' || param === 'sar') return 'heavy_equipment';
+    if (param === 'offline_mesh' || param === 'offline' || param === 'radio') return 'offline_mesh';
     if (param === 'shelters') return 'shelters';
     if (param === 'cameras' || param === 'cctv') return 'cameras';
     if (param === 'bipad_sync' || param === 'bipad') return 'bipad_sync';
@@ -868,6 +883,86 @@ export const DisasterPage: React.FC = () => {
           >
             <Globe size={15} />
             <span>११. राष्ट्रिय विपद् पोर्टल (BIPAD Sync)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('micro_vulnerability')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'micro_vulnerability' ? '#be123c' : '#fff1f2',
+              color: activeTab === 'micro_vulnerability' ? '#ffffff' : '#be123c',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <Users size={15} />
+            <span>१२. अति-संवेदनशील नागरिक (५,८०५ घरधुरी)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('rdra_damage')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'rdra_damage' ? '#047857' : '#ecfdf5',
+              color: activeTab === 'rdra_damage' ? '#ffffff' : '#047857',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <Coins size={15} />
+            <span>१३. क्षति मूल्याङ्कन (RDRA मापदण्ड २०७७)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('heavy_equipment')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'heavy_equipment' ? '#d97706' : '#fffbeb',
+              color: activeTab === 'heavy_equipment' ? '#ffffff' : '#b45309',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <Truck size={15} />
+            <span>१४. खोज-उद्धार (SAR) र डोजर डाइरेक्टरी</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('offline_mesh')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'offline_mesh' ? '#4338ca' : '#eef2ff',
+              color: activeTab === 'offline_mesh' ? '#ffffff' : '#4338ca',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <WifiOff size={15} />
+            <span>१५. अफलाइन सञ्चालन र VHF रेडियो</span>
           </button>
         </div>
       </div>
@@ -1731,6 +1826,8 @@ export const DisasterPage: React.FC = () => {
       {/* Tab 2: Citizen Emergency SMS & WhatsApp Broadcast Gateway */}
       {activeTab === 'broadcast' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Automatic IVR Call & LoRa Solar Siren Module */}
+          <IvrVoiceSirenModule />
           {/* KPI Header Stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
             <div className="dt-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -3351,6 +3448,26 @@ export const DisasterPage: React.FC = () => {
             setActiveTab('broadcast');
           }}
         />
+      )}
+
+      {/* Tab 12: Micro-Vulnerability Index (अति-संवेदनशील नागरिक) */}
+      {activeTab === 'micro_vulnerability' && (
+        <MicroVulnerabilityTab />
+      )}
+
+      {/* Tab 13: Rapid Damage Assessment (RDRA मापदण्ड २०७७) */}
+      {activeTab === 'rdra_damage' && (
+        <RdraAssessmentTab />
+      )}
+
+      {/* Tab 14: Heavy Equipment & SAR Directory (खोज-उद्धार र डोजर) */}
+      {activeTab === 'heavy_equipment' && (
+        <HeavyEquipmentSarTab />
+      )}
+
+      {/* Tab 15: Offline Mesh & VHF Radio (अफलाइन सञ्चालन) */}
+      {activeTab === 'offline_mesh' && (
+        <OfflineMeshRadioTab />
       )}
 
       {/* Disaster Event Modal */}

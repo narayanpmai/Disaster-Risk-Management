@@ -32,10 +32,19 @@ import {
   Package,
   Layers,
   Thermometer,
-  Wind
+  Wind,
+  Coins,
+  Truck,
+  WifiOff,
 } from 'lucide-react';
 import { municipalityApi, type SensorItem, type CameraItem } from '../../api/municipality';
 import { disasterApi, type Shelter, type EmergencyContact, type DisasterEvent } from '../../api/disaster';
+import { IvrVoiceSirenModule } from '../../features/disaster/components/IvrVoiceSirenModule';
+import { MicroVulnerabilityTab } from '../../features/disaster/components/MicroVulnerabilityTab';
+import { RdraAssessmentTab } from '../../features/disaster/components/RdraAssessmentTab';
+import { HeavyEquipmentSarTab } from '../../features/disaster/components/HeavyEquipmentSarTab';
+import { OfflineMeshRadioTab } from '../../features/disaster/components/OfflineMeshRadioTab';
+import { Terrain3DView } from '../../components/maps/Terrain3DView';
 
 // Real-time Emergency Relief Materials Stock
 const RELIEF_SUPPLIES_STOCK = [
@@ -114,13 +123,28 @@ const LANDSLIDE_ZONES = [
 export const Disaster: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const validTabs = ['river_twin', 'landslide', 'siren', 'cameras', 'shelters', 'hotlines'] as const;
+  const validTabs = [
+    'river_twin',
+    'landslide',
+    'siren',
+    'micro_vulnerability',
+    'rdra_damage',
+    'heavy_equipment',
+    'offline_mesh',
+    'cameras',
+    'shelters',
+    'hotlines',
+  ] as const;
   type TabType = typeof validTabs[number];
 
   const getTabFromLocation = (): TabType => {
     const p = location.pathname;
     if (p.includes('/landslide')) return 'landslide';
     if (p.includes('/siren')) return 'siren';
+    if (p.includes('/micro-vulnerability') || p.includes('/vulnerability')) return 'micro_vulnerability';
+    if (p.includes('/rdra') || p.includes('/damage')) return 'rdra_damage';
+    if (p.includes('/heavy-equipment') || p.includes('/sar')) return 'heavy_equipment';
+    if (p.includes('/offline-mesh') || p.includes('/radio')) return 'offline_mesh';
     if (p.includes('/shelters')) return 'shelters';
     if (p.includes('/cameras') || p.includes('/cctv')) return 'cameras';
     if (p.includes('/hotlines') || p.includes('/eoc')) return 'hotlines';
@@ -162,12 +186,44 @@ export const Disaster: React.FC = () => {
       iconWatermark: <Mountain size={360} color="#eab308" />,
     },
     siren: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित आपतकालीन साइरन तथा नागरिक सुरक्षा सतर्कता',
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित आपतकालीन IVR भ्वाइस कल तथा मेश-साइरन',
       badgeIcon: <Radio size={16} color="#ef4444" />,
-      title: 'स्वचालित विपद् साइरन तथा आपतकालीन पूर्वसूचना SMS प्रणाली',
-      desc: 'मेलम्ची तटीय क्षेत्र तथा पहिरो संवेदनशील वडाहरूमा स्वचालित उच्च ध्वनिका साइरन परीक्षण, साइरन सक्रियता र नागरिकलाई तत्काल आपतकालीन सतर्कता प्रसारण।',
+      title: 'स्वचालित भ्वाइस कल (IVR Alert) तथा अफलाइन सौर्य-साइरन (LoRa Mesh)',
+      desc: 'खतरा विन्दु पार हुनासाथ तटीय बासिन्दालाई नेपाली भाषामा स्वचालित फोन कल र बिना इन्टरनेट ५-१० कि.मी. टाढासम्म आवाज दिने सौर्य-साइरन।',
       bannerGradient: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #3f0909 100%)',
       iconWatermark: <Radio size={360} color="#ef4444" />,
+    },
+    micro_vulnerability: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — ५,८०५ घरधुरी डाटा अन्तर-आबद्धता (Micro-Vulnerability Index)',
+      badgeIcon: <Users size={16} color="#ec4899" />,
+      title: 'अति-संवेदनशील नागरिक तथा आवास संरचनात्मक जोखिम वर्गीकरण',
+      desc: 'सुत्केरी, पूर्ण अपाङ्गता, ७० वर्षमाथिका ज्येष्ठ नागरिक र भत्कने उच्च जोखिम रहेका काँचो ढुङ्गा-माटोका घरहरूको प्राथमिकता उद्धार व्यवस्थापन।',
+      bannerGradient: 'linear-gradient(135deg, #701a75 0%, #86198f 50%, #4a044e 100%)',
+      iconWatermark: <Users size={360} color="#ec4899" />,
+    },
+    rdra_damage: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — गृह मन्त्रालय "विपद् राहत मापदण्ड २०७७" आधारित',
+      badgeIcon: <Coins size={16} color="#10b981" />,
+      title: 'द्रुत क्षति मूल्याङ्कन (Mobile RDRA) र प्रत्यक्ष बैंक राहत (DBT)',
+      desc: 'घटनास्थलको फोटो र GPS सहित सरकारी दर (पूर्ण क्षति रु ५ लाख, आंशिक रु ५० हजार) स्वतः हिसाब भई सिधै बैंक खातामा क्षतिपूर्ति सिफारिस।',
+      bannerGradient: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #0f766e 100%)',
+      iconWatermark: <Coins size={360} color="#10b981" />,
+    },
+    heavy_equipment: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — खोज तथा उद्धार (SAR) र हेभी इक्युपमेन्ट डाइरेक्टरी',
+      badgeIcon: <Truck size={16} color="#f59e0b" />,
+      title: 'डोजर/एक्साभेटर लाइभ डाइरेक्टरी तथा स्थानीय स्वयंसेवक कार्यदल',
+      desc: 'पालिका तथा निजी डोजर, एक्साभेटर, र्याफ्टिङ बोट र तालिमप्राप्त ६४ जना स्थानीय स्वयंसेवक दलको स्ट्यान्डबाइ नक्सा र सम्पर्क नम्बर।',
+      bannerGradient: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #0f172a 100%)',
+      iconWatermark: <Truck size={360} color="#f59e0b" />,
+    },
+    offline_mesh: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — विपद् प्रतिरोधी शून्य-इन्टरनेट अफलाइन प्रणाली',
+      badgeIcon: <WifiOff size={16} color="#6366f1" />,
+      title: 'अफलाइन सञ्चालन (Offline PWA) र आपतकालीन VHF रेडियो फ्रिक्वेन्सी',
+      desc: 'इन्टरनेट र टेलिकम टावर बन्द हुँदा पनि लोकल वाईफाईबाट खुल्ने र नेपाल प्रहरी, सशस्त्र प्रहरी तथा EOC बीचको VHF रेडियो फ्रिक्वेन्सी लिङ्केज।',
+      bannerGradient: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%)',
+      iconWatermark: <WifiOff size={360} color="#6366f1" />,
     },
     shelters: {
       badge: 'पाँचपोखरी थाङपाल गाउँपालिका — सुरक्षित आश्रयस्थल प्रमाणीकरण तथा राहत सामग्री मौज्दात',
@@ -215,6 +271,11 @@ export const Disaster: React.FC = () => {
   const { data: contacts = [], isLoading: isContactsLoading } = useQuery<EmergencyContact[]>({
     queryKey: ['public-contacts'],
     queryFn: () => disasterApi.getContacts(),
+  });
+
+  const { data: vulnerableSettlements = [] } = useQuery<any[]>({
+    queryKey: ['public-vulnerable-settlements'],
+    queryFn: () => disasterApi.getSettlements().then((r: any) => Array.isArray(r) ? r : (r?.data || [])).catch(() => []),
   });
 
   const { data: shelters = [], isLoading: isSheltersLoading } = useQuery<Shelter[]>({
@@ -852,6 +913,27 @@ export const Disaster: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* 3D Terrain Inundation Twin & Evacuation Route Simulator */}
+          <div style={{ marginTop: '1.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Layers size={20} color="#0284c7" /> ३D भू-धरातल बाढी डुबान सिमुलेटर (3D Inundation Twin)
+                </h3>
+                <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                  जलसतह १ देखि ५ मिटर वृद्धि हुँदा नदी तटीय कुन कुन घरधुरी डुब्छन् र सुरक्षित निकास मार्ग कताबाट जान्छ भन्ने प्रत्यक्ष ३D सिमुलेशन:
+                </p>
+              </div>
+            </div>
+            <Terrain3DView
+              sensors={sensors}
+              settlements={vulnerableSettlements}
+              height="580px"
+              initialWaterRise={2}
+              initialShowEvacuation={true}
+            />
+          </div>
         </div>
       )}
 
@@ -945,7 +1027,9 @@ export const Disaster: React.FC = () => {
       {/* TAB 3: EARLY WARNING SIREN & SAFETY PROTOCOLS */}
       {/* ========================================================================= */}
       {activePublicTab === 'siren' && (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+          {/* Automated IVR Call & LoRa Solar Siren Module */}
+          <IvrVoiceSirenModule />
           {/* Siren Control & Status */}
           <div style={{
             background: '#ffffff',
@@ -1387,6 +1471,34 @@ export const Disaster: React.FC = () => {
             ))
           )}
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 7: MICRO-VULNERABILITY INDEX (५,८०५ घरधुरी डाटा) */}
+      {/* ========================================================================= */}
+      {activePublicTab === 'micro_vulnerability' && (
+        <MicroVulnerabilityTab />
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 8: RAPID DISASTER DAMAGE ASSESSMENT (RDRA मापदण्ड २०७७) */}
+      {/* ========================================================================= */}
+      {activePublicTab === 'rdra_damage' && (
+        <RdraAssessmentTab />
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 9: HEAVY EQUIPMENT & COMMUNITY SAR DIRECTORY */}
+      {/* ========================================================================= */}
+      {activePublicTab === 'heavy_equipment' && (
+        <HeavyEquipmentSarTab />
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 10: OFFLINE RESILIENCE & EMERGENCY VHF RADIO */}
+      {/* ========================================================================= */}
+      {activePublicTab === 'offline_mesh' && (
+        <OfflineMeshRadioTab />
       )}
     </div>
   );

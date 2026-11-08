@@ -240,6 +240,10 @@ export const App: React.FC = () => {
           <Route path="/disaster/shelters" element={<Disaster />} />
           <Route path="/disaster/cameras" element={<Disaster />} />
           <Route path="/disaster/hotlines" element={<Disaster />} />
+          <Route path="/disaster/micro-vulnerability" element={<Disaster />} />
+          <Route path="/disaster/rdra" element={<Disaster />} />
+          <Route path="/disaster/heavy-equipment" element={<Disaster />} />
+          <Route path="/disaster/offline-mesh" element={<Disaster />} />
           <Route path="/environmental-mining" element={<ErrorBoundary><EnvironmentalMiningPage /></ErrorBoundary>} />
           <Route path="/app/environmental-mining" element={<ErrorBoundary><EnvironmentalMiningPage /></ErrorBoundary>} />
           <Route path="/projects" element={<Projects />} />
