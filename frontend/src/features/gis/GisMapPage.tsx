@@ -17,6 +17,13 @@ import { Terrain3DView } from '../../components/maps/Terrain3DView';
 import { AddHazardZoneModal } from './AddHazardZoneModal';
 import { PANCHPOKHARI_TRAIL_HOTELS, PANCHPOKHARI_WAYPOINTS } from '../../data/panchpokhariTrailData';
 import {
+  RIVER_CORRIDORS,
+  CRITICAL_RIPARIAN_FACILITIES,
+  WARD_WISE_RIPARIAN_RISK,
+  RIPARIAN_MACRO_STATS,
+  RIPARIAN_ACTION_RECOMMENDATIONS,
+} from '../../data/riverCorridorData';
+import {
   Layers,
   Building,
   GraduationCap,
@@ -49,6 +56,8 @@ import {
   PanelRightOpen,
   X,
   Landmark,
+  Waves,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface BufferResult {
@@ -102,7 +111,9 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
   const [selectedWard, setSelectedWard] = useState<number | 'all'>(urlWard ? Number(urlWard) : 'all');
   const [selectedType, setSelectedType] = useState<string>(initialType);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeSideTab, setActiveSideTab] = useState<'facilities' | 'simulation' | 'sensors'>('facilities');
+  const [activeSideTab, setActiveSideTab] = useState<'facilities' | 'simulation' | 'sensors' | 'river_corridor'>('facilities');
+  const [showRiverRedZone, setShowRiverRedZone] = useState<boolean>(false);
+  const [riverBufferMeters, setRiverBufferMeters] = useState<number>(200);
 
   // Fullscreen & Layout Expansion States
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
@@ -1091,6 +1102,36 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           </button>
 
           <button
+            onClick={() => {
+              const next = !showRiverRedZone;
+              setShowRiverRedZone(next);
+              if (next) {
+                setActiveSideTab('river_corridor');
+                if (isSidebarCollapsed) setIsSidebarCollapsed(false);
+              }
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1.5px solid #dc2626',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: showRiverRedZone ? '#dc2626' : '#fff1f2',
+              color: showRiverRedZone ? '#ffffff' : '#991b1b',
+              boxShadow: showRiverRedZone ? '0 2px 10px rgba(220, 38, 38, 0.45)' : '0 2px 6px rgba(220, 38, 38, 0.15)',
+              transition: 'all 0.15s ease',
+            }}
+            title="खोला तथा नदीको दुबै तर्फ २०० मिटर सम्मको रेड जोन र जोखिम मूल्याङ्कन"
+          >
+            <Waves size={16} color={showRiverRedZone ? '#ffffff' : '#dc2626'} />
+            <span>🌊 नदी {riverBufferMeters}m रेड जोन {showRiverRedZone ? '✓' : ''}</span>
+          </button>
+
+          <button
             onClick={toggleFullscreen}
             style={{
               display: 'flex',
@@ -1627,6 +1668,36 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           </button>
 
           <button
+            onClick={() => {
+              const next = !showRiverRedZone;
+              setShowRiverRedZone(next);
+              if (next) {
+                setActiveSideTab('river_corridor');
+                if (isSidebarCollapsed) setIsSidebarCollapsed(false);
+              }
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1.5px solid #dc2626',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: showRiverRedZone ? '#dc2626' : '#fff1f2',
+              color: showRiverRedZone ? '#ffffff' : '#991b1b',
+              boxShadow: showRiverRedZone ? '0 2px 10px rgba(220, 38, 38, 0.45)' : '0 2px 6px rgba(220, 38, 38, 0.15)',
+              transition: 'all 0.15s ease',
+            }}
+            title="खोला तथा नदीको दुबै तर्फ २०० मिटर सम्मको रेड जोन र जोखिम मूल्याङ्कन"
+          >
+            <Waves size={16} color={showRiverRedZone ? '#ffffff' : '#dc2626'} />
+            <span>🌊 नदी {riverBufferMeters}m रेड जोन {showRiverRedZone ? '✓' : ''}</span>
+          </button>
+
+          <button
             onClick={toggleFullscreen}
             style={{
               display: 'flex',
@@ -1715,6 +1786,9 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
               onUpdateLocation={isPublic ? undefined : handleUpdateLocation}
               height={isSidebarCollapsed ? '780px' : '650px'}
               bufferData={bufferMutation.data}
+              showRiverRedZone={showRiverRedZone}
+              riverBufferMeters={riverBufferMeters}
+              onToggleRiverRedZone={setShowRiverRedZone}
               onSelectLocation={(lat, lng, name) => {
                 setSelectedLocation({ lat, lng, name });
                 setActiveSideTab('simulation');
@@ -1726,6 +1800,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
               sensors={sensors}
               settlements={vulnerableSettlements}
               height={isSidebarCollapsed ? '780px' : '650px'}
+              initialShowRiverRedZone={showRiverRedZone}
             />
           )}
 
@@ -1819,6 +1894,32 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
             >
               <Activity size={14} />
               <span>IoT स्ट्रिम ({sensors.length})</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSideTab('river_corridor');
+                setShowRiverRedZone(true);
+              }}
+              style={{
+                flex: 1.3,
+                padding: '0.65rem 0.35rem',
+                border: 'none',
+                background: 'none',
+                fontWeight: activeSideTab === 'river_corridor' ? 700 : 500,
+                color: activeSideTab === 'river_corridor' ? '#dc2626' : 'var(--text-muted)',
+                borderBottom: activeSideTab === 'river_corridor' ? '2px solid #dc2626' : 'none',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.25rem',
+              }}
+              title="नदी तथा खोला किनार २०० मिटर रेड जोन तथा जोखिम मूल्याङ्कन"
+            >
+              <Waves size={14} />
+              <span>नदी {riverBufferMeters}m रेड जोन</span>
             </button>
           </div>
 
@@ -2319,6 +2420,223 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
               })}
             </div>
           )}
+
+          {/* Tab 4: 200m River Corridor Red Zone & Riparian Risk Assessment */}
+          {activeSideTab === 'river_corridor' && (
+            <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.85rem', flex: 1, paddingRight: '0.2rem' }}>
+              {/* Header Banner */}
+              <div style={{ padding: '0.75rem', borderRadius: '8px', backgroundColor: '#fef2f2', border: '1px solid #fecaca' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#991b1b', fontWeight: 700, fontSize: '0.88rem' }}>
+                    <Waves size={16} />
+                    <span>नदी किनार रेड जोन तथा जोखिम मूल्याङ्कन</span>
+                  </div>
+                  <button
+                    onClick={() => setShowRiverRedZone(!showRiverRedZone)}
+                    style={{
+                      background: showRiverRedZone ? '#dc2626' : '#94a3b8',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '14px',
+                      padding: '2px 8px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {showRiverRedZone ? '✓ नक्सामा अन' : 'अफ'}
+                  </button>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#7f1d1d', marginTop: '0.3rem', lineHeight: '1.4' }}>
+                  मेलम्ची, इन्द्रावती तथा याङ्ग्री-लार्के जलाधार क्षेत्रको दुवै किनारको जोखिम विश्लेषण र भवन निर्माण निषेध नियमन।
+                </div>
+              </div>
+
+              {/* Dynamic Buffer Radius Selector */}
+              <div style={{ padding: '0.65rem', borderRadius: '8px', backgroundColor: '#f8fafc', border: '1px solid var(--border)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                  <span>तटीय बफर दायरा (दुबै किनारा):</span>
+                  <span style={{ color: '#dc2626', fontWeight: 800 }}>{riverBufferMeters} मिटर</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.4rem' }}>
+                  {[50, 100, 200, 300, 500].map((dist) => (
+                    <button
+                      key={dist}
+                      onClick={() => setRiverBufferMeters(dist)}
+                      style={{
+                        flex: 1,
+                        padding: '0.35rem 0.2rem',
+                        borderRadius: '6px',
+                        border: riverBufferMeters === dist ? '1.5px solid #dc2626' : '1px solid var(--border)',
+                        backgroundColor: riverBufferMeters === dist ? '#fee2e2' : 'white',
+                        color: riverBufferMeters === dist ? '#991b1b' : 'var(--text-main)',
+                        fontSize: '0.74rem',
+                        fontWeight: riverBufferMeters === dist ? 700 : 500,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {dist}m
+                    </button>
+                  ))}
+                </div>
+                <div style={{ fontSize: '0.7rem', color: '#64748b', lineHeight: '1.4' }}>
+                  {riverBufferMeters === 50 && '🔴 उच्च बहाव कटान क्षेत्र (Immediate Danger Core) — तत्काल बस्ती स्थानान्तरण आवश्यक'}
+                  {riverBufferMeters === 100 && '🟠 बाढी डुबान क्षेत्र (Severe Inundation Zone) — मनसुनमा डुब्ने जोखिम'}
+                  {riverBufferMeters === 200 && '🔴 नेपाल सरकार तथा स्थानीय विपद् मापदण्ड अनुसार भवन निर्माण निषेधित रेड जोन (Statutory Setback)'}
+                  {riverBufferMeters === 300 && '🟡 पूर्वसूचना तथा सतर्कता क्षेत्र (Riparian Warning Zone)'}
+                  {riverBufferMeters === 500 && '🔵 आकस्मिक व्यवस्थापन तथा जलाधार क्षेत्र (Contingency Buffer)'}
+                </div>
+              </div>
+
+              {/* Dynamic Impact Metric Summary (4 Cards) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <div style={{ padding: '0.65rem', borderRadius: '8px', backgroundColor: '#fff1f2', border: '1px solid #fecdd3' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#9f1239', fontWeight: 600 }}>जोखिममा रहेका घरधुरी</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#881337', marginTop: '2px' }}>
+                    {Math.round(RIPARIAN_MACRO_STATS.totalHouseholdsAtRisk * (riverBufferMeters / 200))}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#e11d48' }}>
+                    कच्ची ढुङ्गा-माटो: {Math.round(RIPARIAN_MACRO_STATS.mudStoneHousesCount * (riverBufferMeters / 200))} घर
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.65rem', borderRadius: '8px', backgroundColor: '#fef3c7', border: '1px solid #fde68a' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#92400e', fontWeight: 600 }}>जोखिमयुक्त जनसङ्ख्या</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#78350f', marginTop: '2px' }}>
+                    {Math.round(RIPARIAN_MACRO_STATS.totalPopulationAtRisk * (riverBufferMeters / 200)).toLocaleString('ne-NP')}
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#b45309' }}>
+                    अति-संवेदनशील: {Math.round(RIPARIAN_MACRO_STATS.criticalVulnerableCount * (riverBufferMeters / 200))} जना
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.65rem', borderRadius: '8px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#0369a1', fontWeight: 600 }}>पुल तथा सडक पूर्वाधार</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0c4a6e', marginTop: '2px' }}>
+                    {RIPARIAN_MACRO_STATS.bridgesInRedZone} पुल | {(RIPARIAN_MACRO_STATS.roadsAtRiskKm * (riverBufferMeters / 200)).toFixed(1)} km
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#0284c7' }}>
+                    विद्यालय/स्वास्थ्य: {RIPARIAN_MACRO_STATS.schoolsHealthPostsCount} वटा
+                  </div>
+                </div>
+
+                <div style={{ padding: '0.65rem', borderRadius: '8px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                  <div style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 600 }}>कृषि जमिन तथा खानी</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#14532d', marginTop: '2px' }}>
+                    {Math.round(RIPARIAN_MACRO_STATS.agriculturalLandHa * (riverBufferMeters / 200))} हेक्टर
+                  </div>
+                  <div style={{ fontSize: '0.68rem', color: '#16a34a' }}>
+                    नदीजन्य खानी: {RIPARIAN_MACRO_STATS.miningSitesCount} वटा
+                  </div>
+                </div>
+              </div>
+
+              {/* Ward-wise Riparian Vulnerability Table */}
+              <div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <AlertTriangle size={14} color="#dc2626" />
+                  <span>वडा अनुसार {riverBufferMeters}m तटीय जोखिम वर्गीकरण</span>
+                </div>
+                <div style={{ border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
+                  <table style={{ width: '100%', fontSize: '0.72rem', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid var(--border)' }}>
+                      <tr>
+                        <th style={{ padding: '5px 6px' }}>वडा</th>
+                        <th style={{ padding: '5px 6px' }}>मुख्य नदी/खोला</th>
+                        <th style={{ padding: '5px 6px', textAlign: 'right' }}>घरधुरी</th>
+                        <th style={{ padding: '5px 6px', textAlign: 'right' }}>अशक्त/सुत्केरी</th>
+                        <th style={{ padding: '5px 6px' }}>सुरक्षित आश्रयस्थल</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {WARD_WISE_RIPARIAN_RISK.map((w) => (
+                        <tr key={w.wardNumber} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '5px 6px', fontWeight: 700 }}>वडा {w.wardNumber} ({w.wardName})</td>
+                          <td style={{ padding: '5px 6px', color: '#0369a1' }}>{w.riverName}</td>
+                          <td style={{ padding: '5px 6px', textAlign: 'right', fontWeight: 700, color: '#991b1b' }}>
+                            {Math.round(w.householdsIn200m * (riverBufferMeters / 200))}
+                          </td>
+                          <td style={{ padding: '5px 6px', textAlign: 'right', color: '#b45309' }}>
+                            {Math.round((w.vulnerableCitizens.postnatalMothers + w.vulnerableCitizens.disabilities + w.vulnerableCitizens.seniors75Plus) * (riverBufferMeters / 200))} जना
+                          </td>
+                          <td style={{ padding: '5px 6px', fontSize: '0.68rem', color: '#059669' }}>{w.shelterName}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Critical Riparian Facilities inside Buffer */}
+              <div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <ShieldAlert size={14} color="#ea580c" />
+                  <span>उच्च जोखिममा रहेका संवेदनशील संरचनाहरू ({CRITICAL_RIPARIAN_FACILITIES.length})</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {CRITICAL_RIPARIAN_FACILITIES.map((fac) => (
+                    <div
+                      key={fac.id}
+                      style={{
+                        padding: '0.55rem',
+                        borderRadius: '6px',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #fed7aa',
+                        fontSize: '0.74rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <strong style={{ color: '#9a3412' }}>{fac.nameNepali}</strong>
+                        <span style={{ fontSize: '0.68rem', backgroundColor: '#fee2e2', color: '#991b1b', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                          {fac.riskRating}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: '#475569', marginTop: '2px' }}>
+                        नदीबाट दूरी: <strong>{fac.distanceFromRiverMeters}m</strong> | वडा नं {fac.wardNumber}
+                      </div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>{fac.details}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Riparian Action Plan & Recommendations */}
+              <div>
+                <div style={{ fontSize: '0.84rem', fontWeight: 700, color: '#15803d', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <CheckCircle2 size={15} color="#16a34a" />
+                  <span>तटीय क्षेत्रमा गर्नुपर्ने कार्यहरू तथा वैज्ञानिक सुझाव (Action Plan)</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {RIPARIAN_ACTION_RECOMMENDATIONS.map((act) => (
+                    <div
+                      key={act.id}
+                      style={{
+                        padding: '0.6rem',
+                        borderRadius: '6px',
+                        backgroundColor: '#f0fdf4',
+                        border: '1px solid #bbf7d0',
+                        fontSize: '0.74rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
+                        <span style={{ fontWeight: 700, color: '#166534' }}>{act.title}</span>
+                        <span style={{ fontSize: '0.65rem', backgroundColor: '#dcfce7', color: '#15803d', padding: '1px 5px', borderRadius: '4px', fontWeight: 700 }}>
+                          {act.categoryNepali}
+                        </span>
+                      </div>
+                      <p style={{ margin: '3px 0', color: '#334155', fontSize: '0.72rem', lineHeight: '1.4' }}>
+                        {act.description}
+                      </p>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.66rem', color: '#64748b', marginTop: '3px' }}>
+                        <span>जिम्मेवार: <strong>{act.responsibleEntity}</strong></span>
+                        <span style={{ color: '#047857', fontWeight: 600 }}>{act.expectedImpact}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           </div>
         )}
       </div>
@@ -2599,6 +2917,9 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
                 onUpdateLocation={isPublic ? undefined : handleUpdateLocation}
                 height="100vh"
                 bufferData={bufferMutation.data}
+                showRiverRedZone={showRiverRedZone}
+                riverBufferMeters={riverBufferMeters}
+                onToggleRiverRedZone={setShowRiverRedZone}
                 onSelectLocation={(lat, lng, name) => {
                   setSelectedLocation({ lat, lng, name });
                   setActiveSideTab('simulation');
@@ -2609,6 +2930,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
                 sensors={sensors}
                 settlements={vulnerableSettlements}
                 height="100vh"
+                initialShowRiverRedZone={showRiverRedZone}
               />
             )}
 

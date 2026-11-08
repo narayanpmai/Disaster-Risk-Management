@@ -13,7 +13,8 @@ import {
   Users,
   ShieldCheck,
   Zap,
-  Info
+  Info,
+  ShieldAlert,
 } from 'lucide-react';
 
 interface Terrain3DViewProps {
@@ -22,6 +23,7 @@ interface Terrain3DViewProps {
   height?: string;
   initialWaterRise?: number;
   initialShowEvacuation?: boolean;
+  initialShowRiverRedZone?: boolean;
 }
 
 interface Point3D {
@@ -36,6 +38,7 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
   height = '560px',
   initialWaterRise = 0,
   initialShowEvacuation = false,
+  initialShowRiverRedZone = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rotationX, setRotationX] = useState<number>(0.55); // tilt angle
@@ -48,6 +51,7 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
   const [waterRise, setWaterRise] = useState<number>(initialWaterRise);
   const [showEvacuationRoute, setShowEvacuationRoute] = useState<boolean>(initialShowEvacuation);
   const [showVulnerablePins, setShowVulnerablePins] = useState<boolean>(false);
+  const [showRiverRedZone, setShowRiverRedZone] = useState<boolean>(initialShowRiverRedZone);
 
   // Panchpokhari Topographic Grid (Valley 1,200m -> 4,100m Peak)
   const gridSize = 24;
@@ -193,6 +197,57 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
         else ctx.lineTo(rp.x, rp.y);
       }
       ctx.stroke();
+
+      // 2.5 Render 200m Riparian Red Zone Ribbon (When showRiverRedZone is true)
+      if (showRiverRedZone) {
+        const redZoneWidth = 44; // Represents 200m corridor on both banks in 3D scale
+        for (let i = 0; i < gridSize - 1; i++) {
+          const z0 = i * gridSpacing - halfGrid;
+          const z1 = (i + 1) * gridSpacing - halfGrid;
+          const cx0 = Math.sin(i * 0.4) * 15;
+          const cx1 = Math.sin((i + 1) * 0.4) * 15;
+          const y0 = getElevation(gridSize / 2, i) - 5;
+          const y1 = getElevation(gridSize / 2, i + 1) - 5;
+
+          const left0 = project({ x: cx0 - redZoneWidth, y: y0, z: z0 });
+          const right0 = project({ x: cx0 + redZoneWidth, y: y0, z: z0 });
+          const left1 = project({ x: cx1 - redZoneWidth, y: y1, z: z1 });
+          const right1 = project({ x: cx1 + redZoneWidth, y: y1, z: z1 });
+
+          ctx.beginPath();
+          ctx.moveTo(left0.x, left0.y);
+          ctx.lineTo(right0.x, right0.y);
+          ctx.lineTo(right1.x, right1.y);
+          ctx.lineTo(left1.x, left1.y);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(239, 68, 68, 0.22)';
+          ctx.fill();
+
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 1.2;
+          ctx.setLineDash([4, 4]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Floating 3D Red Zone Label
+        const rzMarker = project({ x: 0, y: getElevation(gridSize / 2, 4) + 14, z: 4 * gridSpacing - halfGrid });
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1.5;
+        const rzText = '🔴 नदी दुवैतर्फ २००m रेड जोन (भवन निर्माण निषेधित क्षेत्र)';
+        ctx.font = 'bold 11px sans-serif';
+        const rzw = ctx.measureText(rzText).width + 20;
+
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(rzMarker.x - rzw / 2, rzMarker.y - 14, rzw, 24, 6);
+        else ctx.rect(rzMarker.x - rzw / 2, rzMarker.y - 14, rzw, 24);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fca5a5';
+        ctx.fillText(rzText, rzMarker.x - rzw / 2 + 10, rzMarker.y + 2);
+      }
 
       // 3. Render 3D Flood Inundation Twin Water Sheet (When waterRise > 0)
       if (waterRise > 0) {
@@ -491,7 +546,7 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [rotationX, rotationY, zoom, sensors, settlements, waterRise, showEvacuationRoute, showVulnerablePins]);
+  }, [rotationX, rotationY, zoom, sensors, settlements, waterRise, showEvacuationRoute, showVulnerablePins, showRiverRedZone]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -684,6 +739,29 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
         >
           <Users size={13} color={showVulnerablePins ? '#ef4444' : '#e2e8f0'} />
           <span>{showVulnerablePins ? '✓ अति-संवेदनशील पिन' : '🔴 संवेदनशील नागरिक'}</span>
+        </button>
+
+        {/* 200m River Red Zone Ribbon Toggle */}
+        <button
+          onClick={() => setShowRiverRedZone((prev) => !prev)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            padding: '4px 10px',
+            borderRadius: '6px',
+            border: showRiverRedZone ? '1.5px solid #dc2626' : '1px solid rgba(255, 255, 255, 0.2)',
+            backgroundColor: showRiverRedZone ? 'rgba(220, 38, 38, 0.45)' : 'transparent',
+            color: showRiverRedZone ? '#fca5a5' : '#e2e8f0',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            boxShadow: showRiverRedZone ? '0 0 10px rgba(220, 38, 38, 0.6)' : 'none',
+          }}
+          title="नदी किनार २०० मिटर रेड जोन (भवन निर्माण निषेधित क्षेत्र) ३D मा देखाउनुहोस्"
+        >
+          <ShieldAlert size={13} color={showRiverRedZone ? '#f87171' : '#e2e8f0'} />
+          <span>{showRiverRedZone ? '✓ २००m रेड जोन सक्रिय' : '🌊 २००m रेड जोन'}</span>
         </button>
       </div>
 

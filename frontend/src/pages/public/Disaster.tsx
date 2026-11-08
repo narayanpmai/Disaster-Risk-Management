@@ -919,10 +919,10 @@ export const Disaster: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Layers size={20} color="#0284c7" /> ३D भू-धरातल बाढी डुबान सिमुलेटर (3D Inundation Twin)
+                  <Layers size={20} color="#0284c7" /> ३D भू-धरातल बाढी डुबान सिमुलेटर तथा नदी किनार २००m रेड जोन
                 </h3>
                 <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                  जलसतह १ देखि ५ मिटर वृद्धि हुँदा नदी तटीय कुन कुन घरधुरी डुब्छन् र सुरक्षित निकास मार्ग कताबाट जान्छ भन्ने प्रत्यक्ष ३D सिमुलेशन:
+                  जलसतह १ देखि ५ मिटर वृद्धि हुँदा नदी तटीय कुन कुन घरधुरी डुब्छन्, २०० मिटर रेड जोन कहाँ पर्छ र सुरक्षित निकास मार्ग कताबाट जान्छ भन्ने प्रत्यक्ष ३D सिमुलेशन:
                 </p>
               </div>
             </div>
@@ -932,6 +932,7 @@ export const Disaster: React.FC = () => {
               height="580px"
               initialWaterRise={2}
               initialShowEvacuation={true}
+              initialShowRiverRedZone={true}
             />
           </div>
         </div>

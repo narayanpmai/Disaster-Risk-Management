@@ -20,6 +20,11 @@ import {
   AMA_YANGRI_HOTELS,
 } from '../../data/amaYangriTrailData';
 import {
+  RIVER_CORRIDORS,
+  generateCorridorPolygon,
+  CRITICAL_RIPARIAN_FACILITIES,
+} from '../../data/riverCorridorData';
+import {
   Compass,
   Phone,
   MapPin,
@@ -50,6 +55,9 @@ interface PalikaMapProps {
   baseLayer?: 'satellite' | 'streets' | 'topo';
   onBaseLayerChange?: (layer: 'satellite' | 'streets' | 'topo') => void;
   showTrekkingTrail?: boolean;
+  showRiverRedZone?: boolean;
+  riverBufferMeters?: number;
+  onToggleRiverRedZone?: (active: boolean) => void;
 }
 
 interface PendingMoveInfo {
@@ -79,6 +87,9 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
   baseLayer = 'satellite',
   onBaseLayerChange,
   showTrekkingTrail = true,
+  showRiverRedZone = false,
+  riverBufferMeters = 200,
+  onToggleRiverRedZone,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -86,8 +97,21 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
   const facilitiesLayerRef = useRef<L.LayerGroup | null>(null);
   const sensorsLayerRef = useRef<L.LayerGroup | null>(null);
   const trekkingLayerRef = useRef<L.LayerGroup | null>(null);
+  const riverLayerRef = useRef<L.LayerGroup | null>(null);
   const bufferLayerRef = useRef<L.GeoJSON | null>(null);
   const facilityMarkersMapRef = useRef<Map<string, L.Marker>>(new Map());
+
+  // River Corridor 200m Red Zone State
+  const [isRiverRedZoneActive, setIsRiverRedZoneActive] = useState<boolean>(showRiverRedZone);
+  const [activeRiverBuffer, setActiveRiverBuffer] = useState<number>(riverBufferMeters);
+
+  useEffect(() => {
+    setIsRiverRedZoneActive(showRiverRedZone);
+  }, [showRiverRedZone]);
+
+  useEffect(() => {
+    setActiveRiverBuffer(riverBufferMeters);
+  }, [riverBufferMeters]);
 
   // Store user-dragged coordinates in memory so re-renders NEVER snap markers back
   const movedCoordsRef = useRef<Map<string, { lat: number; lng: number }>>(new Map());
@@ -1434,6 +1458,105 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
     }
   }, [bufferData]);
 
+  // Handle River Corridor Red Zone (200m Riparian Buffer & Risk Facilities)
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    if (riverLayerRef.current) {
+      mapInstanceRef.current.removeLayer(riverLayerRef.current);
+      riverLayerRef.current = null;
+    }
+
+    if (isRiverRedZoneActive) {
+      const group = L.layerGroup();
+
+      RIVER_CORRIDORS.forEach((corridor) => {
+        // 1. Buffer Hazard Corridor (200m or activeRiverBuffer on both flanks)
+        const polyCoords = generateCorridorPolygon(corridor.coordinates, activeRiverBuffer);
+        const polygon = L.polygon(polyCoords, {
+          color: '#dc2626',
+          weight: 2,
+          dashArray: '6, 6',
+          fillColor: '#ef4444',
+          fillOpacity: 0.32,
+        });
+
+        polygon.bindPopup(`
+          <div style="font-family: inherit; padding: 6px; min-width: 210px;">
+            <div style="display: flex; align-items: center; gap: 6px; color: #dc2626; font-weight: 700; font-size: 13px;">
+              <span>🌊 ${corridor.nameNepali}</span>
+            </div>
+            <div style="background: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin: 5px 0;">
+              🔴 ${activeRiverBuffer} मिटर रेड जोन (भवन निर्माण निषेधित क्षेत्र)
+            </div>
+            <div style="font-size: 12px; color: #334155; line-height: 1.45;">
+              बफर दायरा: <strong>${activeRiverBuffer} मिटर (दुबै किनार)</strong><br/>
+              नदी लम्बाइ: <strong>${corridor.lengthKm} कि.मी.</strong><br/>
+              औसत बहाव: <strong>${corridor.averageDischargeCumec} m³/s</strong><br/>
+              <span style="color: #64748b; font-size: 11px;">${corridor.floodHistory}</span>
+            </div>
+          </div>
+        `);
+        polygon.addTo(group);
+
+        // 2. River Centerline
+        const centerline = L.polyline(corridor.coordinates, {
+          color: '#0284c7',
+          weight: 3.5,
+          opacity: 0.9,
+        });
+        centerline.bindPopup(`<strong>${corridor.nameNepali}</strong><br/>प्राकृतिक बहाव धार (River Centerline)`);
+        centerline.addTo(group);
+      });
+
+      // 3. High Risk Critical Facilities in the Red Corridor
+      CRITICAL_RIPARIAN_FACILITIES.forEach((fac) => {
+        const icon = L.divIcon({
+          className: 'custom-riparian-hazard-pin',
+          html: `
+            <div style="
+              background: #ef4444;
+              color: #ffffff;
+              border: 2px solid #ffffff;
+              border-radius: 50%;
+              width: 28px;
+              height: 28px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 0 10px rgba(239, 68, 68, 0.9);
+              font-size: 14px;
+            ">
+              ${fac.category === 'bridge' ? '🌉' : fac.category === 'school' ? '🏫' : fac.category === 'mining_site' ? '⛏️' : fac.category === 'road' ? '🛣️' : '🏘️'}
+            </div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+
+        const marker = L.marker([fac.lat, fac.lng], { icon });
+        marker.bindPopup(`
+          <div style="font-family: inherit; padding: 6px; min-width: 210px;">
+            <div style="font-weight: 700; color: #991b1b; font-size: 13px;">
+              ⚠️ ${fac.nameNepali} (वडा ${fac.wardNumber})
+            </div>
+            <div style="font-size: 11px; color: #dc2626; font-weight: 700; margin: 3px 0;">
+              जोखिम स्तर: ${fac.riskRating}
+            </div>
+            <div style="font-size: 11.5px; color: #475569;">
+              नदीबाट दूरी: <strong>${fac.distanceFromRiverMeters} मिटर</strong><br/>
+              ${fac.details}
+            </div>
+          </div>
+        `);
+        marker.addTo(group);
+      });
+
+      group.addTo(mapInstanceRef.current);
+      riverLayerRef.current = group;
+    }
+  }, [isRiverRedZoneActive, activeRiverBuffer]);
+
   // Revert moved marker
   const handleRevertMove = () => {
     if (!pendingMove) return;
@@ -1594,6 +1717,31 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
           title="आमायाङ्ग्री पिक चुचुरो (३,७७१ मिटर) मा जुम गर्नुहोस्"
         >
           <span>🚩 आमायाङ्ग्री पिक (3,771m)</span>
+        </button>
+
+        <button
+          onClick={() => {
+            const next = !isRiverRedZoneActive;
+            setIsRiverRedZoneActive(next);
+            onToggleRiverRedZone?.(next);
+          }}
+          style={{
+            background: isRiverRedZoneActive ? '#dc2626' : 'rgba(15, 23, 42, 0.85)',
+            color: '#ffffff',
+            border: isRiverRedZoneActive ? '1px solid #f87171' : '1px solid rgba(255, 255, 255, 0.25)',
+            borderRadius: '20px',
+            padding: '4px 11px',
+            fontSize: '11px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            boxShadow: isRiverRedZoneActive ? '0 2px 10px rgba(220, 38, 38, 0.65)' : 'none',
+          }}
+          title="खोला तथा नदीको दुबै तर्फ २०० मिटर सम्मको रेड जोन र जोखिम मूल्याङ्कन"
+        >
+          <span>🌊 नदी {activeRiverBuffer}m रेड जोन {isRiverRedZoneActive ? '✓ सक्रिय' : ''}</span>
         </button>
 
         <button
