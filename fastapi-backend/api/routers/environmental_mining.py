@@ -349,3 +349,4 @@ def create_inspection(data: Dict[str, Any] = Body(...)):
     }
     INSPECTIONS_MOCK.insert(0, new_insp)
     return new_insp
+

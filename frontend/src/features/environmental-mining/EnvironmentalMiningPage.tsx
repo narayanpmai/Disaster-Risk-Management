@@ -766,3 +766,4 @@ export const EnvironmentalMiningPage: React.FC = () => {
     </div>
   );
 };
+

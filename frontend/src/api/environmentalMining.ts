@@ -86,3 +86,4 @@ export const environmentalMiningApi = {
   getInspections: () => api.get<EnvironmentalInspection[]>('/environmental-mining/inspections'),
   createInspection: (data: Partial<EnvironmentalInspection>) => api.post<EnvironmentalInspection>('/environmental-mining/inspections', data),
 };
+
