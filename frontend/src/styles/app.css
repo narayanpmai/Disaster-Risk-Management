@@ -396,4 +396,115 @@ body {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   DISASTER ENTERPRISE RESPONSIVE SUITE (Mobile, Tablet & Large EOC Displays)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Mobile viewports (< 768px) */
+@media (max-width: 768px) {
+  /* Dynamic Hero Banners */
+  .dt-hero-banner {
+    padding: 1.25rem 1rem !important;
+    border-radius: 14px !important;
+    margin-bottom: 1.25rem !important;
+  }
+  .dt-hero-title {
+    font-size: 1.35rem !important;
+    line-height: 1.3 !important;
+  }
+  .dt-hero-desc {
+    font-size: 0.8rem !important;
+    line-height: 1.45 !important;
+  }
+  .dt-hero-watermark {
+    display: none !important;
+  }
+  .dt-hero-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .dt-hero-actions > button,
+  .dt-hero-actions > a {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  /* Responsive Grid Adaptations */
+  .dt-kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem !important;
+  }
+  .dt-telemetry-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  .dt-subtabs-nav {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 0.35rem !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .dt-subtabs-nav > button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  /* Navbar Mobile Optimizations */
+  .dt-navbar-search {
+    display: none !important;
+  }
+  .dt-scope-subtext {
+    display: none !important;
+  }
+  .dt-hide-on-mobile {
+    display: none !important;
+  }
+
+  /* Tables & Lists */
+  .dt-responsive-table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Very Small Mobile (< 480px) */
+@media (max-width: 480px) {
+  .dt-kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .dt-scope-palika-name {
+    max-width: 95px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}
+
+/* Tablet viewports (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dt-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dt-telemetry-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dt-hero-title {
+    font-size: 1.65rem !important;
+  }
+}
+
+/* EOC Command Walls & Ultra-Wide (>= 1440px) */
+@media (min-width: 1440px) {
+  .dt-kpi-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .dt-telemetry-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+
 

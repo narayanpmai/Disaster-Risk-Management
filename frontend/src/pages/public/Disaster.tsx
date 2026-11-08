@@ -432,7 +432,7 @@ export const Disaster: React.FC = () => {
     <div style={{ maxWidth: '1380px', margin: '0 auto', padding: '1.5rem 1rem 3.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       
       {/* Top Banner with Dynamic Meta according to Selected Single Module */}
-      <div style={{
+      <div className="dt-hero-banner" style={{
         position: 'relative',
         borderRadius: '20px',
         overflow: 'hidden',
@@ -445,7 +445,7 @@ export const Disaster: React.FC = () => {
         transition: 'background 0.3s ease',
       }}>
         {/* Dynamic Watermark */}
-        <div style={{
+        <div className="dt-hero-watermark" style={{
           position: 'absolute',
           right: '-40px',
           bottom: '-30px',
@@ -472,15 +472,15 @@ export const Disaster: React.FC = () => {
             {currentMeta.badgeIcon} <span>{currentMeta.badge}</span>
           </div>
 
-          <h1 style={{ fontSize: '2.3rem', fontWeight: 800, lineHeight: 1.25, margin: '0 0 0.85rem 0', letterSpacing: '-0.5px' }}>
+          <h1 className="dt-hero-title" style={{ fontSize: '2.3rem', fontWeight: 800, lineHeight: 1.25, margin: '0 0 0.85rem 0', letterSpacing: '-0.5px' }}>
             {currentMeta.title}
           </h1>
           
-          <p style={{ fontSize: '1.02rem', lineHeight: 1.65, opacity: 0.92, margin: '0 0 1.75rem 0' }}>
+          <p className="dt-hero-desc" style={{ fontSize: '1.02rem', lineHeight: 1.65, opacity: 0.92, margin: '0 0 1.75rem 0' }}>
             {currentMeta.desc}
           </p>
 
-          <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
+          <div className="dt-hero-actions" style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
             <button
               onClick={handleToggleSirenTest}
               style={{
@@ -620,7 +620,7 @@ export const Disaster: React.FC = () => {
       )}
 
       {/* KPI Stats Bar */}
-      <div style={{
+      <div className="dt-kpi-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
         gap: '1rem',

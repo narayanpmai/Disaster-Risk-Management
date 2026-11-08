@@ -169,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
       </div>
 
       {/* ── Center: Search + Date ───────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, maxWidth: '520px' }}>
+      <div className="dt-navbar-search" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1, maxWidth: '520px' }}>
         {/* Search */}
         <div style={{ position: 'relative', flex: 1 }}>
           <Search
@@ -256,10 +256,10 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
             T{activeTier.tierLevel}
           </span>
           <div style={{ textAlign: 'left', lineHeight: 1.15 }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+            <div className="dt-scope-palika-name" style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
               {isNepali ? activePalika.nameNepali : activePalika.nameEnglish}
             </div>
-            <div style={{ fontSize: '0.68rem', color: activeTier.textColor, fontWeight: 700, whiteSpace: 'nowrap' }}>
+            <div className="dt-scope-subtext" style={{ fontSize: '0.68rem', color: activeTier.textColor, fontWeight: 700, whiteSpace: 'nowrap' }}>
               {isNepali ? activeTier.badgeLabel : activeTier.tierLevel === 6 ? 'NEOC National' : activeTier.nameEnglish} {activeTier.tierLevel === 1 ? `(${isNepali ? 'वडा' : 'Ward'} ${selectedWardNumber})` : ''}
             </div>
           </div>

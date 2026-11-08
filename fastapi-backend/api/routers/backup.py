@@ -254,3 +254,4 @@ def export_snapshot_payload(snapshot_id: str):
         "signature": hashlib.sha256(f"{snapshot_id}-SECRET".encode()).hexdigest(),
         "integrity_status": "VALID_AND_AUTHENTICATED"
     }
+

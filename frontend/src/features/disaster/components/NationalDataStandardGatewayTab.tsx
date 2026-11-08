@@ -306,6 +306,7 @@ export const NationalDataStandardGatewayTab: React.FC = () => {
 
       {/* ── Sub-Navigation Pill Tabs ─────────────────────────────────── */}
       <div
+        className="dt-subtabs-nav"
         style={{
           display: 'flex',
           gap: '0.5rem',
@@ -704,7 +705,7 @@ export const NationalDataStandardGatewayTab: React.FC = () => {
           </div>
 
           {/* Stations Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem' }}>
+          <div className="dt-telemetry-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.25rem' }}>
             {stations.map((station) => {
               const isWarning = station.status === 'warning';
               const isDanger = station.status === 'danger';

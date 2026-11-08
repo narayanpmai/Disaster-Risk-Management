@@ -102,7 +102,7 @@ export const DataBackupRecoveryPage: React.FC = () => {
     <div style={{ maxWidth: '1380px', margin: '0 auto', padding: '1.5rem 1rem 3.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* ── Top Header Banner ────────────────────────────────────────── */}
       <div
-        className="dt-card"
+        className="dt-card dt-hero-banner"
         style={{
           background: 'linear-gradient(135deg, #091e3a 0%, #1e3a8a 50%, #0284c7 100%)',
           color: '#ffffff',
@@ -153,7 +153,7 @@ export const DataBackupRecoveryPage: React.FC = () => {
                 <strong>{isNepali ? activePalika.nameNepali : activePalika.nameEnglish}</strong>
               </span>
             </div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0.35rem 0 0.2rem', color: '#ffffff' }}>
+            <h2 className="dt-hero-title" style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0.35rem 0 0.2rem', color: '#ffffff' }}>
               {isNepali
                 ? 'नियमित ब्याकअप तथा आपतकालीन तथ्याङ्क पुनरुत्थान प्रणाली (Data Backup & DR)'
                 : 'Automated Data Backup & Disaster Recovery (DR) Protocol'}
@@ -244,6 +244,7 @@ export const DataBackupRecoveryPage: React.FC = () => {
 
       {/* ── KPIs & SLA Cards ────────────────────────────────────────── */}
       <div
+        className="dt-kpi-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
@@ -567,3 +568,4 @@ export const DataBackupRecoveryPage: React.FC = () => {
 };
 
 export default DataBackupRecoveryPage;
+
