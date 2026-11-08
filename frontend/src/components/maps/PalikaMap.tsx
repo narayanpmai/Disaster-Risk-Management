@@ -379,6 +379,14 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
         iconColor = '#0f766e';
         iconEmoji = '🏛️';
         if (!fac.categoryNepali) typeNepali = 'सहकारी संस्था (Cooperative)';
+      } else if (fac.type === 'vulnerable_settlement') {
+        iconColor = '#dc2626';
+        iconEmoji = '⚠️';
+        if (!fac.categoryNepali) typeNepali = 'उच्च जोखिमयुक्त बस्ती (Vulnerable Settlement)';
+      } else if (fac.type === 'mining_site') {
+        iconColor = '#b45309';
+        iconEmoji = '⛏️';
+        if (!fac.categoryNepali) typeNepali = 'नदीजन्य खानी (Riverine Mining & IEE)';
       }
 
 

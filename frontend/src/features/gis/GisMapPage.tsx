@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSensorsSocket } from '../../api/socket';
 import { municipalityApi, type SensorItem } from '../../api/municipality';
 import { tourismApi, type Hotel, type Destination } from '../../api/tourism';
-import { disasterApi, type Shelter } from '../../api/disaster';
+import { disasterApi, type Shelter, type VulnerableSettlement } from '../../api/disaster';
+import { environmentalMiningApi, type MiningSite } from '../../api/environmentalMining';
 import { complaintsApi } from '../../api/complaints';
 import type { Complaint } from '../../types/complaint';
 import { citizenServicesApi } from '../../api/citizenServices';
@@ -210,6 +211,16 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
   const { data: envRisks = [] } = useQuery<any[]>({
     queryKey: ['gis-environmental-risks'],
     queryFn: () => api.get('/gis/environmental-risks').then((r: any) => Array.isArray(r) ? r : r.data || []),
+  });
+
+  const { data: miningSites = [] } = useQuery<MiningSite[]>({
+    queryKey: ['gis-mining-sites'],
+    queryFn: () => environmentalMiningApi.getMiningSites(),
+  });
+
+  const { data: vulnerableSettlements = [] } = useQuery<VulnerableSettlement[]>({
+    queryKey: ['gis-vulnerable-settlements'],
+    queryFn: () => disasterApi.getSettlements(),
   });
 
   const allFacilities = useMemo(() => {
@@ -701,8 +712,44 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
       } as any);
     });
 
+    // Real High-Risk Vulnerable Settlements (जोखिमयुक्त बस्तीहरू)
+    vulnerableSettlements.forEach((vs: VulnerableSettlement, idx: number) => {
+      const coord = WARD_OFFSETS[vs.wardNumber] || WARD_OFFSETS[3];
+      list.push({
+        id: `vs-${vs.id || idx}`,
+        name: vs.settlementName,
+        type: 'vulnerable_settlement',
+        wardNo: vs.wardNumber,
+        lat: coord.lat + (idx * 0.0015 - 0.002),
+        lng: coord.lng + (idx * 0.0012 - 0.0015),
+        categoryNepali: `उच्च जोखिमयुक्त बस्ती (${vs.hazardType})`,
+        contact: vs.focalPerson ? `${vs.focalPerson} (${vs.focalPersonPhone})` : 'सम्पर्क उपलब्ध छैन',
+        elevation: 2150,
+        description: `जोखिम: ${vs.riskLevel} | घरधुरी: ${vs.atRiskHouseholds} (${vs.atRiskPopulation} नागरिक) | आश्रयस्थल: ${vs.safeShelterName || 'तोकिएको छैन'} | रणनीति: ${vs.resettlementPriority}`,
+      } as any);
+    });
+
+    // Riverine Mining Sites & IEE Boundary (नदीजन्य खानी तथा वातावरण)
+    miningSites.forEach((ms: MiningSite, idx: number) => {
+      const coord = WARD_OFFSETS[ms.wardNumber] || WARD_OFFSETS[2];
+      const lat = ms.gpsCoordinates?.lat || (coord.lat + (idx * 0.0018 - 0.002));
+      const lng = ms.gpsCoordinates?.lng || (coord.lng + (idx * 0.0015 - 0.002));
+      list.push({
+        id: `ms-${ms.id || idx}`,
+        name: ms.name,
+        type: 'mining_site',
+        wardNo: ms.wardNumber,
+        lat,
+        lng,
+        categoryNepali: `नदीजन्य खानी (${ms.riverBasin} - IEE: ${ms.ieeStatus})`,
+        contact: `${ms.operatorName}`,
+        elevation: 1720,
+        description: `स्वीकृत कोटा: ${ms.approvedQuotaCuM?.toLocaleString()} m³ | उत्खनन: ${ms.extractedVolumeCuM?.toLocaleString()} m³ | अनुगमन: ${ms.monitoringStatus} | जोखिम: ${ms.riskLevel}`,
+      } as any);
+    });
+
     return list;
-  }, [facilities, businesses, assets, destinations, hotels, shelters, complaints, citizenServices, ambulances, projects, buildingPermits, coops, schools, naturalResources, envRisks]);
+  }, [facilities, businesses, assets, destinations, hotels, shelters, complaints, citizenServices, ambulances, projects, buildingPermits, coops, schools, naturalResources, envRisks, vulnerableSettlements, miningSites]);
 
 
   // IoT Sensors Query
@@ -813,6 +860,8 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
     const project = allFacilities.filter((f) => f.type === 'project').length;
     const buildingPermit = allFacilities.filter((f) => f.type === 'building_permit').length;
     const cooperative = allFacilities.filter((f) => f.type === 'cooperative').length;
+    const vulnerableSettlement = allFacilities.filter((f) => f.type === 'vulnerable_settlement').length;
+    const miningSite = allFacilities.filter((f) => f.type === 'mining_site').length;
     return {
       all: allFacilities.length,
       health,
@@ -829,6 +878,8 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
       project,
       buildingPermit,
       cooperative,
+      vulnerableSettlement,
+      miningSite,
     };
   }, [allFacilities]);
 
@@ -847,6 +898,10 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           ? fac.type === 'viewpoint' || fac.type === 'destination'
           : selectedType === 'shelter'
           ? fac.type === 'shelter'
+          : selectedType === 'vulnerable_settlement'
+          ? fac.type === 'vulnerable_settlement'
+          : selectedType === 'mining_site'
+          ? fac.type === 'mining_site'
           : selectedType === 'agriculture'
           ? fac.type === 'agriculture'
           : selectedType === 'complaint'
@@ -1416,18 +1471,20 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           
           {[
             { id: 'all', label: 'सबै पूर्वाधार', count: counts.all, icon: <Layers size={15} /> },
+            { id: 'vulnerable_settlement', label: 'जोखिमयुक्त बस्तीहरू', count: counts.vulnerableSettlement, icon: <AlertTriangle size={15} color={selectedType === 'vulnerable_settlement' ? '#fff' : '#dc2626'} /> },
+            { id: 'mining_site', label: 'नदीजन्य खानी तथा IEE', count: counts.miningSite, icon: <Pickaxe size={15} color={selectedType === 'mining_site' ? '#fff' : '#b45309'} /> },
+            { id: 'shelter', label: 'सुरक्षित आश्रयस्थल', count: counts.shelter, icon: <Tent size={15} color={selectedType === 'shelter' ? '#fff' : '#059669'} /> },
+            { id: 'project', label: 'विकास आयोजना (DRR Screening)', count: counts.project, icon: <HardHat size={15} /> },
             { id: 'health_post', label: 'स्वास्थ्य सेवा', count: counts.health, icon: <HeartPulse size={15} /> },
+            { id: 'ambulance', label: 'एम्बुलेन्स सेवा', count: counts.ambulance, icon: <Truck size={15} /> },
             { id: 'school', label: 'शिक्षा प्रणाली', count: counts.school, icon: <GraduationCap size={15} /> },
             { id: 'ward_office', label: 'वडा/प्रशासकीय कार्यालय', count: counts.wardOffice, icon: <Building size={15} /> },
             { id: 'viewpoint', label: 'पर्यटन तथा सम्पदा', count: counts.viewpoint, icon: <Compass size={15} /> },
             { id: 'hotel', label: 'होटल/होमस्टे', count: counts.hotel, icon: <Tent size={15} /> },
-            { id: 'shelter', label: 'सुरक्षित आश्रयस्थल', count: counts.shelter, icon: <Tent size={15} color={selectedType === 'shelter' ? '#fff' : '#059669'} /> },
             { id: 'agriculture', label: 'कृषि तथा पशुपन्छी', count: counts.agriculture, icon: <span style={{ fontSize: '1rem', lineHeight: 1 }}>🌾</span> },
             { id: 'complaint', label: 'जनगुनासो', count: counts.complaint, icon: <MessageSquare size={15} /> },
             { id: 'citizen_service', label: 'नागरिक सेवा डेस्क', count: counts.citizenService, icon: <FileCheck size={15} /> },
-            { id: 'ambulance', label: 'एम्बुलेन्स सेवा', count: counts.ambulance, icon: <Truck size={15} /> },
             { id: 'social_care', label: 'सामाजिक सुरक्षा', count: counts.socialCare, icon: <Accessibility size={15} /> },
-            { id: 'project', label: 'विकास आयोजना', count: counts.project, icon: <HardHat size={15} /> },
             { id: 'building_permit', label: 'e-BPS नक्सापास', count: counts.buildingPermit, icon: <Building2 size={15} /> },
           ].map((tab) => {
             const isActive = selectedType === tab.id;
