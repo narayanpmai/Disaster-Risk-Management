@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getSensorsSocket } from '../../api/socket';
 import { sectoralApi } from '../../api/sectoral';
@@ -103,7 +104,9 @@ const INITIAL_VULNERABLE_SETTLEMENTS: VulnerableSettlement[] = [
 
 export const DisasterPage: React.FC = () => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  type AdminTabType =
     | 'events'
     | 'relief_inventory'
     | 'relief_funds'
@@ -115,8 +118,33 @@ export const DisasterPage: React.FC = () => {
     | 'broadcast'
     | 'recovery_projects'
     | 'msra_matrix'
-    | 'bipad_sync'
-  >('events');
+    | 'bipad_sync';
+
+  const mapParamToTab = (param: string | null): AdminTabType | null => {
+    if (!param) return null;
+    if (param === 'sensors' || param === 'hydromet' || param === 'river_twin') return 'hydromet';
+    if (param === 'landslide' || param === 'settlements' || param === 'vulnerable_settlements') return 'vulnerable_settlements';
+    if (param === 'siren' || param === 'broadcast' || param === 'sms') return 'broadcast';
+    if (param === 'shelters') return 'shelters';
+    if (param === 'cameras' || param === 'cctv') return 'cameras';
+    if (param === 'bipad_sync' || param === 'bipad') return 'bipad_sync';
+    if (param === 'msra_matrix' || param === 'msra') return 'msra_matrix';
+    if (param === 'relief_inventory') return 'relief_inventory';
+    if (param === 'relief_funds') return 'relief_funds';
+    if (param === 'environmental_risks') return 'environmental_risks';
+    if (param === 'recovery_projects') return 'recovery_projects';
+    return null;
+  };
+
+  const initialTab: AdminTabType = mapParamToTab(searchParams.get('tab')) || 'events';
+  const [activeTab, setActiveTab] = useState<AdminTabType>(initialTab);
+
+  useEffect(() => {
+    const matched = mapParamToTab(searchParams.get('tab'));
+    if (matched && matched !== activeTab) {
+      setActiveTab(matched);
+    }
+  }, [searchParams]);
   const [selectedCamera, setSelectedCamera] = useState<CameraItem | null>(null);
   const [cameraFilter, setCameraFilter] = useState<string>('all');
   const [riskSeverityFilter, setRiskSeverityFilter] = useState<string>('all');

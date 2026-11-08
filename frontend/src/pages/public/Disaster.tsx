@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ShieldAlert,
@@ -111,7 +112,26 @@ const LANDSLIDE_ZONES = [
 ];
 
 export const Disaster: React.FC = () => {
-  const [activePublicTab, setActivePublicTab] = useState<'river_twin' | 'landslide' | 'siren' | 'cameras' | 'shelters' | 'hotlines'>('river_twin');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const validTabs = ['river_twin', 'landslide', 'siren', 'cameras', 'shelters', 'hotlines'] as const;
+  type TabType = typeof validTabs[number];
+
+  const queryTab = searchParams.get('tab') as TabType | null;
+  const initialTab: TabType = (queryTab && validTabs.includes(queryTab)) ? queryTab : 'river_twin';
+
+  const [activePublicTab, setActivePublicTab] = useState<TabType>(initialTab);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') as TabType | null;
+    if (tab && validTabs.includes(tab) && tab !== activePublicTab) {
+      setActivePublicTab(tab);
+    }
+  }, [searchParams]);
+
+  const changeTab = (tabId: TabType) => {
+    setActivePublicTab(tabId);
+    setSearchParams({ tab: tabId });
+  };
   const [selectedRiverSensor, setSelectedRiverSensor] = useState<string>('SEN-MEL-01');
   const [isSirenTesting, setIsSirenTesting] = useState<boolean>(false);
   const [shelterWardFilter, setShelterWardFilter] = useState<number | 'all'>('all');
@@ -310,7 +330,7 @@ export const Disaster: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => setActivePublicTab('river_twin')}
+              onClick={() => changeTab('river_twin')}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -523,7 +543,7 @@ export const Disaster: React.FC = () => {
         ].map(t => (
           <button
             key={t.id}
-            onClick={() => setActivePublicTab(t.id as any)}
+            onClick={() => changeTab(t.id as any)}
             style={{
               padding: '0.65rem 1.05rem',
               borderRadius: '10px',

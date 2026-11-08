@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
@@ -51,6 +51,11 @@ import {
   ShieldAlert,
   HardHat,
   Mountain,
+  Waves,
+  Radio,
+  Tent,
+  Video,
+  ChevronRight,
 } from 'lucide-react';
 
 // ── Dark Sidebar Design Tokens ──────────────────────────────────────
@@ -75,6 +80,7 @@ interface NavItem {
   badgeColor?: string;
   roles?: string[];
   comingSoon?: boolean;
+  children?: NavItem[];
 }
 
 interface NavSection {
@@ -117,6 +123,43 @@ export const adminNavSections: NavSection[] = [
         icon: <AlertTriangle size={16} style={{ color: '#ef4444' }} />,
         badge: 'DRRM Hub',
         badgeColor: '#ef4444',
+        children: [
+          {
+            label: 'नदी जलसतह तथा बाढी गेज',
+            path: '/app/disaster?tab=sensors',
+            icon: <Waves size={14} style={{ color: '#0284c7' }} />,
+            badge: 'IoT Live',
+            badgeColor: '#0284c7',
+          },
+          {
+            label: 'पहिरो जोखिम तथा बस्तीहरू',
+            path: '/app/disaster?tab=vulnerable_settlements',
+            icon: <Mountain size={14} style={{ color: '#eab308' }} />,
+            badge: 'नक्सा',
+            badgeColor: '#eab308',
+          },
+          {
+            label: 'स्वचालित साइरन तथा SMS',
+            path: '/app/disaster?tab=broadcast',
+            icon: <Radio size={14} style={{ color: '#ef4444' }} />,
+            badge: 'सतर्कता',
+            badgeColor: '#ef4444',
+          },
+          {
+            label: 'सुरक्षित आश्रयस्थल र राहत मौज्दात',
+            path: '/app/disaster?tab=shelters',
+            icon: <Tent size={14} style={{ color: '#10b981' }} />,
+            badge: '६ वटा',
+            badgeColor: '#10b981',
+          },
+          {
+            label: 'CCTV क्यामेरा लाइभ सर्भिलेन्स',
+            path: '/app/disaster?tab=cameras',
+            icon: <Video size={14} style={{ color: '#8b5cf6' }} />,
+            badge: 'लाइभ',
+            badgeColor: '#8b5cf6',
+          },
+        ],
       },
       {
         label: 'वातावरण तथा नदीजन्य खानी नियमन IEE/वन',
@@ -246,6 +289,43 @@ export const publicNavSections: NavSection[] = [
         icon: <AlertTriangle size={16} style={{ color: '#ef4444' }} />,
         badge: 'DRRM Hub',
         badgeColor: '#ef4444',
+        children: [
+          {
+            label: 'नदी जलसतह तथा बाढी गेज',
+            path: '/disaster?tab=river_twin',
+            icon: <Waves size={14} style={{ color: '#0284c7' }} />,
+            badge: 'IoT Live',
+            badgeColor: '#0284c7',
+          },
+          {
+            label: 'पहिरो जोखिम तथा इन्क्लिनोमिटर',
+            path: '/disaster?tab=landslide',
+            icon: <Mountain size={14} style={{ color: '#eab308' }} />,
+            badge: 'पूर्वसूचना',
+            badgeColor: '#eab308',
+          },
+          {
+            label: 'स्वचालित साइरन र नागरिक सुरक्षा',
+            path: '/disaster?tab=siren',
+            icon: <Radio size={14} style={{ color: '#ef4444' }} />,
+            badge: 'सतर्कता',
+            badgeColor: '#ef4444',
+          },
+          {
+            label: 'सुरक्षित आश्रयस्थल र राहत मौज्दात',
+            path: '/disaster?tab=shelters',
+            icon: <Tent size={14} style={{ color: '#10b981' }} />,
+            badge: '६ वटा',
+            badgeColor: '#10b981',
+          },
+          {
+            label: 'CCTV क्यामेरा लाइभ सर्भिलेन्स',
+            path: '/disaster?tab=cameras',
+            icon: <Video size={14} style={{ color: '#8b5cf6' }} />,
+            badge: 'लाइभ',
+            badgeColor: '#8b5cf6',
+          },
+        ],
       },
       {
         label: 'वातावरण तथा नदीजन्य खानी नियमन IEE/वन',
@@ -328,6 +408,7 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const currentSections = useMemo(() => {
@@ -355,6 +436,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
     return initial;
   });
 
+  // Track expanded state for nested submenus (e.g. /disaster or /app/disaster)
+  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.startsWith('/disaster') || path.startsWith('/app/disaster')) {
+        initial['/disaster'] = true;
+        initial['/app/disaster'] = true;
+      }
+    }
+    return initial;
+  });
+
+  const toggleSubmenu = (path: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setOpenSubmenus((prev) => ({
+      ...prev,
+      [path]: !prev[path],
+    }));
+  };
+
   useEffect(() => {
     setIsMobileOpen(false);
     // Ensure section with active route stays open
@@ -362,13 +467,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
       const isCurrentActive = sec.items.some((item) =>
         item.path === '/' || item.path === '/app'
           ? location.pathname === item.path
-          : location.pathname.startsWith(item.path)
+          : location.pathname.startsWith(item.path.split('?')[0])
       );
       if (isCurrentActive) {
         setOpenSections((prev) => ({ ...prev, [sec.title]: true }));
       }
+      // Auto-open child submenus if current path matches
+      sec.items.forEach((item) => {
+        if (item.children && item.children.length > 0) {
+          if (location.pathname.startsWith(item.path.split('?')[0])) {
+            setOpenSubmenus((prev) => ({ ...prev, [item.path]: true }));
+          }
+        }
+      });
     });
-  }, [location.pathname, isPublic]);
+  }, [location.pathname, location.search, isPublic]);
 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => ({
@@ -520,6 +633,179 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                               Coming Soon
                             </span>
                           </span>
+                        </div>
+                      );
+                    }
+
+                    const hasChildren = Boolean(item.children && item.children.length > 0);
+                    const isSubmenuOpen = Boolean(openSubmenus[item.path]);
+                    const isParentActive = item.path === '/' || item.path === '/app'
+                      ? location.pathname === item.path
+                      : location.pathname.startsWith(item.path.split('?')[0]);
+
+                    if (hasChildren && item.children) {
+                      return (
+                        <div key={item.path} style={{ display: 'flex', flexDirection: 'column' }}>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              borderRadius: '8px',
+                              backgroundColor: isParentActive ? S.bgActive : 'transparent',
+                              transition: 'all 0.15s ease',
+                              padding: '0.15rem 0.35rem 0.15rem 0',
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isParentActive) {
+                                e.currentTarget.style.backgroundColor = S.bgHover;
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isParentActive) {
+                                e.currentTarget.style.backgroundColor = 'transparent';
+                              }
+                            }}
+                          >
+                            <NavLink
+                              to={item.path}
+                              onClick={() => {
+                                setOpenSubmenus((prev) => ({ ...prev, [item.path]: true }));
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.625rem',
+                                padding: '0.45rem 0.5rem',
+                                textDecoration: 'none',
+                                fontSize: '0.825rem',
+                                fontWeight: isParentActive ? 600 : 400,
+                                color: isParentActive ? S.textActive : S.text,
+                                flex: 1,
+                              }}
+                            >
+                              <span style={{ opacity: 0.9, flexShrink: 0 }}>{item.icon}</span>
+                              <span style={{ flex: 1, lineHeight: 1.3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem' }}>
+                                <span>{item.label}</span>
+                                {item.badge && (
+                                  <span
+                                    style={{
+                                      fontSize: '0.58rem',
+                                      padding: '1px 5px',
+                                      borderRadius: '4px',
+                                      backgroundColor: item.badgeColor ? `${item.badgeColor}22` : 'rgba(255,255,255,0.08)',
+                                      color: item.badgeColor || '#93c5fd',
+                                      border: `1px solid ${item.badgeColor ? `${item.badgeColor}44` : 'rgba(255,255,255,0.15)'}`,
+                                      fontWeight: 700,
+                                      whiteSpace: 'nowrap',
+                                      letterSpacing: '0.02em',
+                                    }}
+                                  >
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </span>
+                            </NavLink>
+                            <button
+                              type="button"
+                              onClick={(e) => toggleSubmenu(item.path, e)}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: isParentActive ? '#ffffff' : S.text,
+                                cursor: 'pointer',
+                                padding: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                opacity: 0.8,
+                                borderRadius: '4px',
+                              }}
+                              title={isSubmenuOpen ? 'उप-मेनु बन्द गर्नुहोस्' : 'उप-मेनु खोल्नुहोस्'}
+                            >
+                              <ChevronDown
+                                size={14}
+                                style={{
+                                  transform: isSubmenuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                                  transition: 'transform 0.2s ease',
+                                }}
+                              />
+                            </button>
+                          </div>
+
+                          {/* Accordion Sub-items */}
+                          {isSubmenuOpen && (
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '2px',
+                                marginLeft: '0.9rem',
+                                paddingLeft: '0.6rem',
+                                borderLeft: '2px solid rgba(59, 130, 246, 0.45)',
+                                marginTop: '0.2rem',
+                                marginBottom: '0.35rem',
+                              }}
+                            >
+                              {item.children.map((child) => {
+                                const currentFull = `${location.pathname}${location.search}`;
+                                const isChildActive = currentFull === child.path || (location.pathname === child.path.split('?')[0] && !location.search && (child.path.includes('tab=river_twin') || child.path.includes('tab=sensors')));
+
+                                return (
+                                  <NavLink
+                                    key={child.path}
+                                    to={child.path}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: '0.5rem',
+                                      padding: '0.35rem 0.5rem',
+                                      borderRadius: '6px',
+                                      textDecoration: 'none',
+                                      fontSize: '0.78rem',
+                                      fontWeight: isChildActive ? 600 : 400,
+                                      color: isChildActive ? '#ffffff' : S.text,
+                                      backgroundColor: isChildActive ? 'rgba(59, 130, 246, 0.3)' : 'transparent',
+                                      transition: 'all 0.15s ease',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      if (!isChildActive) {
+                                        e.currentTarget.style.backgroundColor = S.bgHover;
+                                        e.currentTarget.style.color = '#ffffff';
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      if (!isChildActive) {
+                                        e.currentTarget.style.backgroundColor = 'transparent';
+                                        e.currentTarget.style.color = S.text;
+                                      }
+                                    }}
+                                  >
+                                    <span style={{ opacity: isChildActive ? 1 : 0.8, flexShrink: 0 }}>{child.icon}</span>
+                                    <span style={{ flex: 1, lineHeight: 1.25, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.25rem' }}>
+                                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{child.label}</span>
+                                      {child.badge && (
+                                        <span
+                                          style={{
+                                            fontSize: '0.55rem',
+                                            padding: '1px 4px',
+                                            borderRadius: '3px',
+                                            backgroundColor: child.badgeColor ? `${child.badgeColor}22` : 'rgba(255,255,255,0.08)',
+                                            color: child.badgeColor || '#93c5fd',
+                                            border: `1px solid ${child.badgeColor ? `${child.badgeColor}44` : 'rgba(255,255,255,0.15)'}`,
+                                            fontWeight: 700,
+                                            whiteSpace: 'nowrap',
+                                          }}
+                                        >
+                                          {child.badge}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </NavLink>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       );
                     }
