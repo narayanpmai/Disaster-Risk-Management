@@ -208,3 +208,4 @@ def export_bipad_geojson(db: Session = Depends(get_db)):
         "features": features
     }
     return geojson
+

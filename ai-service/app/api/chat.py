@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Header, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import datetime
+import re
 
 router = APIRouter(prefix="/chat", tags=["AI Chat Assistant"])
 
@@ -11,19 +12,14 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
-    tenant_id: Optional[str] = "narayan"
+    tenant_id: Optional[str] = "panchpokhari"
     language: Optional[str] = "ne"
 
 class ChatResponse(BaseModel):
     reply: str
     sources: List[str] = []
     actions: List[str] = []
-
-# Mock DB Tools
-def tool_get_ward_population(ward_no: int) -> dict:
-    """Live DB Tool to fetch population."""
-    mock_db = {1: 3200, 2: 2800, 3: 4100, 4: 2900, 5: 4520}
-    return {"ward": ward_no, "population": mock_db.get(ward_no, 3000)}
+    navigationUrl: Optional[str] = None
 
 @router.post("/", response_model=ChatResponse)
 async def chat_with_assistant(req: ChatRequest):
@@ -31,57 +27,121 @@ async def chat_with_assistant(req: ChatRequest):
         raise HTTPException(status_code=400, detail="Messages list cannot be empty")
         
     last_message = req.messages[-1].content
+    msg_lower = last_message.lower()
     
-    # 1. Apply System Prompt / Persona (Conceptual)
-    system_prompt = f"""You are the official AI Assistant for {req.tenant_id.capitalize()} Municipality. 
-    Answer in {req.language}. Do not hallucinate."""
+    palika_name_np = "पाँचपोखरी थाङपाल गाउँपालिका"
     
-    # 2. Intent Detection (Mock LLM Router)
     reply = ""
     sources = []
     actions = []
+    nav_url = None
     
-    import re
-    ward_match = re.search(r'वडा.*(\d+|[१-९])', last_message)
-    
-    # Map tenant_id to actual Nepali Name
-    palika_names = {
-        "panchpokhari": "पाँचपोखरी थाङपाल गाउँपालिका",
-        "narayan": "नारायण नगरपालिका"
-    }
-    palika_name_np = palika_names.get(req.tenant_id, "हाम्रो पालिका")
-    
-    if "जनसंख्या" in last_message and ward_match:
-        # LLM decides to call a tool!
-        ward_no_str = ward_match.group(1)
-        nepali_to_eng = {'१':'1', '२':'2', '३':'3', '४':'4', '५':'5', '६':'6', '७':'7', '८':'8', '९':'9'}
-        ward_no = int(nepali_to_eng.get(ward_no_str, ward_no_str))
-        
-        # Execute DB Tool
-        db_result = tool_get_ward_population(ward_no)
-        
-        # Format response
-        reply = f"{palika_name_np} वडा नं {db_result['ward']} को कुल जनसंख्या {db_result['population']} रहेको छ।"
-        sources = ["डिजिटल ट्विन लाइभ डेटाबेस (Live Database)"]
-        actions = ["विस्तृत जनसांख्यिकीय रिपोर्ट हेर्नुहोस्"]
-        
-    elif "जन्म दर्ता" in last_message or "नागरिक बडापत्र" in last_message or "नागरिकता" in last_message:
-        # LLM decides to use RAG Knowledge Base
-        reply = "सेवा लिनको लागि निम्न कागजातहरू चाहिन्छ: १. अस्पताल वा सम्बन्धित कार्यालयको प्रमाणपत्र, २. बाबु/आमाको नागरिकता। यो सेवा वडा कार्यालयबाट निःशुल्क प्राप्त गर्न सकिन्छ।"
-        sources = [f"{palika_name_np} - नागरिक बडापत्र २०८०"]
-        actions = ["अनलाइन फारम भर्नुहोस्"]
-        
-    elif "मेयर" in last_message or "अध्यक्ष" in last_message or "प्रमुख" in last_message:
-        reply = f"{palika_name_np}को प्रमुख/अध्यक्षको सचिवालयमा सम्पर्क गर्न पालिकाको आधिकारिक फोन नम्बरमा सम्पर्क गर्न सक्नुहुन्छ वा 'सम्पर्क' बटन थिच्नुहोस्।"
-        sources = ["नगरपालिका सम्पर्क निर्देशिका"]
-        
-    else:
-        # Generic persona fallback based on System Prompt
-        reply = f"म {palika_name_np}को डिजिटल असिस्टेन्ट हुँ। मेरो काम नागरिकहरूलाई छिटो, सही र भरपर्दो जानकारी दिनु हो। मैले कसरी सहयोग गर्न सक्छु? (राजनीतिक वा विवादास्पद विषयमा म टिप्पणी गर्दिन।)"
+    # ── 1. EARLY WARNING / SMS DRAFTING (पूर्वसूचना तथा SMS सन्देश मस्यौदा) ──
+    if any(k in last_message for k in ["sms", "एसएमएस", "पूर्वसूचना", "सन्देश", "ड्राफ्ट", "मस्यौदा"]):
+        reply = (
+            "🚨 **[प्रस्तावित आपतकालीन SMS पूर्वसूचना सन्देश]**\n\n"
+            f"\"🚨 {palika_name_np} आपतकालीन पूर्वसूचना: निरन्तर भारी वर्षाका कारण मेलम्ची खोलामा जलसतह खतरा सीमा पार गरेको छ। "
+            "वडा नं २, ३ र ५ का तटीय तथा भिरालो बस्तीका सम्पूर्ण नागरिकहरू तत्काल नजिकको सुरक्षित आश्रयस्थल (सामुदायिक भवन/विद्यालय) मा जानुहोला। "
+            "आपतकालीन खोज तथा उद्धार सम्पर्क: ०११-४६०१२३, ९८५११*****।\"\n\n"
+            "💡 *यो सन्देश विपद् व्यवस्थापन कमान्ड सेन्टरबाट सिधै NTC, Ncell र Sparrow SMS मार्फत सम्बन्धित वडाका बासिन्दाहरूलाई प्रसारण गर्न सकिन्छ।*"
+        )
+        sources = [
+            "राष्ट्रिय आपतकालीन कार्यसञ्चालन केन्द्र (NEOC) पूर्वसूचना निर्देशिका",
+            "स्थानीय विपद् पूर्वतयारी तथा प्रतिकार्य योजना (LDCRP)"
+        ]
+        actions = ["नागरिक SMS प्रसारण गर्नुहोस्", "जलसतह सेन्सर हेर्नुहोस्"]
+        nav_url = "/disaster?tab=broadcast"
 
-        
+    # ── 2. RELIEF GUIDELINES (विपद् पीडित राहत वितरण मापदण्ड २०७७) ──
+    elif any(k in last_message for k in ["राहत", "मापदण्ड", "रकम", "क्षतिपूर्ति", "मृतक", "अस्थायी आवास"]):
+        reply = (
+            "📜 **नेपाल सरकारको विपद् पीडित उद्धार र राहत सम्बन्धी मापदण्ड, २०७७ अनुसारका मुख्य व्यवस्थाहरू:**\n\n"
+            "१. **मृतक परिवारलाई आर्थिक सहायता:**\n"
+            "   • प्रति मृतक रु. २,००,०००/- (दुई लाख रुपैयाँ)\n"
+            "   • सोही परिवारमा थप व्यक्तिको मृत्यु भएमा प्रति मृतक थप रु. १,००,०००/- (एक लाख रुपैयाँ)\n\n"
+            "२. **अस्थायी आवास निर्माण अनुदान:**\n"
+            "   • घर पूर्ण रूपमा क्षति भई बस्न अयोग्य भएका परिवारलाई अस्थायी टहरा निर्माणका लागि रु. ५०,०००/- (दुई किस्तामा)\n\n"
+            "३. **तत्काल खाद्यान्न तथा गैर-खाद्य राहत:**\n"
+            "   • ५ जनासम्मको परिवारलाई रु. १५,०००/- र ५ जनाभन्दा बढी भएमा रु. २०,०००/- सम्म नगद वा सो बराबरको खाद्यान्न\n\n"
+            "४. **घाइतेको निःशुल्क उपचार:**\n"
+            "   • सरकारी अस्पतालमा आकस्मिक उपचार निःशुल्क हुने र यातायात खर्चबापत प्रति घाइते रु. १०,०००/- सम्म पालिकाबाट उपलब्ध गराउने व्यवस्था छ।"
+        )
+        sources = [
+            "विपद् पीडित उद्धार र राहत सम्बन्धी मापदण्ड, २०७७ (नेपाल सरकार, मन्त्रिपरिषद्)",
+            "विपद् जोखिम न्यूनीकरण तथा व्यवस्थापन ऐन, २०७४"
+        ]
+        actions = ["राहत वितरण अभिलेख हेर्नुहोस्", "नयाँ राहत फारम भर्नुहोस्"]
+        nav_url = "/disaster?tab=relief_funds"
+
+    # ── 3. RIVERBED MINING & IEE (नदीजन्य खानी तथा वातावरण नियमन) ──
+    elif any(k in last_message for k in ["खानी", "iee", "नदीजन्य", "बालुवा", "गिट्टी", "क्रसर", "वातावरण"]):
+        reply = (
+            "⛏️ **नदीजन्य पदार्थ (ढुङ्गा, गिट्टी, बालुवा) उत्खनन तथा IEE वातावरणीय मापदण्डहरू:**\n\n"
+            "१. **मनसुन अवधिमा पूर्ण प्रतिबन्ध:** प्रत्येक वर्ष **असार १ देखि भदौ मसान्तसम्म** नदीजन्य पदार्थ उत्खनन गर्न कानुनी रूपमा पूर्ण रोक लगाइएको छ।\n"
+            "२. **दूरी सम्बन्धी मापदण्ड:**\n"
+            "   • पक्की पुल तथा हाइड्रोपावर इन्टेकबाट कम्तीमा ५०० मिटर टाढा हुनुपर्ने।\n"
+            "   • नदीको मुख्य बहाव धार र बस्तीबाट कम्तीमा ५० मिटर बफर जोन कायम गर्नुपर्ने।\n"
+            "३. **IEE स्वीकृत कोटा सीमा:** स्वीकृत प्रारम्भिक वातावरणीय परीक्षण (IEE) मा तोकिएको घनमिटर (m³) भन्दा १ घनमिटर पनि बढी उत्खनन गर्न पाइँदैन। डिजिटल तौलपुल र जीपीएस अनुगमन अनिवार्य छ।\n"
+            "४. **क्रसर उद्योग नियमन:** राजमार्ग, शिक्षण संस्था र घना बस्तीबाट निर्धारित दूरी कायम हुनुपर्ने।"
+        )
+        sources = [
+            "वातावरण संरक्षण ऐन, २०७६ तथा नियमावली, २०७७",
+            "नदीजन्य पदार्थ (ढुङ्गा, गिट्टी, बालुवा) उत्खनन, बिक्री तथा व्यवस्थापन सम्बन्धी मापदण्ड, २०७७"
+        ]
+        actions = ["खानी अनुगमन सूची हेर्नुहोस्", "IEE अनुपालन स्थिति"]
+        nav_url = "/environmental-mining"
+
+    # ── 4. MSRA & BIO-ENGINEERING (बहुक्षेत्रीय जोखिम मूल्याङ्कन र बायो-इन्जिनियरिङ) ──
+    elif any(k in last_message for k in ["msra", "जोखिम मूल्याङ्कन", "बायो-इन्जिनियरिङ", "भिरालो", "पहिरो", "cri", "बस्ती"]):
+        reply = (
+            "📊 **बहुक्षेत्रीय जोखिम मूल्याङ्कन (MSRA) तथा बायो-इन्जिनियरिङ मापदण्ड:**\n\n"
+            "१. **समग्र जोखिम सूचकाङ्क (Composite Risk Index - CRI) सूत्र:**\n"
+            "   $$\\text{CRI} = \\frac{\\text{Hazard (प्रकोप)} \\times \\text{Exposure (प्रकटीकरण)} \\times \\text{Vulnerability (संवेदनशीलता)}}{\\text{Capacity (तयारी क्षमता)} + 10}$$\n"
+            "   • CRI मान ६५ भन्दा माथि भएमा वडा/बस्तीलाई 'अति उच्च जोखिम' मानिन्छ।\n\n"
+            "२. **पहिरो रोकथाममा बायो-इन्जिनियरिङ रणनीति:**\n"
+            "   • ३० डिग्रीभन्दा बढी भिरालो जमिनमा डोजरे सडक कटिङ रोक्ने।\n"
+            "   • माटो समात्ने बिरुवाहरू: **उत्तिस (Alnus nepalensis), बाँस (Bambusa nutans), अम्रिसो, खस्रु र सिप्लीकन** रोप्ने।\n"
+            "   • सडक छेउमा पानीको व्यवस्थित निकास (Side Drains & Catch Pits) र तारजाली (ग्याबियन) पर्खाल अनिवार्य गर्ने।"
+        )
+        sources = [
+            "नेपाल सडक विभाग बायो-इन्जिनियरिङ निर्देशिका",
+            "NDRRMA बहुक्षेत्रीय विपद् जोखिम मूल्याङ्कन ढाँचा"
+        ]
+        actions = ["MSRA म्याट्रिक्स सिमुलेटर हेर्नुहोस्", "जोखिमयुक्त बस्ती स्थानान्तरण योजना"]
+        nav_url = "/disaster?tab=msra_matrix"
+
+    # ── 5. SAFE SHELTERS & EVACUATION (सुरक्षित आश्रयस्थल र स्थानान्तरण) ──
+    elif any(k in last_message for k in ["आश्रयस्थल", "shelter", "बस्ने", "विस्थापित", "सुरक्षित स्थान"]):
+        reply = (
+            f"🏛️ **{palika_name_np}मा तोकिएका मुख्य सुरक्षित आश्रयस्थलहरू:**\n\n"
+            "• **थाङपालधाप मा.वि. परिसर (वडा ४):** क्षमता ३०० जना (पानी, सोलार ब्याकअप, प्राथमिक उपचार किट उपलब्ध)\n"
+            "• **मानेखर्क सामुदायिक भवन (वडा ५):** क्षमता १८० जना (भिरालो पहिरो विस्थापितहरूका लागि)\n"
+            "• **भोताङ कभर्ड हल (वडा ३):** क्षमता २५० जना (लेकाली बासिन्दाका लागि)\n"
+            "• **तिम्बु स्वास्थ्य चौकी भवन (वडा २):** क्षमता १०० जना (तटीय बाढी प्रभावितका लागि)\n\n"
+            "💡 प्रत्येक आश्रयस्थलमा कम्बल, हेभी-ड्युटी वाटरप्रुफ त्रिपाल र सुक्खा खाद्यान्न मौज्दात राखिएको छ।"
+        )
+        sources = ["पालिका विपद् आपतकालीन कार्यसञ्चालन केन्द्र (LEOC) आश्रयस्थल लगत"]
+        actions = ["नक्सामा आश्रयस्थल हेर्नुहोस्"]
+        nav_url = "/disaster?tab=shelters"
+
+    # ── 6. DEFAULT DRR COPILOT FALLBACK ──
+    else:
+        reply = (
+            f"नमस्ते! म {palika_name_np}को **विपद् जोखिम व्यवस्थापन तथा नीतिगत एआई सहायक (DRM-MSRA AI Copilot)** हुँ।\n\n"
+            "म तपाईंलाई निम्न विषयहरूमा प्राविधिक तथा नीतिगत सहयोग गर्न सक्छु:\n"
+            "• **विपद् पूर्वसूचना SMS मस्यौदा:** बाढी, पहिरो तथा मौसम सतर्कता सन्देश तयार गर्न\n"
+            "• **सरकारी राहत मापदण्ड:** २०७७ को कार्यविधि अनुसार नगद र खाद्यान्न राहतको सीमा बुझ्न\n"
+            "• **वातावरण तथा नदी खानी:** IEE अनुमति, उत्खनन परिमाण र क्रसर नियमनका कानुनी प्रावधान\n"
+            "• **जोखिमयुक्त बस्ती स्थानान्तरण:** MSRA सूचकाङ्क र पहिरो रोकथाम बायो-इन्जिनियरिङ उपायहरू\n\n"
+            "कृपया कुनै पनि प्रश्न सोध्नुहोस् वा तलका द्रुत विकल्पहरू छान्नुहोस्!"
+        )
+        sources = [f"{palika_name_np} विपद् व्यवस्थापन कार्यसञ्चालन निर्देशिका"]
+        actions = ["आपतकालीन अलर्ट पठाउनुहोस्", "BIPAD पोर्टल सिङ्क", "३D नक्सा हेर्नुहोस्"]
+        nav_url = "/disaster"
+
     return ChatResponse(
         reply=reply,
         sources=sources,
-        actions=actions
+        actions=actions,
+        navigationUrl=nav_url
     )

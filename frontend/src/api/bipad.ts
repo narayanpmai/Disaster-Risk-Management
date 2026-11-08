@@ -78,3 +78,4 @@ export const bipadApi = {
     return res?.data || res;
   },
 };
+

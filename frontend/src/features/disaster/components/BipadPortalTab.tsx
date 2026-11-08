@@ -383,3 +383,4 @@ export const BipadPortalTab: React.FC<BipadPortalTabProps> = ({ onTriggerWardAle
     </div>
   );
 };
+
