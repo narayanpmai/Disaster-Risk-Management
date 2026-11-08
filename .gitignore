@@ -1,0 +1,61 @@
+# Node dependencies & builds
+node_modules/
+**/node_modules/
+dist/
+build/
+.cache/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.local
+
+# Python / FastAPI
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyc
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+*.egg-info/
+
+# Uploads, Logs & Temp Files
+uploads/
+backups/
+*.log
+backend_logs.txt
+
+# Executables & installers
+*.msi
+*.exe
+*.iso
+*.dll
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local scratch and testing files
+scratch/
+scratch-*
+scratch_*
+analyze_*.js
+capture_*.js
+capture_screens.ps1
+extract_lI.js
+fetch_school_37.js
+index_katari.js
+lI_component*.js
+openapi_output.json
+school_37_data.json
