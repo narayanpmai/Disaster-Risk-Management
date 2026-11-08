@@ -42,3 +42,25 @@ class BroadcastStatsResponse(BaseModel):
 class DirectSmsPayload(BaseModel):
     phone: str
     message: str
+
+class EarlyWarningTriggerPayload(BaseModel):
+    sensorId: str
+    sensorName: str
+    wardNumber: int = Field(default=1)
+    hazardType: str = Field(default="flood", description="'flood' | 'landslide' | 'weather'")
+    measuredValue: float
+    unit: str = "m"
+    dangerThreshold: float
+    sirenActive: bool = True
+    smsActive: bool = True
+
+class SettlementAlertPayload(BaseModel):
+    settlementId: str
+    settlementName: str
+    wardNumber: int = Field(default=1)
+    hazardType: str = Field(default="पहिरो")
+    focalPerson: str
+    focalPersonPhone: str
+    safeShelterName: Optional[str] = None
+    customNote: Optional[str] = None
+

@@ -1274,4 +1274,35 @@ export const sectoralApi = {
     const res: any = await api.get("/notifications/stats");
     return res?.data || res;
   },
+
+  // Automated Early Warning & Siren Dispatcher
+  triggerEarlyWarning: async (payload: {
+    sensorId: string;
+    sensorName: string;
+    wardNumber: number;
+    hazardType: string;
+    measuredValue: number;
+    unit: string;
+    dangerThreshold: number;
+    sirenActive?: boolean;
+    smsActive?: boolean;
+  }) => {
+    const res: any = await api.post("/notifications/trigger-early-warning", payload);
+    return res?.data || res;
+  },
+
+  // Targeted Vulnerable Settlement SMS Alert Dispatcher
+  sendSettlementAlert: async (payload: {
+    settlementId: string;
+    settlementName: string;
+    wardNumber: number;
+    hazardType: string;
+    focalPerson: string;
+    focalPersonPhone: string;
+    safeShelterName?: string;
+    customNote?: string;
+  }) => {
+    const res: any = await api.post("/notifications/settlement-alert", payload);
+    return res?.data || res;
+  },
 };

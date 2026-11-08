@@ -376,9 +376,54 @@ export const DisasterPage: React.FC = () => {
     }) => sectoralApi.sendEmergencyBroadcast(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['broadcast-history'] });
+      queryClient.invalidateQueries({ queryKey: ['broadcast-stats'] });
       setIsSuccessNotification(true);
       setTimeout(() => setIsSuccessNotification(false), 4000);
     },
+  });
+
+  // Targeted Settlement SMS Alert Mutation
+  const settlementAlertMutation = useMutation({
+    mutationFn: (payload: {
+      settlementId: string;
+      settlementName: string;
+      wardNumber: number;
+      hazardType: string;
+      focalPerson: string;
+      focalPersonPhone: string;
+      safeShelterName?: string;
+    }) => sectoralApi.sendSettlementAlert(payload),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['broadcast-history'] });
+      queryClient.invalidateQueries({ queryKey: ['broadcast-stats'] });
+      alert(`✅ ${data.settlementName || 'बस्ती'} का लागि आपतकालीन SMS सतर्कता पठाइयो!\n• सम्पर्क व्यक्ति: ${data.focalPerson || ''} (${data.focalPersonPhone || ''})\n• लक्षित जनसंख्या: ${data.recipientsCount || 120} नागरिक\n• गेटवे: ${data.deliveredVia?.join(', ')}`);
+    },
+    onError: () => {
+      alert('बस्ती SMS पठाउन असफल भयो। कृपया गेटवे स्थिति जाँच गर्नुहोस्।');
+    }
+  });
+
+  // Automated Early Warning & Siren Dispatcher Mutation
+  const earlyWarningTriggerMutation = useMutation({
+    mutationFn: (payload: {
+      sensorId: string;
+      sensorName: string;
+      wardNumber: number;
+      hazardType: string;
+      measuredValue: number;
+      unit: string;
+      dangerThreshold: number;
+      sirenActive?: boolean;
+      smsActive?: boolean;
+    }) => sectoralApi.triggerEarlyWarning(payload),
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ['broadcast-history'] });
+      queryClient.invalidateQueries({ queryKey: ['broadcast-stats'] });
+      alert(`🚨 स्वचालित पूर्वसूचना तथा आपतकालीन साइरन सक्रिय गरियो!\n• शीर्षक: ${data.title}\n• पठाइएका माध्यम: ${data.deliveredVia?.join(', ')}\n• लक्षित नागरिक संख्या: ${data.recipientsCount} जना`);
+    },
+    onError: () => {
+      alert('पूर्वसूचना ट्रिगर गर्न सकिएन।');
+    }
   });
 
   const handleExportCsv = () => {
@@ -1339,23 +1384,54 @@ export const DisasterPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.65rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                       {vs.focalPerson ? `सम्पर्क: ${vs.focalPerson} (${vs.focalPersonPhone})` : 'सम्पर्क उपलब्ध छैन'}
                     </div>
-                    <button
-                      onClick={() => {
-                        if (confirm(`के तपाईं "${vs.settlementName}" हटाउन चाहनुहुन्छ?`)) {
-                          const updated = vulnerableSettlements.filter(s => s.id !== vs.id);
-                          setVulnerableSettlements(updated);
-                          localStorage.setItem('palika_vulnerable_settlements', JSON.stringify(updated));
-                        }
-                      }}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
-                      title="हटाउनुहोस्"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <button
+                        onClick={() => settlementAlertMutation.mutate({
+                          settlementId: vs.id,
+                          settlementName: vs.settlementName,
+                          wardNumber: vs.wardNumber,
+                          hazardType: vs.hazardType,
+                          focalPerson: vs.focalPerson,
+                          focalPersonPhone: vs.focalPersonPhone,
+                          safeShelterName: vs.safeShelterName,
+                        })}
+                        disabled={settlementAlertMutation.isPending}
+                        className="dt-btn"
+                        style={{
+                          backgroundColor: '#dc2626',
+                          color: '#ffffff',
+                          fontSize: '0.72rem',
+                          padding: '0.28rem 0.6rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.3rem',
+                          borderRadius: '4px',
+                          border: 'none',
+                          cursor: 'pointer'
+                        }}
+                        title="सम्पर्क व्यक्ति र स्थानीय बासिन्दालाई तत्काल सतर्कता SMS पठाउनुहोस्"
+                      >
+                        <Send size={12} /> {settlementAlertMutation.isPending ? 'पठाउँदै...' : '🚨 SMS सतर्कता'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`के तपाईं "${vs.settlementName}" हटाउन चाहनुहुन्छ?`)) {
+                            const updated = vulnerableSettlements.filter(s => s.id !== vs.id);
+                            setVulnerableSettlements(updated);
+                            localStorage.setItem('palika_vulnerable_settlements', JSON.stringify(updated));
+                          }
+                        }}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', padding: '0.2rem' }}
+                        title="हटाउनुहोस्"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -1999,17 +2075,42 @@ export const DisasterPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  setAlertTitle('मेलम्ची खोला तटीय क्षेत्र उच्च बाढी सतर्कता');
-                  setAlertMessage('🚨 पाँचपोखरी थाङपाल गाउँपालिका आपतकालीन सतर्कता: मेलम्ची खोलामा जलसतह ' + (sensors.find(s => s.sensorId === 'SEN-MEL-01')?.lastValue || '5.8') + ' मिटर पुगेको छ। तटीय क्षेत्रका सम्पूर्ण नागरिकहरू तुरुन्तै नजिकको अग्लो र सुरक्षित आश्रयस्थलमा जानुहोला। सम्पर्क: ०११-४६०१११, ९८५११*****।');
-                  setActiveTab('broadcast');
-                }}
-                className="dt-btn dt-btn-primary"
-                style={{ backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
-              >
-                <Send size={15} /> नागरिक SMS/WhatsApp प्रसारण गर्नुहोस्
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => {
+                    const criticalSensor = activeSensorAlerts[0];
+                    if (criticalSensor) {
+                      earlyWarningTriggerMutation.mutate({
+                        sensorId: criticalSensor.sensorId,
+                        sensorName: criticalSensor.name,
+                        wardNumber: criticalSensor.ward || 1,
+                        hazardType: criticalSensor.type === 'water_level' ? 'flood' : (criticalSensor.type === 'rain_gauge' ? 'weather' : 'landslide'),
+                        measuredValue: Number(criticalSensor.lastValue || 0),
+                        unit: criticalSensor.unit || 'm',
+                        dangerThreshold: Number(criticalSensor.dangerThreshold || criticalSensor.thresholdCritical || 5.0),
+                        sirenActive: true,
+                        smsActive: true
+                      });
+                    }
+                  }}
+                  disabled={earlyWarningTriggerMutation.isPending}
+                  className="dt-btn dt-btn-primary"
+                  style={{ backgroundColor: '#991b1b', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800, padding: '0.5rem 1rem' }}
+                >
+                  <Radio size={16} /> 🚨 स्वचालित साइरन तथा SMS तत्काल सक्रिय गर्नुहोस्
+                </button>
+                <button
+                  onClick={() => {
+                    setAlertTitle('मेलम्ची खोला तटीय क्षेत्र उच्च बाढी सतर्कता');
+                    setAlertMessage('🚨 पाँचपोखरी थाङपाल गाउँपालिका आपतकालीन सतर्कता: मेलम्ची खोलामा जलसतह ' + (sensors.find(s => s.sensorId === 'SEN-MEL-01')?.lastValue || '5.8') + ' मिटर पुगेको छ। तटीय क्षेत्रका सम्पूर्ण नागरिकहरू तुरुन्तै नजिकको अग्लो र सुरक्षित आश्रयस्थलमा जानुहोला। सम्पर्क: ०११-४६०१११, ९८५११*****।');
+                    setActiveTab('broadcast');
+                  }}
+                  className="dt-btn"
+                  style={{ backgroundColor: '#ffffff', color: '#dc2626', border: '1px solid #dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, padding: '0.5rem 0.85rem' }}
+                >
+                  <Send size={15} /> सन्देश सम्पादन गरि पठाउनुहोस्
+                </button>
+              </div>
             </div>
           )}
 
@@ -2261,17 +2362,38 @@ export const DisasterPage: React.FC = () => {
                       पछिल्लो अपडेट: {s.lastPing ? new Date(s.lastPing).toLocaleTimeString() : 'अहिले'}
                     </div>
                     {isCritical || isWarning ? (
-                      <button
-                        onClick={() => {
-                          setAlertTitle(`${s.name.split('(')[0]} सतर्कता सूचना`);
-                          setAlertMessage(`🚨 पाँचपोखरी थाङपाल गाउँपालिका सूचना: ${s.name.split('(')[0]} मा जलसतह/वर्षा ${s.lastValue}${s.unit} पुगेको छ। खतरा विन्दु ${threshold}${s.unit} नजिक पुगेकाले सतर्क रहन अनुरोध छ।`);
-                          setActiveTab('broadcast');
-                        }}
-                        className="dt-btn"
-                        style={{ backgroundColor: '#dc2626', color: '#ffffff', fontSize: '0.75rem', padding: '0.3rem 0.6rem', fontWeight: 600 }}
-                      >
-                        ⚠️ SMS सतर्कता पठाउनुहोस्
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => earlyWarningTriggerMutation.mutate({
+                            sensorId: s.sensorId,
+                            sensorName: s.name,
+                            wardNumber: s.ward || 1,
+                            hazardType: s.type === 'water_level' ? 'flood' : (s.type === 'rain_gauge' ? 'weather' : 'landslide'),
+                            measuredValue: Number(s.lastValue || 0),
+                            unit: s.unit || 'm',
+                            dangerThreshold: Number(threshold || 5.0),
+                            sirenActive: true,
+                            smsActive: true
+                          })}
+                          disabled={earlyWarningTriggerMutation.isPending}
+                          className="dt-btn"
+                          style={{ backgroundColor: '#991b1b', color: '#ffffff', fontSize: '0.72rem', padding: '0.25rem 0.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem', border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+                          title="१२०dB साइरन र SMS तत्काल पठाउनुहोस्"
+                        >
+                          <Radio size={12} /> साइरन/SMS
+                        </button>
+                        <button
+                          onClick={() => {
+                            setAlertTitle(`${s.name.split('(')[0]} सतर्कता सूचना`);
+                            setAlertMessage(`🚨 पाँचपोखरी थाङपाल गाउँपालिका सूचना: ${s.name.split('(')[0]} मा जलसतह/वर्षा ${s.lastValue}${s.unit} पुगेको छ। खतरा विन्दु ${threshold}${s.unit} नजिक पुगेकाले सतर्क रहन अनुरोध छ।`);
+                            setActiveTab('broadcast');
+                          }}
+                          className="dt-btn"
+                          style={{ backgroundColor: '#dc2626', color: '#ffffff', fontSize: '0.72rem', padding: '0.25rem 0.5rem', fontWeight: 600, border: 'none', cursor: 'pointer', borderRadius: '4px' }}
+                        >
+                          ⚠️ सम्पादन
+                        </button>
+                      </div>
                     ) : (
                       <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600 }}>
                         ✓ सामान्य अवस्था
