@@ -45,6 +45,7 @@ import { MicroVulnerabilityTab } from '../../features/disaster/components/MicroV
 import { RdraAssessmentTab } from '../../features/disaster/components/RdraAssessmentTab';
 import { HeavyEquipmentSarTab } from '../../features/disaster/components/HeavyEquipmentSarTab';
 import { OfflineMeshRadioTab } from '../../features/disaster/components/OfflineMeshRadioTab';
+import { OfflineVaultSyncManager } from '../../features/disaster/components/OfflineVaultSyncManager';
 import { NationalDataStandardGatewayTab } from '../../features/disaster/components/NationalDataStandardGatewayTab';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
 import { useLanguage } from '../../context/LanguageContext';
@@ -161,6 +162,18 @@ export const Disaster: React.FC = () => {
 
   const [activePublicTab, setActivePublicTab] = useState<TabType>(getTabFromLocation);
   const { isNepali, t } = useLanguage();
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const matched = getTabFromLocation();
@@ -244,10 +257,16 @@ export const Disaster: React.FC = () => {
       iconWatermark: <Truck size={360} color="#f59e0b" />,
     },
     offline_mesh: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — विपद् प्रतिरोधी शून्य-इन्टरनेट अफलाइन प्रणाली',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — विपद् प्रतिरोधी शून्य-इन्टरनेट अफलाइन प्रणाली'
+        : 'Panchpokhari Thangpal — Zero-Internet Offline Resilience System',
       badgeIcon: <WifiOff size={16} color="#6366f1" />,
-      title: 'अफलाइन सञ्चालन (Offline PWA) र आपतकालीन VHF रेडियो फ्रिक्वेन्सी',
-      desc: 'इन्टरनेट र टेलिकम टावर बन्द हुँदा पनि लोकल वाईफाईबाट खुल्ने र नेपाल प्रहरी, सशस्त्र प्रहरी तथा EOC बीचको VHF रेडियो फ्रिक्वेन्सी लिङ्केज।',
+      title: isNepali
+        ? 'इन्टरनेट नहुँदा पनि चल्ने अफलाइन PWA, स्थानीय IndexedDB भण्डार तथा VHF रेडियो'
+        : 'Offline-First PWA, Local IndexedDB Vault & Emergency VHF Radio',
+      desc: isNepali
+        ? 'बाढी, पहिरो वा आँधीले टेलिकम टावर र बिजुली बन्द हुँदा पनि घटनास्थलमै क्षति मूल्याङ्कन फारम भर्न मिल्ने, स्थानीय भण्डारमा सुरक्षित रहने र नेटवर्क आउनासाथ स्वतः सिङ्क हुने अत्याधुनिक प्रणाली।'
+        : 'Record rapid field damage assessments, emergencies, and household updates completely off-grid. Data stores safely in local IndexedDB and automatically syncs to the central EOC upon reconnect.',
       bannerGradient: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%)',
       iconWatermark: <WifiOff size={360} color="#6366f1" />,
     },
@@ -431,6 +450,47 @@ export const Disaster: React.FC = () => {
   return (
     <div style={{ maxWidth: '1380px', margin: '0 auto', padding: '1.5rem 1rem 3.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       
+      {/* Real-time Global Offline Warning Banner */}
+      {!isOnline && (
+        <div style={{
+          marginBottom: '1.25rem',
+          padding: '0.9rem 1.25rem',
+          borderRadius: '12px',
+          backgroundColor: '#fff7ed',
+          border: '1.5px solid #fdba74',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          boxShadow: '0 4px 12px rgba(234, 88, 12, 0.15)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <WifiOff size={20} color="#ea580c" />
+            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#9a3412' }}>
+              {isNepali
+                ? 'तपाईं हाल अफलाइन मोडमा हुनुहुन्छ। स्थानीय IndexedDB भण्डार सक्रिय छ — फारम र प्रतिवेदनहरू यन्त्रमै सुरक्षित हुन्छन् र इन्टरनेट आउनासाथ सिङ्क हुनेछन्।'
+                : 'You are currently offline. Local IndexedDB vault is active — all submissions will be queued and auto-synced.'}
+            </span>
+          </div>
+          <button
+            onClick={() => changeTab('offline_mesh')}
+            style={{
+              padding: '0.45rem 0.95rem',
+              borderRadius: '8px',
+              backgroundColor: '#ea580c',
+              color: '#ffffff',
+              fontWeight: 700,
+              fontSize: '0.8rem',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {isNepali ? 'अफलाइन सिङ्क केन्द्र खोल्नुहोस्' : 'Open Offline Vault'}
+          </button>
+        </div>
+      )}
+
       {/* Top Banner with Dynamic Meta according to Selected Single Module */}
       <div className="dt-hero-banner" style={{
         position: 'relative',
@@ -1539,10 +1599,10 @@ export const Disaster: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 10: OFFLINE RESILIENCE & EMERGENCY VHF RADIO */}
+      {/* TAB 10: OFFLINE-FIRST PWA, LOCAL INDEXEDDB VAULT & EMERGENCY VHF RADIO */}
       {/* ========================================================================= */}
       {activePublicTab === 'offline_mesh' && (
-        <OfflineMeshRadioTab />
+        <OfflineVaultSyncManager />
       )}
     </div>
   );

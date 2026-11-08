@@ -19,6 +19,7 @@ import {
   Briefcase,
   Coins,
   Landmark,
+  WifiOff,
 } from 'lucide-react';
 import { adToBs } from '../../utils/nepaliCalendar';
 
@@ -46,6 +47,18 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const [portalMenuOpen, setPortalMenuOpen] = useState(false);
   const portalMenuRef = useRef<HTMLDivElement>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Palika name
   let tenantPalikaName = settings?.palika_name;
@@ -225,6 +238,31 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
 
       {/* ── Right: Actions ──────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+
+        {/* Offline Vault Status Indicator when off-grid */}
+        {!isOnline && (
+          <Link
+            to="/disaster?tab=offline_mesh"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.35rem 0.65rem',
+              borderRadius: '8px',
+              backgroundColor: '#fff7ed',
+              border: '1.5px solid #ea580c',
+              color: '#c2410c',
+              fontSize: '0.74rem',
+              fontWeight: 800,
+              textDecoration: 'none',
+              animation: 'pulse 2s infinite',
+            }}
+            title="इन्टरनेट विच्छेद - स्थानीय IndexedDB भण्डार सक्रिय"
+          >
+            <WifiOff size={14} color="#ea580c" />
+            <span>{isNepali ? 'अफलाइन भण्डार' : 'Offline Vault'}</span>
+          </Link>
+        )}
 
         {/* National Governance & 6-Tier Scope Switcher Pill */}
         <button

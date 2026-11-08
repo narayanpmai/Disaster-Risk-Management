@@ -32,7 +32,7 @@ export const DICTIONARY: Translations = {
   'nav.micro_vulnerability': { np: 'अति-संवेदनशील नागरिक (५,८०५ घरधुरी)', en: 'Micro-Vulnerable Citizens (5,805 HH)' },
   'nav.rdra_damage': { np: 'डिजिटल क्षति मूल्याङ्कन (RDRA राहत)', en: 'Rapid Damage Assessment (RDRA Relief)' },
   'nav.heavy_equipment': { np: 'खोज-उद्धार (SAR) र डोजर डाइरेक्टरी', en: 'SAR & Heavy Equipment Directory' },
-  'nav.offline_mesh': { np: 'अफलाइन सञ्चालन र VHF रेडियो', en: 'Offline Operation & VHF Radio' },
+  'nav.offline_mesh': { np: 'अफलाइन सञ्चालन (PWA) र VHF रेडियो', en: 'Offline-First PWA & VHF Radio' },
   'nav.shelters': { np: 'सुरक्षित आश्रयस्थल र राहत मौज्दात', en: 'Evacuation Shelters & Relief Stock' },
   'nav.cctv': { np: 'CCTV क्यामेरा लाइभ सर्भिलेन्स', en: 'CCTV Live Video Surveillance' },
   'nav.audit_logs': { np: 'प्रणाली अडिट ट्रेल तथा सुरक्षा लग', en: 'Audit Trail & Security Logs' },
