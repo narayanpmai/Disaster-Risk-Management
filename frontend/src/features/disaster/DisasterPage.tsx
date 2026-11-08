@@ -53,6 +53,7 @@ import { DisasterModal } from './components/DisasterModal';
 import { EmergencyContactModal } from './components/EmergencyContactModal';
 import { AddShelterModal } from './components/AddShelterModal';
 import { RecoveryProjectsTab } from './components/RecoveryProjectsTab';
+import { MsraMatrixTab } from './components/MsraMatrixTab';
 
 interface BroadcastRecord {
   id: string;
@@ -111,6 +112,7 @@ export const DisasterPage: React.FC = () => {
     | 'cameras'
     | 'broadcast'
     | 'recovery_projects'
+    | 'msra_matrix'
   >('events');
   const [selectedCamera, setSelectedCamera] = useState<CameraItem | null>(null);
   const [cameraFilter, setCameraFilter] = useState<string>('all');
@@ -749,6 +751,26 @@ export const DisasterPage: React.FC = () => {
           >
             <HardHat size={15} />
             <span>९. विपद् पुनःलाभ तथा पुनर्निर्माण</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('msra_matrix')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              fontWeight: 600,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'msra_matrix' ? '#4338ca' : '#f1f5f9',
+              color: activeTab === 'msra_matrix' ? '#ffffff' : 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
+            <Activity size={15} />
+            <span>१०. बहुक्षेत्रीय जोखिम मूल्याङ्कन (MSRA Matrix)</span>
           </button>
         </div>
       </div>
@@ -3138,6 +3160,11 @@ export const DisasterPage: React.FC = () => {
       {/* Tab 9: Disaster Recovery & Reconstruction Projects */}
       {activeTab === 'recovery_projects' && (
         <RecoveryProjectsTab />
+      )}
+
+      {/* Tab 10: Multi-Sectoral Risk Assessment (MSRA) Matrix */}
+      {activeTab === 'msra_matrix' && (
+        <MsraMatrixTab />
       )}
 
       {/* Disaster Event Modal */}
