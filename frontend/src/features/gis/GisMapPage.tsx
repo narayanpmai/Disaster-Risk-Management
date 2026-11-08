@@ -14,6 +14,7 @@ import { api } from '../../api/client';
 import { cooperativesApi } from '../../api/cooperatives';
 import { PalikaMap } from '../../components/maps/PalikaMap';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
+import { AddHazardZoneModal } from './AddHazardZoneModal';
 import { PANCHPOKHARI_TRAIL_HOTELS, PANCHPOKHARI_WAYPOINTS } from '../../data/panchpokhariTrailData';
 import {
   Layers,
@@ -108,6 +109,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   const [isDrawerOpenInFullscreen, setIsDrawerOpenInFullscreen] = useState<boolean>(false);
   const [currentBaseLayer, setCurrentBaseLayer] = useState<'satellite' | 'streets' | 'topo'>('satellite');
+  const [isAddHazardModalOpen, setIsAddHazardModalOpen] = useState<boolean>(false);
 
   const toggleFullscreen = () => {
     setIsFullscreen((prev) => !prev);
@@ -1066,6 +1068,29 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           )}
 
           <button
+            onClick={() => setIsAddHazardModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1.5px solid #dc2626',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: '#fef2f2',
+              color: '#b91c1c',
+              boxShadow: '0 2px 6px rgba(220, 38, 38, 0.15)',
+              transition: 'all 0.15s ease',
+            }}
+            title="पालिका भित्रको नयाँ पहिरो वा जोखिम युक्त क्षेत्र दर्ता गर्नुहोस्"
+          >
+            <AlertTriangle size={16} color="#dc2626" />
+            <span>➕ पहिरो/जोखिम क्षेत्र थप्नुहोस्</span>
+          </button>
+
+          <button
             onClick={toggleFullscreen}
             style={{
               display: 'flex',
@@ -1579,6 +1604,29 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
 
           {/* Fullscreen Button */}
           <button
+            onClick={() => setIsAddHazardModalOpen(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.5rem 1rem',
+              borderRadius: '8px',
+              border: '1.5px solid #dc2626',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: '#fef2f2',
+              color: '#b91c1c',
+              boxShadow: '0 2px 6px rgba(220, 38, 38, 0.15)',
+              transition: 'all 0.15s ease',
+            }}
+            title="पालिका भित्रको नयाँ पहिरो वा जोखिम युक्त क्षेत्र दर्ता गर्नुहोस्"
+          >
+            <AlertTriangle size={16} color="#dc2626" />
+            <span>➕ पहिरो/जोखिम क्षेत्र थप्नुहोस्</span>
+          </button>
+
+          <button
             onClick={toggleFullscreen}
             style={{
               display: 'flex',
@@ -1676,6 +1724,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           ) : (
             <Terrain3DView
               sensors={sensors}
+              settlements={vulnerableSettlements}
               height={isSidebarCollapsed ? '780px' : '650px'}
             />
           )}
@@ -2486,6 +2535,27 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
             {/* Right: Exit Fullscreen Button */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <button
+                onClick={() => setIsAddHazardModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 14px',
+                  borderRadius: '6px',
+                  border: '1px solid #ef4444',
+                  background: 'rgba(239, 68, 68, 0.25)',
+                  color: '#ffffff',
+                  fontSize: '12.5px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+                title="नयाँ पहिरो/जोखिम क्षेत्र थप्नुहोस्"
+              >
+                <AlertTriangle size={15} color="#fca5a5" />
+                <span>➕ जोखिम क्षेत्र थप्नुहोस्</span>
+              </button>
+              <button
                 onClick={toggleFullscreen}
                 style={{
                   display: 'flex',
@@ -2537,6 +2607,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
             ) : (
               <Terrain3DView
                 sensors={sensors}
+                settlements={vulnerableSettlements}
                 height="100vh"
               />
             )}
@@ -2574,6 +2645,14 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
           </div>
         </div>
       )}
+      {/* Modal to Register/Add Landslide or Vulnerable Hazard Zone */}
+      <AddHazardZoneModal
+        isOpen={isAddHazardModalOpen}
+        onClose={() => setIsAddHazardModalOpen(false)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['gis-vulnerable-settlements'] });
+        }}
+      />
     </div>
   );
 };

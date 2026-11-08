@@ -7,10 +7,12 @@ import {
   Compass,
   Activity,
   Layers,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface Terrain3DViewProps {
   sensors?: SensorItem[];
+  settlements?: any[];
   height?: string;
 }
 
@@ -22,6 +24,7 @@ interface Point3D {
 
 export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
   sensors = [],
+  settlements = [],
   height = '560px',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -285,6 +288,98 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
         ctx.shadowBlur = 0;
       });
 
+      // 4. Render High-Risk Landslides & Vulnerable Settlements (पहिरो तथा जोखिमयुक्त क्षेत्र)
+      settlements.forEach((st: any, idx: number) => {
+        const wardNumber = Number(st.wardNumber || st.ward_number || 1);
+        const wardGridOffsets: Record<number, { gx: number; gz: number }> = {
+          1: { gx: 18, gz: 19 },
+          2: { gx: 15, gz: 16 },
+          3: { gx: 12, gz: 14 },
+          4: { gx: 8, gz: 12 },
+          5: { gx: 6, gz: 9 },
+          6: { gx: 10, gz: 8 },
+          7: { gx: 14, gz: 5 },
+          8: { gx: 7, gz: 4 },
+        };
+        const base = wardGridOffsets[wardNumber] || { gx: 10 + (idx % 5), gz: 10 + Math.floor(idx / 5) };
+        const gx = Math.min(gridSize - 1, Math.max(0, base.gx + ((idx % 3) * 2 - 2)));
+        const gz = Math.min(gridSize - 1, Math.max(0, base.gz + (Math.floor(idx / 3) * 2 - 1)));
+
+        const x = gx * gridSpacing - halfGrid;
+        const z = gz * gridSpacing - halfGrid;
+        const groundY = getElevation(gx, gz);
+        const y = groundY + 24;
+        const p = project({ x, y, z });
+        const groundP = project({ x, y: groundY, z });
+
+        // Warning Hazard colors: Extreme / High -> Red, Moderate -> Amber
+        const rLevel = String(st.riskLevel || st.risk_level || 'उच्च');
+        const isCritical = rLevel.includes('उच्च') || rLevel.toLowerCase().includes('high') || rLevel.toLowerCase().includes('critical');
+        const hazardColor = isCritical ? '#ef4444' : '#f59e0b';
+
+        // 3D Danger Pillar from mountain slope to hazard tag
+        ctx.beginPath();
+        ctx.strokeStyle = hazardColor;
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([3, 2]);
+        ctx.moveTo(groundP.x, groundP.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Pulsing warning diamond / polygon
+        const pulse = (Math.sin(time * 1.5 + idx * 1.2) * 0.5 + 0.5) * 6 + 4;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, pulse, 0, Math.PI * 2);
+        ctx.strokeStyle = hazardColor;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // 3D Marker Pin
+        ctx.fillStyle = hazardColor;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label Tag with Background Badge
+        const sName = st.settlementName || st.settlement_name || st.name || 'जोखिम बस्ती';
+        const hType = (st.hazardType || st.hazard_type || 'पहिरो').split(' ')[0];
+        const labelText = `⚠️ ${sName} (${hType})`;
+        const hhCount = st.atRiskHouseholds || st.at_risk_households || 0;
+        const subText = `घरधुरी: ${hhCount} | ${rLevel}`;
+
+        ctx.font = 'bold 11px sans-serif';
+        const metrics = ctx.measureText(labelText);
+        const tagWidth = Math.max(metrics.width, 115) + 14;
+        const tagHeight = 28;
+
+        // Dark Glass Tag Background
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.strokeStyle = hazardColor;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(p.x + 10, p.y - 18, tagWidth, tagHeight, 6);
+        } else {
+          ctx.rect(p.x + 10, p.y - 18, tagWidth, tagHeight);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Main text
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.fillText(labelText, p.x + 16, p.y - 5);
+
+        // Sub text
+        ctx.fillStyle = isCritical ? '#fca5a5' : '#fde68a';
+        ctx.font = '9px sans-serif';
+        ctx.fillText(subText, p.x + 16, p.y + 7);
+      });
+
       animId = requestAnimationFrame(render);
     };
 
@@ -293,7 +388,7 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
     return () => {
       cancelAnimationFrame(animId);
     };
-  }, [rotationX, rotationY, zoom, sensors]);
+  }, [rotationX, rotationY, zoom, sensors, settlements]);
 
   // Mouse Interaction handlers for 3D Camera Orbit
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -373,7 +468,11 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#10b981' }}>
           <Activity size={14} />
-          <span>{sensors.length} IoT स्टेशन सक्रिय</span>
+          <span>{sensors.length} IoT स्टेशन</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#f87171', fontWeight: 600 }}>
+          <AlertTriangle size={14} />
+          <span>{settlements.length} पहिरो/जोखिम क्षेत्र</span>
         </div>
       </div>
 
