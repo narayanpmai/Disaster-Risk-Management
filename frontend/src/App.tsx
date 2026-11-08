@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import { TenantProvider } from './context/TenantContext';
 import { DisasterScopeProvider } from './context/DisasterScopeContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { NationalScopeModal } from './components/governance/NationalScopeModal';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
@@ -217,9 +218,10 @@ export const App: React.FC = () => {
 
   return (
     <TenantProvider>
-      <DisasterScopeProvider>
-        <NationalScopeModal />
-        <Routes>
+      <LanguageProvider>
+        <DisasterScopeProvider>
+          <NationalScopeModal />
+          <Routes>
           {/* PUBLIC PORTAL ROUTES */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
@@ -518,6 +520,7 @@ export const App: React.FC = () => {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </DisasterScopeProvider>
+      </LanguageProvider>
     </TenantProvider>
   );
 };

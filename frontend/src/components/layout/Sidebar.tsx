@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   LayoutDashboard,
   Users,
@@ -476,6 +477,58 @@ export const publicNavSections: NavSection[] = [
   },
 ];
 
+const EN_LABELS: Record<string, { label: string; badge?: string; title?: string }> = {
+  // Titles
+  '१. मुख्य कमान्ड तथा इन्टेलिजेन्स (COMMAND & INTELLIGENCE)': { label: '', title: '1. Command & Intelligence' },
+  '२. विपद् तथा वातावरण नियमन (DISASTER & ENVIRONMENT)': { label: '', title: '2. Disaster & Environment' },
+  '३. स्थानिक ट्विन तथा पूर्वाधार (Spatial Twin & Projects)': { label: '', title: '3. Spatial Twin & Projects' },
+  '४. प्रोफाइल, जनप्रतिनिधि तथा जनसांख्यिकी (PROFILE & DEMOGRAPHICS)': { label: '', title: '4. Profile & Demographics' },
+  '५. सुशासन, ई-सेवा तथा नागरिक सेवा (E-GOVERNANCE & CITIZEN SERVICES)': { label: '', title: '5. Citizen & E-Governance' },
+  '६. सामाजिक सुरक्षा तथा समावेशीकरण (SOCIAL WELFARE)': { label: '', title: '6. Social Welfare & Inclusion' },
+  '७. आर्थिक विकास तथा राजस्व (ECONOMY & REVENUE)': { label: '', title: '7. Economy & Revenue' },
+  '८. क्षेत्रगत विकास (SECTORAL SERVICES)': { label: '', title: '8. Sectoral Services' },
+  '९. प्रणाली सेटिङ तथा सुरक्षा (SYSTEM & SECURITY)': { label: '', title: '9. System & Security' },
+
+  // Items
+  'एकीकृत कमान्ड ड्यासबोर्ड': { label: 'Command Dashboard' },
+  'एआई पालिका सहायक': { label: 'AI Palika Copilot' },
+  'विपद् जोखिम व्यवस्थापन': { label: 'Disaster Risk Management', badge: 'DRRM Hub' },
+  'नदी जलसतह तथा ३D डुबान सिमुलेटर': { label: 'River Water Level & 3D Inundation', badge: '3D Twin' },
+  'राष्ट्रिय तथ्याङ्क मापदण्ड तथा DHM/BIPAD': { label: 'National Standard & DHM Gateways', badge: 'DHM/BIPAD' },
+  'पहिरो जोखिम तथा इन्क्लिनोमिटर': { label: 'Landslide Risk & Inclinometers', badge: 'Warning' },
+  'स्वचालित IVR कल र मेश-साइरन': { label: 'Automated IVR Calls & Siren', badge: 'Last-Mile' },
+  'अति-संवेदनशील नागरिक (५,८०५ घरधुरी)': { label: 'Micro-Vulnerable Citizens (5,805 HH)', badge: 'Evacuation' },
+  'डिजिटल क्षति मूल्याङ्कन (RDRA राहत)': { label: 'Rapid Damage Assessment (RDRA)', badge: 'Relief 2077' },
+  'खोज-उद्धार (SAR) र डोजर डाइरेक्टरी': { label: 'SAR Heavy Equipment Directory', badge: 'Standby' },
+  'अफलाइन सञ्चालन र VHF रेडियो': { label: 'Offline PWA & VHF Radio', badge: 'PWA/VHF' },
+  'सुरक्षित आश्रयस्थल र राहत मौज्दात': { label: 'Evacuation Shelters & Stock', badge: '6 Shelters' },
+  'CCTV क्यामेरा लाइभ सर्भिलेन्स': { label: 'CCTV Live Video Surveillance', badge: 'Live' },
+  'वातावरण तथा नदीजन्य खानी नियमन IEE/वन': { label: 'Environment & Mining Regulation', badge: 'IEE/Mining' },
+  'नागरिक गुनासो व्यवस्थापन': { label: 'Citizen Grievance Management', badge: 'Complaints' },
+  'प्रणाली अडिट ट्रेल तथा सुरक्षा लग (Audit Log)': { label: 'System Audit Trail & Security Log', badge: 'Audit & RBAC' },
+  '३डी/जीआईएस डिजिटल ट्विन': { label: '3D/GIS Digital Twin', badge: '3D GIS' },
+  'सम्पूर्ण आयोजना जीवनचक्र ३६०': { label: 'Project Lifecycle 360', badge: 'PPIS' },
+  'पालिका डिजिटल प्रोफाइल': { label: 'Municipal Digital Profile' },
+  'जनप्रतिनिधि विवरण': { label: 'Elected Representatives' },
+  'नागरिक बडापत्र': { label: 'Citizen Charter (Badapatra)' },
+};
+
+const getDisplayLabel = (label: string, isNp: boolean) => {
+  if (isNp) return label;
+  return EN_LABELS[label]?.label || label;
+};
+
+const getDisplayBadge = (badge: string | undefined, label: string, isNp: boolean) => {
+  if (!badge) return undefined;
+  if (isNp) return badge;
+  return EN_LABELS[label]?.badge || badge;
+};
+
+const getDisplayTitle = (title: string, isNp: boolean) => {
+  if (isNp) return title;
+  return EN_LABELS[title]?.title || title;
+};
+
 interface SidebarProps {
   isPublic?: boolean;
 }
@@ -485,6 +538,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isNepali } = useLanguage();
 
   const currentSections = useMemo(() => {
     if (isPublic) return publicNavSections;
@@ -653,7 +707,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                       color: hasActiveItem ? '#60a5fa' : S.sectionLabel,
                     }}
                   >
-                    {section.title}
+                    {getDisplayTitle(section.title, isNepali)}
                   </span>
                   <span
                     style={{
@@ -761,7 +815,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                             >
                               <span style={{ opacity: 0.9, flexShrink: 0 }}>{item.icon}</span>
                               <span style={{ flex: 1, lineHeight: 1.3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem' }}>
-                                <span>{item.label}</span>
+                                <span>{getDisplayLabel(item.label, isNepali)}</span>
                                 {item.badge && (
                                   <span
                                     style={{
@@ -776,7 +830,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                                       letterSpacing: '0.02em',
                                     }}
                                   >
-                                    {item.badge}
+                                    {getDisplayBadge(item.badge, item.label, isNepali)}
                                   </span>
                                 )}
                               </span>
@@ -858,7 +912,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                                   >
                                     <span style={{ opacity: isChildActive ? 1 : 0.8, flexShrink: 0 }}>{child.icon}</span>
                                     <span style={{ flex: 1, lineHeight: 1.25, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.25rem' }}>
-                                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{child.label}</span>
+                                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDisplayLabel(child.label, isNepali)}</span>
                                       {child.badge && (
                                         <span
                                           style={{
@@ -872,7 +926,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                                             whiteSpace: 'nowrap',
                                           }}
                                         >
-                                          {child.badge}
+                                          {getDisplayBadge(child.badge, child.label, isNepali)}
                                         </span>
                                       )}
                                     </span>
@@ -921,7 +975,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                       >
                         <span style={{ opacity: 0.85, flexShrink: 0 }}>{item.icon}</span>
                         <span style={{ flex: 1, lineHeight: 1.3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.35rem' }}>
-                          <span>{item.label}</span>
+                          <span>{getDisplayLabel(item.label, isNepali)}</span>
                           {item.badge && (
                             <span
                               style={{
@@ -936,7 +990,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                                 letterSpacing: '0.02em',
                               }}
                             >
-                              {item.badge}
+                              {getDisplayBadge(item.badge, item.label, isNepali)}
                             </span>
                           )}
                         </span>

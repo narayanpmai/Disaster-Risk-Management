@@ -327,3 +327,4 @@ export const useDisasterScope = (): DisasterScopeContextType => {
   }
   return context;
 };
+

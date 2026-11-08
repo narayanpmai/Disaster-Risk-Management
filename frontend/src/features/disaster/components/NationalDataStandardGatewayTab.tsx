@@ -1311,3 +1311,4 @@ export const NationalDataStandardGatewayTab: React.FC = () => {
 };
 
 export default NationalDataStandardGatewayTab;
+

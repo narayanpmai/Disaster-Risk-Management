@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTenant } from '../../context/TenantContext';
 import { useAuth } from '../../context/AuthContext';
 import { useDisasterScope } from '../../context/DisasterScopeContext';
+import { useLanguage } from '../../context/LanguageContext';
+import { LanguageSwitcher } from './LanguageSwitcher';
 import {
   Search,
   Bell,
@@ -39,6 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
   const { settings, tenantId } = useTenant();
   const { user, logout } = useAuth();
   const { activePalika, activeTier, selectedWardNumber, setIsScopeModalOpen } = useDisasterScope();
+  const { t, isNepali } = useLanguage();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [portalMenuOpen, setPortalMenuOpen] = useState(false);
@@ -181,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
           />
           <input
             type="text"
-            placeholder="सेवा, संस्था, योजना खोज्नुहोस्..."
+            placeholder={isNepali ? "सेवा, संस्था, योजना खोज्नुहोस्..." : "Search services, projects, flood alerts..."}
             style={{
               width: '100%',
               padding: '0.45rem 0.75rem 0.45rem 2rem',
@@ -254,14 +257,17 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
           </span>
           <div style={{ textAlign: 'left', lineHeight: 1.15 }}>
             <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
-              {activePalika.nameNepali}
+              {isNepali ? activePalika.nameNepali : activePalika.nameEnglish}
             </div>
             <div style={{ fontSize: '0.68rem', color: activeTier.textColor, fontWeight: 700, whiteSpace: 'nowrap' }}>
-              {activeTier.badgeLabel} {activeTier.tierLevel === 1 ? `(वडा ${selectedWardNumber})` : ''}
+              {isNepali ? activeTier.badgeLabel : activeTier.tierLevel === 6 ? 'NEOC National' : activeTier.nameEnglish} {activeTier.tierLevel === 1 ? `(${isNepali ? 'वडा' : 'Ward'} ${selectedWardNumber})` : ''}
             </div>
           </div>
           <ChevronDown size={13} color={activeTier.textColor} />
         </button>
+
+        {/* Bilingual Language Switcher (नेपाली / English) */}
+        <LanguageSwitcher />
 
         {/* Notification Bell */}
         <button
@@ -710,7 +716,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '#0284c7'; (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'; }}
           >
             <User size={14} />
-            कर्मचारी लगइन
+            {isNepali ? 'कर्मचारी लगइन' : 'Staff Login'}
           </Link>
         )}
       </div>

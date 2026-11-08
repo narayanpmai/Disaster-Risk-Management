@@ -47,6 +47,7 @@ import { HeavyEquipmentSarTab } from '../../features/disaster/components/HeavyEq
 import { OfflineMeshRadioTab } from '../../features/disaster/components/OfflineMeshRadioTab';
 import { NationalDataStandardGatewayTab } from '../../features/disaster/components/NationalDataStandardGatewayTab';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
+import { useLanguage } from '../../context/LanguageContext';
 
 // Real-time Emergency Relief Materials Stock
 const RELIEF_SUPPLIES_STOCK = [
@@ -159,6 +160,7 @@ export const Disaster: React.FC = () => {
   };
 
   const [activePublicTab, setActivePublicTab] = useState<TabType>(getTabFromLocation);
+  const { isNepali, t } = useLanguage();
 
   useEffect(() => {
     const matched = getTabFromLocation();
@@ -174,18 +176,30 @@ export const Disaster: React.FC = () => {
 
   const pageMeta: Record<TabType, { badge: string; badgeIcon: React.ReactNode; title: string; desc: string; bannerGradient: string; iconWatermark: React.ReactNode }> = {
     national_gateway: {
-      badge: 'केन्द्रीकृत राष्ट्रिय विपद् तथ्याङ्क मापदण्ड v२.४ — DHM, BIPAD र त्रिपक्षीय सुरक्षा निकाय',
+      badge: isNepali
+        ? 'केन्द्रीकृत राष्ट्रिय विपद् तथ्याङ्क मापदण्ड v२.४ — DHM, BIPAD र त्रिपक्षीय सुरक्षा निकाय'
+        : 'Centralized National Disaster Data Standard v2.4 — DHM, BIPAD & Tri-Services Security Forces',
       badgeIcon: <Globe size={16} color="#38bdf8" />,
-      title: 'राष्ट्रिय विपद् तथ्याङ्क मापदण्ड तथा DHM/सुरक्षा निकाय API अन्तरआबद्धता',
-      desc: 'गृह मन्त्रालय (BIPAD), जल तथा मौसम विज्ञान विभाग (DHM Telemetry), र नेपाली सेना / सशस्त्र प्रहरी / नेपाल प्रहरी आपतकालीन खोज तथा उद्धार (SAR Dispatch) एकीकृत गेटवे।',
+      title: isNepali
+        ? 'राष्ट्रिय विपद् तथ्याङ्क मापदण्ड तथा DHM/सुरक्षा निकाय API अन्तरआबद्धता'
+        : 'National Disaster Data Standard & DHM / Security Forces API Gateway',
+      desc: isNepali
+        ? 'गृह मन्त्रालय (BIPAD), जल तथा मौसम विज्ञान विभाग (DHM Telemetry), र नेपाली सेना / सशस्त्र प्रहरी / नेपाल प्रहरी आपतकालीन खोज तथा उद्धार (SAR Dispatch) एकीकृत गेटवे।'
+        : 'Integrated National Gateway for Ministry of Home Affairs (BIPAD), Dept. of Hydrology & Meteorology (DHM Telemetry), and Tri-Services SAR Emergency Dispatch (Nepali Army, APF, NP).',
       bannerGradient: 'linear-gradient(135deg, #091e3a 0%, #173b6c 50%, #0369a1 100%)',
       iconWatermark: <Globe size={360} color="#38bdf8" />,
     },
     river_twin: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित जलसतह टेलिमेट्री तथा बाढी डिजिटल ट्विन',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित जलसतह टेलिमेट्री तथा बाढी डिजिटल ट्विन'
+        : 'Panchpokhari Thangpal — Automated Water Level Telemetry & Flood Digital Twin',
       badgeIcon: <Waves size={16} color="#38bdf8" />,
-      title: 'मेलम्ची-इन्द्रावती नदी जलसतह तथा बाढी पूर्वसूचना प्रणाली',
-      desc: 'थाङपालधाप र गुन्सा स्वचालित IoT राडार जलसतह गेज, मेलम्ची खोलाको प्रत्यक्ष जलस्तर अनुगमन तथा सम्भावित बाढीको पूर्वचेतावनी डिजिटल ट्विन।',
+      title: isNepali
+        ? 'मेलम्ची-इन्द्रावती नदी जलसतह तथा बाढी पूर्वसूचना प्रणाली'
+        : 'Melamchi-Indrawati River Water Level & Flood Early Warning Twin',
+      desc: isNepali
+        ? 'थाङपालधाप र गुन्सा स्वचालित IoT राडार जलसतह गेज, मेलम्ची खोलाको प्रत्यक्ष जलस्तर अनुगमन तथा सम्भावित बाढीको पूर्वचेतावनी डिजिटल ट्विन।'
+        : 'Automated IoT radar water level telemetry at Thangpaldhap and Gunsa, real-time river monitoring and predictive flood early warning twin.',
       bannerGradient: 'linear-gradient(135deg, #0b192c 0%, #1e3e62 50%, #001f3f 100%)',
       iconWatermark: <Waves size={360} color="#38bdf8" />,
     },
@@ -486,7 +500,9 @@ export const Disaster: React.FC = () => {
               }}
             >
               {isSirenTesting ? <Volume2 size={18} className="animate-pulse" /> : <Radio size={18} />}
-              {isSirenTesting ? '🚨 साइरन ध्वनि परीक्षण जारी...' : '🚨 आपतकालीन साइरन परीक्षण (Test Siren)'}
+              {isSirenTesting
+                ? (isNepali ? '🚨 साइरन ध्वनि परीक्षण जारी...' : '🚨 Siren Audio Test Playing...')
+                : (isNepali ? '🚨 आपतकालीन साइरन परीक्षण (Test Siren)' : '🚨 Test Emergency Siren')}
             </button>
 
             <button
@@ -506,7 +522,7 @@ export const Disaster: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              <Compass size={18} /> ३D GIS विपद् जोखिम नक्सा
+              <Compass size={18} /> {isNepali ? '३D GIS विपद् जोखिम नक्सा' : '3D GIS Risk Map'}
             </button>
 
             <a
@@ -615,9 +631,11 @@ export const Disaster: React.FC = () => {
             <Waves size={26} />
           </div>
           <div>
-            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>मेलम्ची नदी जलसतह</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+              {isNepali ? 'मेलम्ची नदी जलसतह' : 'Melamchi River Water Level'}
+            </div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0369a1', marginTop: '0.1rem' }}>
-              {melamchiSensor.lastValue} मी.
+              {melamchiSensor.lastValue} {isNepali ? 'मी.' : 'm'}
             </div>
           </div>
         </div>
@@ -627,9 +645,11 @@ export const Disaster: React.FC = () => {
             <CloudRain size={26} />
           </div>
           <div>
-            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>भोताङ वर्षा (२४ घण्टा)</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+              {isNepali ? 'भोताङ वर्षा (२४ घण्टा)' : 'Bhotang 24h Rainfall'}
+            </div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#1e40af', marginTop: '0.1rem' }}>
-              {bhotangRainSensor.lastValue} मि.मि.
+              {bhotangRainSensor.lastValue} {isNepali ? 'मि.मि.' : 'mm'}
             </div>
           </div>
         </div>
@@ -639,7 +659,9 @@ export const Disaster: React.FC = () => {
             <Mountain size={26} />
           </div>
           <div>
-            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>मानेखर्क पहिरो चाल</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+              {isNepali ? 'मानेखर्क पहिरो चाल' : 'Manekharka Landslide Movement'}
+            </div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#b45309', marginTop: '0.1rem' }}>
               {manekharkaSensor.lastValue} mm/h
             </div>
@@ -651,9 +673,11 @@ export const Disaster: React.FC = () => {
             <Tent size={26} />
           </div>
           <div>
-            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>प्रमाणित आश्रयस्थल</div>
+            <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+              {isNepali ? 'प्रमाणित आश्रयस्थल' : 'Certified Shelters'}
+            </div>
             <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#15803d', marginTop: '0.1rem' }}>
-              ६ वटा (१,३१० जना)
+              {isNepali ? '६ वटा (१,३१० जना)' : '6 Shelters (1,310 Cap)'}
             </div>
           </div>
         </div>
