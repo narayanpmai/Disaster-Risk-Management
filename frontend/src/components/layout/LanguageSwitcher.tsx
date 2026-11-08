@@ -58,3 +58,4 @@ export const LanguageSwitcher: React.FC<{ compact?: boolean }> = ({ compact = fa
 };
 
 export default LanguageSwitcher;
+

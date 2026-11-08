@@ -29,6 +29,7 @@ import { Disaster } from './pages/public/Disaster';
 import { Projects } from './pages/public/Projects';
 import { OpenData } from './pages/public/OpenData';
 import { CitizenPwa } from './pages/public/CitizenPwa';
+import { DataBackupRecoveryPage } from './features/backup-dr/DataBackupRecoveryPage';
 import { AnnualReport } from './pages/public/AnnualReport';
 import { BusinessRegistration } from './pages/public/BusinessRegistration';
 import { ChallengesAchievements } from './pages/public/ChallengesAchievements';
@@ -241,6 +242,9 @@ export const App: React.FC = () => {
           <Route path="/tourism" element={<Tourism />} />
           <Route path="/disaster" element={<Disaster />} />
           <Route path="/disaster/national-gateway" element={<Disaster />} />
+          <Route path="/disaster/backup-dr" element={<ErrorBoundary><DataBackupRecoveryPage /></ErrorBoundary>} />
+          <Route path="/backup-dr" element={<ErrorBoundary><DataBackupRecoveryPage /></ErrorBoundary>} />
+          <Route path="/app/backup-dr" element={<ErrorBoundary><DataBackupRecoveryPage /></ErrorBoundary>} />
           <Route path="/disaster/dhm" element={<Disaster />} />
           <Route path="/disaster/bipad" element={<Disaster />} />
           <Route path="/disaster/river-twin" element={<Disaster />} />

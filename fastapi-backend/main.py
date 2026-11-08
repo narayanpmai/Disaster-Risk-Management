@@ -8,7 +8,7 @@ from core.db_init import init_and_sync_db
 init_and_sync_db()
 
 
-from api.routers import demographics, gis, health, agriculture, education, business, vital_registration, revenue, complaint, citizen_services, infrastructure, budget, project, employee_task, procurement, darta_chalani, employee, ward, tourism, organization, document, report, fiscal_year, waste_management, judicial, livestock, asset, disaster, contract, building_permit, audit, planning, social_security, social_inclusion, senior_citizen, women_children, disability, dalit, employment, recruitment, heritage, rti, branch, citizen, representative, badapatra, notification, open_data, visitor, library, camera, sensor, media, tenant, setting, municipality, auth, users, dashboard, analytics, it_branch, cooperative, citizen_360, calendar, weather, environmental_mining, bipad
+from api.routers import demographics, gis, health, agriculture, education, business, vital_registration, revenue, complaint, citizen_services, infrastructure, budget, project, employee_task, procurement, darta_chalani, employee, ward, tourism, organization, document, report, fiscal_year, waste_management, judicial, livestock, asset, disaster, contract, building_permit, audit, planning, social_security, social_inclusion, senior_citizen, women_children, disability, dalit, employment, recruitment, heritage, rti, branch, citizen, representative, badapatra, notification, open_data, visitor, library, camera, sensor, media, tenant, setting, municipality, auth, users, dashboard, analytics, it_branch, cooperative, citizen_360, calendar, weather, environmental_mining, bipad, backup
 from api.routers.engineer_payment import engineer_router, payment_router
 from api.routers.odk_service_router import odk_router, service_router_api
 from api.routers.extra_stubs import extra_router
@@ -84,6 +84,7 @@ app.include_router(asset.router)
 app.include_router(disaster.router)
 app.include_router(environmental_mining.router)
 app.include_router(bipad.router)
+app.include_router(backup.router)
 app.include_router(contract.router)
 app.include_router(building_permit.router)
 app.include_router(audit.router)

@@ -417,6 +417,13 @@ export const publicNavSections: NavSection[] = [
         badge: 'Audit & RBAC',
         badgeColor: '#0284c7',
       },
+      {
+        label: 'डाटा ब्याकअप तथा DR रिकभरी (Backup & DR)',
+        path: '/disaster/backup-dr',
+        icon: <Database size={16} style={{ color: '#10b981' }} />,
+        badge: 'DR <५m',
+        badgeColor: '#10b981',
+      },
     ],
   },
   {
@@ -506,6 +513,7 @@ const EN_LABELS: Record<string, { label: string; badge?: string; title?: string 
   'वातावरण तथा नदीजन्य खानी नियमन IEE/वन': { label: 'Environment & Mining Regulation', badge: 'IEE/Mining' },
   'नागरिक गुनासो व्यवस्थापन': { label: 'Citizen Grievance Management', badge: 'Complaints' },
   'प्रणाली अडिट ट्रेल तथा सुरक्षा लग (Audit Log)': { label: 'System Audit Trail & Security Log', badge: 'Audit & RBAC' },
+  'डाटा ब्याकअप तथा DR रिकभरी (Backup & DR)': { label: 'Data Backup & Disaster Recovery', badge: 'DR <5m' },
   '३डी/जीआईएस डिजिटल ट्विन': { label: '3D/GIS Digital Twin', badge: '3D GIS' },
   'सम्पूर्ण आयोजना जीवनचक्र ३६०': { label: 'Project Lifecycle 360', badge: 'PPIS' },
   'पालिका डिजिटल प्रोफाइल': { label: 'Municipal Digital Profile' },
