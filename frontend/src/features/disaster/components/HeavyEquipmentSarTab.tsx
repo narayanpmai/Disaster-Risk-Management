@@ -352,3 +352,4 @@ export const HeavyEquipmentSarTab: React.FC = () => {
 };
 
 export default HeavyEquipmentSarTab;
+

@@ -502,3 +502,4 @@ export const IvrVoiceSirenModule: React.FC = () => {
 };
 
 export default IvrVoiceSirenModule;
+

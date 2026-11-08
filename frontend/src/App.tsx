@@ -1,6 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import { TenantProvider } from './context/TenantContext';
+import { DisasterScopeProvider } from './context/DisasterScopeContext';
+import { NationalScopeModal } from './components/governance/NationalScopeModal';
 import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { PrivateRoute } from './components/auth/PrivateRoute';
@@ -215,8 +217,10 @@ export const App: React.FC = () => {
 
   return (
     <TenantProvider>
-      <Routes>
-        {/* PUBLIC PORTAL ROUTES */}
+      <DisasterScopeProvider>
+        <NationalScopeModal />
+        <Routes>
+          {/* PUBLIC PORTAL ROUTES */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
           <Route path="/ai-demo" element={<AIDemoPage />} />
@@ -510,6 +514,7 @@ export const App: React.FC = () => {
         {/* Global Fallback Route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </DisasterScopeProvider>
     </TenantProvider>
   );
 };

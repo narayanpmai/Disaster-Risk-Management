@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTenant } from '../../context/TenantContext';
 import { useAuth } from '../../context/AuthContext';
+import { useDisasterScope } from '../../context/DisasterScopeContext';
 import {
   Search,
   Bell,
@@ -37,6 +38,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
   const { settings, tenantId } = useTenant();
   const { user, logout } = useAuth();
+  const { activePalika, activeTier, selectedWardNumber, setIsScopeModalOpen } = useDisasterScope();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [portalMenuOpen, setPortalMenuOpen] = useState(false);
@@ -220,6 +222,46 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
 
       {/* ── Right: Actions ──────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+
+        {/* National Governance & 6-Tier Scope Switcher Pill */}
+        <button
+          onClick={() => setIsScopeModalOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.35rem 0.65rem',
+            borderRadius: '8px',
+            backgroundColor: activeTier.bgColor,
+            border: `1.5px solid ${activeTier.borderColor}`,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+            boxShadow: `0 2px 6px ${activeTier.borderColor}`,
+          }}
+          title="राष्ट्रिय विपद् अधिकार तथा बहु-स्थानीय तह क्षेत्राधिकार व्यवस्थापन (NEOC / DEOC / LEOC / वडा)"
+        >
+          <span
+            style={{
+              backgroundColor: activeTier.badgeColor,
+              color: '#ffffff',
+              fontSize: '0.68rem',
+              fontWeight: 900,
+              padding: '1px 5px',
+              borderRadius: '4px',
+            }}
+          >
+            T{activeTier.tierLevel}
+          </span>
+          <div style={{ textAlign: 'left', lineHeight: 1.15 }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+              {activePalika.nameNepali}
+            </div>
+            <div style={{ fontSize: '0.68rem', color: activeTier.textColor, fontWeight: 700, whiteSpace: 'nowrap' }}>
+              {activeTier.badgeLabel} {activeTier.tierLevel === 1 ? `(वडा ${selectedWardNumber})` : ''}
+            </div>
+          </div>
+          <ChevronDown size={13} color={activeTier.textColor} />
+        </button>
 
         {/* Notification Bell */}
         <button
