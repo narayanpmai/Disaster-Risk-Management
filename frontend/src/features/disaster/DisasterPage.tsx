@@ -48,12 +48,14 @@ import {
   Home,
   CheckSquare,
   HardHat,
+  Globe,
 } from 'lucide-react';
 import { DisasterModal } from './components/DisasterModal';
 import { EmergencyContactModal } from './components/EmergencyContactModal';
 import { AddShelterModal } from './components/AddShelterModal';
 import { RecoveryProjectsTab } from './components/RecoveryProjectsTab';
 import { MsraMatrixTab } from './components/MsraMatrixTab';
+import { BipadPortalTab } from './components/BipadPortalTab';
 
 interface BroadcastRecord {
   id: string;
@@ -113,6 +115,7 @@ export const DisasterPage: React.FC = () => {
     | 'broadcast'
     | 'recovery_projects'
     | 'msra_matrix'
+    | 'bipad_sync'
   >('events');
   const [selectedCamera, setSelectedCamera] = useState<CameraItem | null>(null);
   const [cameraFilter, setCameraFilter] = useState<string>('all');
@@ -816,6 +819,27 @@ export const DisasterPage: React.FC = () => {
           >
             <Activity size={15} />
             <span>१०. बहुक्षेत्रीय जोखिम मूल्याङ्कन (MSRA Matrix)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('bipad_sync')}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: 'var(--radius-sm)',
+              border: 'none',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              backgroundColor: activeTab === 'bipad_sync' ? '#0369a1' : '#f0f9ff',
+              color: activeTab === 'bipad_sync' ? '#ffffff' : '#0369a1',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              borderLeft: '2px solid #0284c7',
+            }}
+          >
+            <Globe size={15} />
+            <span>११. राष्ट्रिय विपद् पोर्टल (BIPAD Sync)</span>
           </button>
         </div>
       </div>
@@ -3287,6 +3311,18 @@ export const DisasterPage: React.FC = () => {
       {/* Tab 10: Multi-Sectoral Risk Assessment (MSRA) Matrix */}
       {activeTab === 'msra_matrix' && (
         <MsraMatrixTab />
+      )}
+
+      {/* Tab 11: National NDRRMA BIPAD Portal Integration */}
+      {activeTab === 'bipad_sync' && (
+        <BipadPortalTab
+          onTriggerWardAlert={(ward, text) => {
+            setTargetWard(ward);
+            setAlertTitle('🚨 राष्ट्रिय विपद् पूर्वसूचना सतर्कता');
+            setAlertMessage(text);
+            setActiveTab('broadcast');
+          }}
+        />
       )}
 
       {/* Disaster Event Modal */}
