@@ -238,6 +238,9 @@ export const App: React.FC = () => {
           <Route path="/complaints" element={<Complaints />} />
           <Route path="/tourism" element={<Tourism />} />
           <Route path="/disaster" element={<Disaster />} />
+          <Route path="/disaster/national-gateway" element={<Disaster />} />
+          <Route path="/disaster/dhm" element={<Disaster />} />
+          <Route path="/disaster/bipad" element={<Disaster />} />
           <Route path="/disaster/river-twin" element={<Disaster />} />
           <Route path="/disaster/landslide" element={<Disaster />} />
           <Route path="/disaster/siren" element={<Disaster />} />

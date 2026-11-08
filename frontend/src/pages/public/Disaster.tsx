@@ -36,6 +36,7 @@ import {
   Coins,
   Truck,
   WifiOff,
+  Globe,
 } from 'lucide-react';
 import { municipalityApi, type SensorItem, type CameraItem } from '../../api/municipality';
 import { disasterApi, type Shelter, type EmergencyContact, type DisasterEvent } from '../../api/disaster';
@@ -44,6 +45,7 @@ import { MicroVulnerabilityTab } from '../../features/disaster/components/MicroV
 import { RdraAssessmentTab } from '../../features/disaster/components/RdraAssessmentTab';
 import { HeavyEquipmentSarTab } from '../../features/disaster/components/HeavyEquipmentSarTab';
 import { OfflineMeshRadioTab } from '../../features/disaster/components/OfflineMeshRadioTab';
+import { NationalDataStandardGatewayTab } from '../../features/disaster/components/NationalDataStandardGatewayTab';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
 
 // Real-time Emergency Relief Materials Stock
@@ -125,6 +127,7 @@ export const Disaster: React.FC = () => {
   const location = useLocation();
   const validTabs = [
     'river_twin',
+    'national_gateway',
     'landslide',
     'siren',
     'micro_vulnerability',
@@ -139,6 +142,7 @@ export const Disaster: React.FC = () => {
 
   const getTabFromLocation = (): TabType => {
     const p = location.pathname;
+    if (p.includes('/national-gateway') || p.includes('/dhm') || p.includes('/bipad') || p.includes('/standard')) return 'national_gateway';
     if (p.includes('/landslide')) return 'landslide';
     if (p.includes('/siren')) return 'siren';
     if (p.includes('/micro-vulnerability') || p.includes('/vulnerability')) return 'micro_vulnerability';
@@ -169,6 +173,14 @@ export const Disaster: React.FC = () => {
   };
 
   const pageMeta: Record<TabType, { badge: string; badgeIcon: React.ReactNode; title: string; desc: string; bannerGradient: string; iconWatermark: React.ReactNode }> = {
+    national_gateway: {
+      badge: 'केन्द्रीकृत राष्ट्रिय विपद् तथ्याङ्क मापदण्ड v२.४ — DHM, BIPAD र त्रिपक्षीय सुरक्षा निकाय',
+      badgeIcon: <Globe size={16} color="#38bdf8" />,
+      title: 'राष्ट्रिय विपद् तथ्याङ्क मापदण्ड तथा DHM/सुरक्षा निकाय API अन्तरआबद्धता',
+      desc: 'गृह मन्त्रालय (BIPAD), जल तथा मौसम विज्ञान विभाग (DHM Telemetry), र नेपाली सेना / सशस्त्र प्रहरी / नेपाल प्रहरी आपतकालीन खोज तथा उद्धार (SAR Dispatch) एकीकृत गेटवे।',
+      bannerGradient: 'linear-gradient(135deg, #091e3a 0%, #173b6c 50%, #0369a1 100%)',
+      iconWatermark: <Globe size={360} color="#38bdf8" />,
+    },
     river_twin: {
       badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित जलसतह टेलिमेट्री तथा बाढी डिजिटल ट्विन',
       badgeIcon: <Waves size={16} color="#38bdf8" />,
@@ -646,6 +658,13 @@ export const Disaster: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* SECTION 0: NATIONAL CENTRALIZED DATA STANDARD & DHM/SECURITY API GATEWAY */}
+      {/* ========================================================================= */}
+      {activePublicTab === 'national_gateway' && (
+        <NationalDataStandardGatewayTab />
+      )}
 
       {/* ========================================================================= */}
       {/* SECTION 1: RIVER LEVEL TWIN & UPSTREAM-DOWNSTREAM FLOOD CORRELATION */}

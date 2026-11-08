@@ -331,6 +331,13 @@ export const publicNavSections: NavSection[] = [
             badgeColor: '#0284c7',
           },
           {
+            label: 'राष्ट्रिय तथ्याङ्क मापदण्ड तथा DHM/BIPAD',
+            path: '/disaster?tab=national_gateway',
+            icon: <Globe size={14} style={{ color: '#0284c7' }} />,
+            badge: 'DHM/BIPAD',
+            badgeColor: '#0284c7',
+          },
+          {
             label: 'पहिरो जोखिम तथा इन्क्लिनोमिटर',
             path: '/disaster?tab=landslide',
             icon: <Mountain size={14} style={{ color: '#eab308' }} />,
