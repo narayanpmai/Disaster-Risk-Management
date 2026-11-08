@@ -42,13 +42,21 @@ async def tenant_middleware(request: Request, call_next):
     request.state.tenant = subdomain
     return await call_next(request)
 
-# CORS setup
+# CORS setup [SEC-06: Hardened origin whitelist for ASVS compliance]
+raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:8080,http://localhost:5173,http://localhost:3000,http://127.0.0.1:8080,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001"
+)
+allowed_origins_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this
+    allow_origins=allowed_origins_list,
+    allow_origin_regex=r"^https?://([a-zA-Z0-9-]+\.)*(localhost|127\.0\.0\.1|gov\.np|p5digital\.local)(:[0-9]+)?$",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition", "x-tenant-id", "X-Total-Count"]
 )
 
 app.include_router(demographics.router)

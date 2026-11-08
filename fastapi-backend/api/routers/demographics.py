@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, text
 from typing import List, Optional, Any, Dict
 from core.database import get_db
 from models.demographics import Household, DemographicCategory, DemographicIndicator, DemographicValue
 from schemas.demographics import HouseholdResponse, DashboardStats
+from models.user import User, UserRole
+from api.routers.auth import get_current_user, require_roles
 
 router = APIRouter(
     prefix="/api/v1/demographics",
@@ -211,14 +213,20 @@ def sync_gps(db: Session = Depends(get_db)):
 # ─── Bulk import ──────────────────────────────────────────────────────────────
 
 @router.post("/households/bulk-import")
-def bulk_import(payload: Dict[str, Any] = Body(...), db: Session = Depends(get_db)):
+def bulk_import(
+    payload: Dict[str, Any] = Body(...),
+    db: Session = Depends(get_db)
+):
     try:
         replace_all = payload.get("replaceAll", False)
         households = payload.get("households", [])
         
+        # Security Guard [SEC-01]: replaceAll cannot be triggered anonymously
         if replace_all:
-            db.execute(text("TRUNCATE TABLE household_registries CASCADE"))
-            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="सुरक्षा प्रतिबन्ध: सम्पूर्ण डेटाबेस ट्रन्केट (replaceAll) गर्न सुपर-एडमिन प्रमाणीकरण अनिवार्य छ।"
+            )
             
         count = 0
         import uuid
@@ -279,18 +287,35 @@ def bulk_import(payload: Dict[str, Any] = Body(...), db: Session = Depends(get_d
             
         db.commit()
         return {"message": f"Successfully imported {count} households", "count": count}
+    except HTTPException:
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# ─── Clear all ────────────────────────────────────────────────────────────────
+# ─── Clear all (SEC-01: Restricted to Authenticated Super Admin with Confirmation) ──
 
 @router.post("/households-clear-all")
-def clear_all(db: Session = Depends(get_db)):
+def clear_all(
+    payload: Dict[str, Any] = Body(...),
+    current_user: User = Depends(require_roles(UserRole.SUPER_ADMIN)),
+    db: Session = Depends(get_db)
+):
+    """
+    CRITICAL SECURITY LOCKED [SEC-01]:
+    Only authenticated SUPER_ADMIN with explicit confirmation code can execute.
+    Prevents catastrophic unauthorized data destruction (OWASP API2:2023).
+    """
+    confirm_code = payload.get("confirm_action")
+    if confirm_code != "PERMANENT_DESTRUCTIVE_CLEAR_HOUSEHOLDS":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="सुरक्षा त्रुटि: सम्पूर्ण घरधुरी डाटा मेटाउन 'PERMANENT_DESTRUCTIVE_CLEAR_HOUSEHOLDS' पुष्टिकरण कोड अनिवार्य छ।"
+        )
     count = db.query(Household).count()
     db.execute(text("TRUNCATE TABLE household_registries CASCADE"))
     db.commit()
-    return {"message": "All households cleared", "count": count}
+    return {"message": "All households cleared securely by Super Admin", "count": count, "operator": current_user.email}
 
 # ─── Demographic Categories ──────────────────────────────────────────────────
 

@@ -16,13 +16,13 @@ router = APIRouter(
     tags=["Media & File Uploads"]
 )
 
-ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.pdf'}
+# Security Hardened [SEC-04]: Disallowed .svg to prevent Stored Cross-Site Scripting (XSS)
+ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf'}
 ALLOWED_MIME_TYPES = {
     'image/jpeg',
     'image/png',
     'image/webp',
     'image/gif',
-    'image/svg+xml',
     'application/pdf'
 }
 
@@ -47,7 +47,7 @@ async def upload_file(file: UploadFile = File(...)):
     if ext_lower not in ALLOWED_EXTENSIONS or (file.content_type and file.content_type not in ALLOWED_MIME_TYPES):
         raise HTTPException(
             status_code=400,
-            detail="अमान्य फाइल प्रकार! केवल तस्बिर (.jpg, .png, .webp, .svg) र PDF फाइलहरू मात्र स्वीकार गरिन्छ।"
+            detail="अमान्य फाइल प्रकार! केवल तस्बिर (.jpg, .jpeg, .png, .webp, .gif) र PDF फाइलहरू मात्र स्वीकार गरिन्छ। (.svg सुरक्षा जोखिमका कारण अस्वीकृत गरिएको छ)"
         )
         
     contents = await file.read()

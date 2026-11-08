@@ -3,7 +3,7 @@ Disaster Management API Router (विपद् व्यवस्थापन)
 Municipal Digital Twins v2.0 — Panchpokhari Thangpal
 Provides complete endpoints for Incidents, Shelters, Emergency Contacts, Relief Inventory, Relief Funds, and Vulnerable Settlements
 """
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from typing import List, Optional, Any, Dict
@@ -16,6 +16,8 @@ from models.disaster_risk import (
     DisasterIncident, IncidentDamageReport, RecoveryProject
 )
 from models.audit import AuditLog
+from models.user import User, UserRole
+from api.routers.auth import get_current_user, require_roles
 import uuid
 from datetime import datetime
 
@@ -24,19 +26,65 @@ router = APIRouter(
     tags=["Disaster Management (विपद् व्यवस्थापन)"]
 )
 
+# ── Role Permissions for Disaster Management [SEC-02] ──────────────────────────
+DISASTER_ADMIN_ROLES = (
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.CAO,
+    UserRole.IT_ADMIN,
+    UserRole.DISASTER_OFFICER,
+)
+
+DISASTER_EDITOR_ROLES = (
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.CAO,
+    UserRole.IT_ADMIN,
+    UserRole.DISASTER_OFFICER,
+    UserRole.WARD_USER,
+    UserRole.DATA_ENTRY,
+)
+
+def resolve_tenant(request: Request, tenant_param: Optional[str] = None) -> str:
+    """
+    Multi-tenant resolver [SEC-03]:
+    Extracts tenant ID from header, query param, or request state.
+    Defaults safely to 'panchpokhari' for single-tenant backward compatibility.
+    """
+    if tenant_param and tenant_param not in ["all", ""]:
+        return tenant_param
+    header_tenant = request.headers.get("x-tenant-id")
+    if header_tenant and header_tenant not in ["all", ""]:
+        return header_tenant
+    state_tenant = getattr(request.state, "tenant", None)
+    if state_tenant and state_tenant not in ["default", "localhost", "127", "all"]:
+        return state_tenant
+    return "panchpokhari"
+
 
 # ── 1. STATS ────────────────────────────────────────────────────────────────
 @router.get("/stats")
-def get_disaster_stats(db: Session = Depends(get_db)):
-    events = db.query(DisasterEvent).all()
+def get_disaster_stats(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    active_tenant = resolve_tenant(request, tenant_id)
+    events = db.query(DisasterEvent).filter(
+        or_(DisasterEvent.tenant_id == active_tenant, DisasterEvent.tenant_id.is_(None))
+    ).all()
     total_events = len(events)
     active_events = sum(1 for e in events if e.status == 'active')
 
-    shelters = db.query(Shelter).all()
+    shelters = db.query(Shelter).filter(
+        or_(Shelter.tenant_id == active_tenant, Shelter.tenant_id.is_(None))
+    ).all()
     total_shelters = len(shelters)
     total_capacity = sum(s.capacity or 0 for s in shelters)
 
-    total_contacts = db.query(EmergencyContact).count()
+    total_contacts = db.query(EmergencyContact).filter(
+        or_(EmergencyContact.tenant_id == active_tenant, EmergencyContact.tenant_id.is_(None))
+    ).count()
 
     total_inv_qty = db.query(func.sum(ReliefInventory.quantity)).scalar() or 0
     total_relief_disbursed = db.query(func.sum(DisasterReliefFund.amount_npr)).scalar() or 0
@@ -44,10 +92,20 @@ def get_disaster_stats(db: Session = Depends(get_db)):
         VulnerableSettlement.risk_level.ilike('%उच्च%')
     ).count()
 
-    total_recovery = db.query(RecoveryProject).count()
-    completed_recovery = db.query(RecoveryProject).filter(RecoveryProject.recovery_status == 'Completed').count()
-    in_progress_recovery = db.query(RecoveryProject).filter(RecoveryProject.recovery_status == 'In Progress').count()
-    total_loss_npr = float(db.query(func.sum(IncidentDamageReport.estimated_loss_amount)).scalar() or 0)
+    total_recovery = db.query(RecoveryProject).filter(
+        or_(RecoveryProject.tenant_id == active_tenant, RecoveryProject.tenant_id.is_(None))
+    ).count()
+    completed_recovery = db.query(RecoveryProject).filter(
+        or_(RecoveryProject.tenant_id == active_tenant, RecoveryProject.tenant_id.is_(None)),
+        RecoveryProject.recovery_status == 'Completed'
+    ).count()
+    in_progress_recovery = db.query(RecoveryProject).filter(
+        or_(RecoveryProject.tenant_id == active_tenant, RecoveryProject.tenant_id.is_(None)),
+        RecoveryProject.recovery_status == 'In Progress'
+    ).count()
+    total_loss_npr = float(db.query(func.sum(IncidentDamageReport.estimated_loss_amount)).filter(
+        or_(IncidentDamageReport.tenant_id == active_tenant, IncidentDamageReport.tenant_id.is_(None))
+    ).scalar() or 0)
 
     return {
         "totalEvents": total_events,
@@ -69,6 +127,8 @@ def get_disaster_stats(db: Session = Depends(get_db)):
 @router.get("/events")
 @router.get("/events/")
 def get_disaster_events(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
     ward: Optional[int] = Query(None),
     type: Optional[str] = Query(None),
     severity: Optional[str] = Query(None),
@@ -76,7 +136,10 @@ def get_disaster_events(
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(DisasterEvent)
+    active_tenant = resolve_tenant(request, tenant_id)
+    query = db.query(DisasterEvent).filter(
+        or_(DisasterEvent.tenant_id == active_tenant, DisasterEvent.tenant_id.is_(None))
+    )
 
     if ward and ward > 0:
         query = query.filter(DisasterEvent.ward_number == ward)
@@ -102,8 +165,16 @@ def get_disaster_events(
 
 
 @router.get("/active")
-def get_active_disaster_events(db: Session = Depends(get_db)):
-    events = db.query(DisasterEvent).filter(DisasterEvent.status == 'active').order_by(DisasterEvent.created_at.desc()).all()
+def get_active_disaster_events(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    active_tenant = resolve_tenant(request, tenant_id)
+    events = db.query(DisasterEvent).filter(
+        DisasterEvent.status == 'active',
+        or_(DisasterEvent.tenant_id == active_tenant, DisasterEvent.tenant_id.is_(None))
+    ).order_by(DisasterEvent.created_at.desc()).all()
     return [e.to_dict() for e in events]
 
 
@@ -123,14 +194,20 @@ def get_disaster_event(event_id: str, db: Session = Depends(get_db)):
 
 @router.post("/events", status_code=status.HTTP_201_CREATED)
 @router.post("/events/", status_code=status.HTTP_201_CREATED)
-def create_disaster_event(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_disaster_event(
+    data: Dict[str, Any],
+    request: Request,
+    db: Session = Depends(get_db)
+):
     title = data.get("title")
     if not title:
         raise HTTPException(status_code=400, detail="विपद् घटनाको शीर्षक अनिवार्य छ।")
 
+    active_tenant = data.get("tenant_id") or resolve_tenant(request)
     try:
         event = DisasterEvent(
             id=uuid.uuid4(),
+            tenant_id=active_tenant,
             title=title,
             type=data.get("type", "other"),
             severity=data.get("severity", "medium"),
@@ -167,7 +244,12 @@ def create_disaster_event(data: Dict[str, Any], db: Session = Depends(get_db)):
 
 
 @router.put("/events/{event_id}")
-def update_disaster_event(event_id: str, data: Dict[str, Any], db: Session = Depends(get_db)):
+def update_disaster_event(
+    event_id: str,
+    data: Dict[str, Any],
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         u_id = uuid.UUID(event_id)
         event = db.query(DisasterEvent).filter(DisasterEvent.id == u_id).first()
@@ -218,7 +300,11 @@ def update_disaster_event(event_id: str, data: Dict[str, Any], db: Session = Dep
 
 
 @router.delete("/events/{event_id}")
-def delete_disaster_event(event_id: str, db: Session = Depends(get_db)):
+def delete_disaster_event(
+    event_id: str,
+    current_user: User = Depends(require_roles(*DISASTER_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         u_id = uuid.UUID(event_id)
         event = db.query(DisasterEvent).filter(DisasterEvent.id == u_id).first()
@@ -230,13 +316,21 @@ def delete_disaster_event(event_id: str, db: Session = Depends(get_db)):
 
     db.delete(event)
     db.commit()
-    return {"success": True, "message": "विपद् घटना सफलतापूर्वक हटाइयो।"}
+    return {"success": True, "message": "विपद् घटना सफलतापूर्वक हटाइयो।", "deletedBy": current_user.email}
 
 
 # ── 3. SHELTERS (सुरक्षित आश्रयस्थल) ──────────────────────────────────────────
 @router.get("/shelters")
-def get_shelters(ward: Optional[int] = Query(None), db: Session = Depends(get_db)):
-    query = db.query(Shelter)
+def get_shelters(
+    request: Request,
+    ward: Optional[int] = Query(None),
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    active_tenant = resolve_tenant(request, tenant_id)
+    query = db.query(Shelter).filter(
+        or_(Shelter.tenant_id == active_tenant, Shelter.tenant_id.is_(None))
+    )
     if ward and ward > 0:
         query = query.filter(Shelter.ward_number == ward)
     shelters = query.order_by(Shelter.ward_number).all()
@@ -244,14 +338,24 @@ def get_shelters(ward: Optional[int] = Query(None), db: Session = Depends(get_db
 
 
 @router.post("/shelters", status_code=status.HTTP_201_CREATED)
-def create_shelter(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_shelter(
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     name = data.get("name")
     if not name:
         raise HTTPException(status_code=400, detail="आश्रयस्थलको नाम अनिवार्य छ।")
 
+    active_tenant = data.get("tenant_id") or (
+        current_user.tenant_id if current_user.tenant_id and current_user.tenant_id != "all" else resolve_tenant(request)
+    )
+
     try:
         shelter = Shelter(
             id=uuid.uuid4(),
+            tenant_id=active_tenant,
             name=name,
             ward_number=int(data.get("wardNumber") or data.get("ward_number") or 1),
             location=data.get("location", ""),
@@ -275,7 +379,12 @@ def create_shelter(data: Dict[str, Any], db: Session = Depends(get_db)):
 
 
 @router.put("/shelters/{shelter_id}")
-def update_shelter(shelter_id: str, data: Dict[str, Any], db: Session = Depends(get_db)):
+def update_shelter(
+    shelter_id: str,
+    data: Dict[str, Any],
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         u_id = uuid.UUID(shelter_id)
         shelter = db.query(Shelter).filter(Shelter.id == u_id).first()
@@ -309,7 +418,11 @@ def update_shelter(shelter_id: str, data: Dict[str, Any], db: Session = Depends(
 
 
 @router.delete("/shelters/{shelter_id}")
-def delete_shelter(shelter_id: str, db: Session = Depends(get_db)):
+def delete_shelter(
+    shelter_id: str,
+    current_user: User = Depends(require_roles(*DISASTER_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         u_id = uuid.UUID(shelter_id)
         shelter = db.query(Shelter).filter(Shelter.id == u_id).first()
@@ -321,18 +434,23 @@ def delete_shelter(shelter_id: str, db: Session = Depends(get_db)):
 
     db.delete(shelter)
     db.commit()
-    return {"success": True, "message": "आश्रयस्थल सफलतापूर्वक हटाइयो।"}
+    return {"success": True, "message": "आश्रयस्थल सफलतापूर्वक हटाइयो।", "deletedBy": current_user.email}
 
 
 # ── 4. EMERGENCY CONTACTS (आकस्मिक सम्पर्कहरू) ──────────────────────────────
 @router.get("/contacts")
 def get_contacts(
+    request: Request,
     ward: Optional[int] = Query(None),
     category: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
+    tenant_id: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(EmergencyContact)
+    active_tenant = resolve_tenant(request, tenant_id)
+    query = db.query(EmergencyContact).filter(
+        or_(EmergencyContact.tenant_id == active_tenant, EmergencyContact.tenant_id.is_(None))
+    )
     if ward and ward > 0:
         query = query.filter(EmergencyContact.ward_number == ward)
     if category and category != 'all':
@@ -353,15 +471,25 @@ def get_contacts(
 
 
 @router.post("/contacts", status_code=status.HTTP_201_CREATED)
-def create_contact(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_contact(
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     name = data.get("name")
     phone = data.get("phone")
     if not name or not phone:
         raise HTTPException(status_code=400, detail="सम्पर्क व्यक्तिको नाम र फोन नम्बर अनिवार्य छ।")
 
+    active_tenant = data.get("tenant_id") or (
+        current_user.tenant_id if current_user.tenant_id and current_user.tenant_id != "all" else resolve_tenant(request)
+    )
+
     try:
         contact = EmergencyContact(
             id=uuid.uuid4(),
+            tenant_id=active_tenant,
             name=name,
             role=data.get("role", ""),
             phone=phone,
@@ -380,7 +508,12 @@ def create_contact(data: Dict[str, Any], db: Session = Depends(get_db)):
 
 
 @router.put("/contacts/{contact_id}")
-def update_contact(contact_id: str, data: Dict[str, Any], db: Session = Depends(get_db)):
+def update_contact(
+    contact_id: str,
+    data: Dict[str, Any],
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         u_id = uuid.UUID(contact_id)
         contact = db.query(EmergencyContact).filter(EmergencyContact.id == u_id).first()
@@ -409,7 +542,11 @@ def update_contact(contact_id: str, data: Dict[str, Any], db: Session = Depends(
 
 
 @router.delete("/contacts/{contact_id}")
-def delete_contact(contact_id: str, db: Session = Depends(get_db)):
+def delete_contact(
+    contact_id: str,
+    current_user: User = Depends(require_roles(*DISASTER_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         u_id = uuid.UUID(contact_id)
         contact = db.query(EmergencyContact).filter(EmergencyContact.id == u_id).first()
@@ -421,7 +558,7 @@ def delete_contact(contact_id: str, db: Session = Depends(get_db)):
 
     db.delete(contact)
     db.commit()
-    return {"success": True, "message": "सम्पर्क हटाइयो।"}
+    return {"success": True, "message": "सम्पर्क हटाइयो।", "deletedBy": current_user.email}
 
 
 # ── 5. RELIEF INVENTORY (राहत सामग्री भण्डार) ───────────────────────────────
@@ -435,7 +572,11 @@ def get_relief_inventory(category: Optional[str] = Query(None), db: Session = De
 
 
 @router.post("/inventory", status_code=status.HTTP_201_CREATED)
-def create_relief_inventory_item(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_relief_inventory_item(
+    data: Dict[str, Any],
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         item = ReliefInventory(
             id=uuid.uuid4(),
@@ -460,13 +601,22 @@ def create_relief_inventory_item(data: Dict[str, Any], db: Session = Depends(get
 
 # ── 6. DISASTER RELIEF FUNDS (विपद् कोष राहत वितरण) ─────────────────────────
 @router.get("/funds")
-def get_relief_funds(db: Session = Depends(get_db)):
+def get_relief_funds(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
     funds = db.query(DisasterReliefFund).order_by(DisasterReliefFund.created_at.desc()).all()
     return [f.to_dict() for f in funds]
 
 
 @router.post("/funds", status_code=status.HTTP_201_CREATED)
-def create_relief_fund(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_relief_fund(
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES, UserRole.ACCOUNTANT)),
+    db: Session = Depends(get_db)
+):
     try:
         fund = DisasterReliefFund(
             id=uuid.uuid4(),
@@ -478,7 +628,7 @@ def create_relief_fund(data: Dict[str, Any], db: Session = Depends(get_db)):
             relief_type=data.get("reliefType") or data.get("relief_type") or "नगद राहत (DBT)",
             amount_npr=float(data.get("amountNPR") or data.get("amount_npr") or 0),
             distribution_date_bs=data.get("distributionDateBs") or data.get("distribution_date_bs") or "२०८१-०५-०४",
-            disbursed_by_officer=data.get("disbursedByOfficer") or data.get("disbursed_by_officer"),
+            disbursed_by_officer=data.get("disbursedByOfficer") or data.get("disbursed_by_officer") or current_user.full_name,
             voucher_no=data.get("voucherNo") or data.get("voucher_no"),
             status=data.get("status", "वितरण सम्पन्न"),
         )
@@ -493,13 +643,22 @@ def create_relief_fund(data: Dict[str, Any], db: Session = Depends(get_db)):
 
 # ── 7. VULNERABLE SETTLEMENTS (जोखिमयुक्त बस्ती) ─────────────────────────────
 @router.get("/settlements")
-def get_vulnerable_settlements(db: Session = Depends(get_db)):
+def get_vulnerable_settlements(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
     settlements = db.query(VulnerableSettlement).order_by(VulnerableSettlement.ward_number).all()
     return [s.to_dict() for s in settlements]
 
 
 @router.post("/settlements", status_code=status.HTTP_201_CREATED)
-def create_vulnerable_settlement(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_vulnerable_settlement(
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
     try:
         settlement = VulnerableSettlement(
             id=uuid.uuid4(),
@@ -525,12 +684,21 @@ def create_vulnerable_settlement(data: Dict[str, Any], db: Session = Depends(get
 
 # ── 8. GIS FEATURECOLLECTION ────────────────────────────────────────────────
 @router.get("/gis")
-def get_disaster_gis_layers(db: Session = Depends(get_db)):
-    """GeoJSON FeatureCollection combining active disaster events and emergency shelters"""
+def get_disaster_gis_layers(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """GeoJSON FeatureCollection combining active disaster events and emergency shelters [SEC-03 scoped]"""
+    active_tenant = resolve_tenant(request, tenant_id)
     features = []
 
     # Disaster Events
-    events = db.query(DisasterEvent).filter(DisasterEvent.lat.isnot(None), DisasterEvent.lng.isnot(None)).all()
+    events = db.query(DisasterEvent).filter(
+        DisasterEvent.lat.isnot(None),
+        DisasterEvent.lng.isnot(None),
+        or_(DisasterEvent.tenant_id == active_tenant, DisasterEvent.tenant_id.is_(None))
+    ).all()
     for e in events:
         features.append({
             "type": "Feature",
@@ -553,7 +721,11 @@ def get_disaster_gis_layers(db: Session = Depends(get_db)):
         })
 
     # Emergency Shelters
-    shelters = db.query(Shelter).filter(Shelter.lat.isnot(None), Shelter.lng.isnot(None)).all()
+    shelters = db.query(Shelter).filter(
+        Shelter.lat.isnot(None),
+        Shelter.lng.isnot(None),
+        or_(Shelter.tenant_id == active_tenant, Shelter.tenant_id.is_(None))
+    ).all()
     for s in shelters:
         features.append({
             "type": "Feature",
@@ -583,8 +755,15 @@ def get_disaster_gis_layers(db: Session = Depends(get_db)):
 
 # ── 9. RECOVERY & RECONSTRUCTION PROJECTS (पुनर्निर्माण तथा पुनःलाभ आयोजना) ──
 @router.get("/recovery-projects/stats")
-def get_recovery_projects_stats(db: Session = Depends(get_db)):
-    projects = db.query(RecoveryProject).all()
+def get_recovery_projects_stats(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    active_tenant = resolve_tenant(request, tenant_id)
+    projects = db.query(RecoveryProject).filter(
+        or_(RecoveryProject.tenant_id == active_tenant, RecoveryProject.tenant_id.is_(None))
+    ).all()
     total = len(projects)
     completed = sum(1 for p in projects if p.recovery_status == 'Completed')
     in_progress = sum(1 for p in projects if p.recovery_status == 'In Progress')
@@ -615,13 +794,18 @@ def get_recovery_projects_stats(db: Session = Depends(get_db)):
 @router.get("/recovery-projects")
 @router.get("/recovery-projects/")
 def get_recovery_projects(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     reconstruction_type: Optional[str] = Query(None),
     incident_id: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(RecoveryProject)
+    active_tenant = resolve_tenant(request, tenant_id)
+    query = db.query(RecoveryProject).filter(
+        or_(RecoveryProject.tenant_id == active_tenant, RecoveryProject.tenant_id.is_(None))
+    )
 
     if status and status != 'all':
         query = query.filter(RecoveryProject.recovery_status == status)
@@ -644,7 +828,12 @@ def get_recovery_projects(
 
 
 @router.post("/recovery-projects", status_code=status.HTTP_201_CREATED)
-def create_recovery_project(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_recovery_project(
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES, UserRole.ENGINEER, UserRole.PLANNING_OFFICER)),
+    db: Session = Depends(get_db)
+):
     incident_id = data.get("incidentId") or data.get("incident_id")
     reconstruction_type = data.get("reconstructionType") or data.get("reconstruction_type")
 
@@ -661,9 +850,13 @@ def create_recovery_project(data: Dict[str, Any], db: Session = Depends(get_db))
             detail=f"उल्लेखित विपद् घटना ID '{incident_id}' फेला परेन।"
         )
 
+    active_tenant = data.get("tenant_id") or (
+        current_user.tenant_id if current_user.tenant_id and current_user.tenant_id != "all" else resolve_tenant(request)
+    )
+
     proj_id = str(uuid.uuid4())
     project = RecoveryProject(
-        tenant_id=data.get("tenant_id", "panchpokhari"),
+        tenant_id=active_tenant,
         id=proj_id,
         incident_id=incident_id,
         project_id=data.get("projectId") or data.get("project_id"),
@@ -688,6 +881,7 @@ def create_recovery_project(data: Dict[str, Any], db: Session = Depends(get_db))
 def update_recovery_project_status(
     project_id: str,
     data: Dict[str, Any],
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES, UserRole.ENGINEER, UserRole.PLANNING_OFFICER)),
     db: Session = Depends(get_db)
 ):
     project = db.query(RecoveryProject).filter(RecoveryProject.id == project_id).first()
@@ -711,7 +905,11 @@ def update_recovery_project_status(
 
 
 @router.delete("/recovery-projects/{project_id}")
-def delete_recovery_project(project_id: str, db: Session = Depends(get_db)):
+def delete_recovery_project(
+    project_id: str,
+    current_user: User = Depends(require_roles(*DISASTER_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     project = db.query(RecoveryProject).filter(RecoveryProject.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="पुनर्निर्माण आयोजना फेला परेन।")
@@ -719,7 +917,7 @@ def delete_recovery_project(project_id: str, db: Session = Depends(get_db)):
     try:
         db.delete(project)
         db.commit()
-        return {"status": "success", "message": "पुनर्निर्माण आयोजना सफलतापूर्वक हटाइयो।"}
+        return {"status": "success", "message": "पुनर्निर्माण आयोजना सफलतापूर्वक हटाइयो।", "deletedBy": current_user.email}
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"आयोजना हटाउन सकिएन: {str(e)}")
@@ -729,10 +927,15 @@ def delete_recovery_project(project_id: str, db: Session = Depends(get_db)):
 @router.get("/damage-reports")
 @router.get("/damage-reports/")
 def get_damage_reports(
+    request: Request,
+    tenant_id: Optional[str] = Query(None),
     incident_id: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    query = db.query(IncidentDamageReport)
+    active_tenant = resolve_tenant(request, tenant_id)
+    query = db.query(IncidentDamageReport).filter(
+        or_(IncidentDamageReport.tenant_id == active_tenant, IncidentDamageReport.tenant_id.is_(None))
+    )
     if incident_id and incident_id != 'all':
         query = query.filter(IncidentDamageReport.incident_id == incident_id)
 
@@ -741,7 +944,11 @@ def get_damage_reports(
 
 
 @router.post("/damage-reports", status_code=status.HTTP_201_CREATED)
-def create_damage_report(data: Dict[str, Any], db: Session = Depends(get_db)):
+def create_damage_report(
+    data: Dict[str, Any],
+    request: Request,
+    db: Session = Depends(get_db)
+):
     incident_id = data.get("incidentId") or data.get("incident_id")
     if not incident_id:
         raise HTTPException(status_code=400, detail="विपद् घटना (Incident ID) अनिवार्य छ।")
@@ -750,9 +957,10 @@ def create_damage_report(data: Dict[str, Any], db: Session = Depends(get_db)):
     if not incident:
         raise HTTPException(status_code=404, detail=f"विपद् घटना ID '{incident_id}' फेला परेन।")
 
+    active_tenant = data.get("tenant_id") or resolve_tenant(request)
     report_id = data.get("id") or f"dmg-{str(uuid.uuid4())[:8]}"
     report = IncidentDamageReport(
-        tenant_id=data.get("tenant_id", "panchpokhari"),
+        tenant_id=active_tenant,
         id=report_id,
         incident_id=incident_id,
         affected_household_id=data.get("affectedHouseholdId") or data.get("affected_household_id"),
@@ -763,6 +971,15 @@ def create_damage_report(data: Dict[str, Any], db: Session = Depends(get_db)):
         relief_provided=data.get("reliefProvided") or data.get("relief_provided") or {},
         created_at=datetime.utcnow()
     )
+
+    try:
+        db.add(report)
+        db.commit()
+        db.refresh(report)
+        return report.to_dict()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"क्षति प्रतिवेदन सिर्जना गर्न सकिएन: {str(e)}")
 
     try:
         db.add(report)
