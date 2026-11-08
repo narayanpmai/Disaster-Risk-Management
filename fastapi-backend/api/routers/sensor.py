@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
-from typing import List
+from typing import List, Optional
 from core.database import get_db
 from models.sensor import Sensor
+from models.user import User, UserRole
+from api.routers.auth import get_current_user, require_roles
 from schemas.sensor import (
     SensorSchema,
     SensorCreate,
@@ -12,12 +14,24 @@ from schemas.sensor import (
 )
 from datetime import datetime, timedelta
 import uuid
+import os
 import httpx
 import asyncio
 
 router = APIRouter(
     prefix="/api/v1/sensors",
     tags=["IoT Sensors & Telemetry"]
+)
+
+# Standard shared sensor mesh authentication key [GIS-02]
+SENSOR_INGESTION_KEY = os.getenv("SENSOR_INGESTION_KEY", "nidrms-sensor-mesh-key-2024")
+
+SENSOR_ADMIN_ROLES = (
+    UserRole.SUPER_ADMIN,
+    UserRole.ADMIN,
+    UserRole.CAO,
+    UserRole.IT_ADMIN,
+    UserRole.DISASTER_OFFICER,
 )
 
 DEFAULT_SENSORS = [
@@ -155,7 +169,11 @@ def get_sensor(id: str, db: Session = Depends(get_db)):
     return sensor
 
 @router.post("", response_model=SensorSchema)
-def create_sensor(data: SensorCreate, db: Session = Depends(get_db)):
+def create_sensor(
+    data: SensorCreate,
+    current_user: User = Depends(require_roles(*SENSOR_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     db_s = Sensor(
         id=str(uuid.uuid4()),
         last_ping=datetime.utcnow(),
@@ -167,7 +185,12 @@ def create_sensor(data: SensorCreate, db: Session = Depends(get_db)):
     return db_s
 
 @router.put("/{id}", response_model=SensorSchema)
-def update_sensor(id: str, data: SensorUpdate, db: Session = Depends(get_db)):
+def update_sensor(
+    id: str,
+    data: SensorUpdate,
+    current_user: User = Depends(require_roles(*SENSOR_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     sensor = db.query(Sensor).filter(Sensor.id == id).first()
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor not found")
@@ -181,17 +204,60 @@ def update_sensor(id: str, data: SensorUpdate, db: Session = Depends(get_db)):
     return sensor
 
 @router.delete("/{id}")
-def delete_sensor(id: str, db: Session = Depends(get_db)):
+def delete_sensor(
+    id: str,
+    current_user: User = Depends(require_roles(*SENSOR_ADMIN_ROLES)),
+    db: Session = Depends(get_db)
+):
     sensor = db.query(Sensor).filter(Sensor.id == id).first()
     if not sensor:
         raise HTTPException(status_code=404, detail="Sensor not found")
         
     db.delete(sensor)
     db.commit()
-    return {"success": True, "message": "Sensor deleted successfully"}
+    return {"success": True, "message": "Sensor deleted successfully", "deletedBy": current_user.email}
 
 @router.post("/telemetry", response_model=SensorSchema)
-def push_telemetry(payload: TelemetryPayload, db: Session = Depends(get_db)):
+def push_telemetry(
+    payload: TelemetryPayload,
+    request: Request,
+    x_sensor_key: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
+    """
+    IoT Sensor Telemetry Ingestion [GIS-02]:
+    Enforces device authentication via X-Sensor-Key header or Bearer JWT token.
+    Validates range sanity to protect against false sirens or alarm suppression.
+    """
+    # 1. Device or User Authentication
+    authenticated = False
+    if x_sensor_key and x_sensor_key == SENSOR_INGESTION_KEY:
+        authenticated = True
+    else:
+        # Check if caller has valid Bearer token
+        try:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                from core.security import decode_access_token
+                token_data = decode_access_token(auth_header.removeprefix("Bearer ").strip())
+                if token_data and token_data.get("sub"):
+                    authenticated = True
+        except Exception:
+            pass
+
+    if not authenticated:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="अनाधिकृत टेलिमेट्री डाटा: सेन्सर API कुञ्जी (X-Sensor-Key) वा अपरेटर टोकन अनिवार्य छ।"
+        )
+
+    # 2. Reading Value Sanity Check (Prevent Telemetry Poisoning)
+    if payload.value < -50.0 or payload.value > 1000.0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"अस्वाभाविक सेन्सर मापन ({payload.value}): मान्य दायरा (-50 देखि 1000) भित्र हुनुपर्छ।"
+        )
+
     sensor = db.query(Sensor).filter(Sensor.sensor_id == payload.sensorId).first()
     if not sensor:
         sensor = Sensor(

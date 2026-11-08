@@ -7,6 +7,7 @@ from core.security import (
     create_access_token, create_refresh_token,
     decode_refresh_token
 )
+from core.rate_limiter import login_rate_limiter, registration_rate_limiter
 from models.user import User, UserRole
 from models.tenant import Tenant
 from schemas.user import (
@@ -63,7 +64,10 @@ def require_roles(*roles: UserRole):
 
 @router.post("/login")
 def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
-    """Email र password प्रयोग गरी लगइन गर्नुहोस् (Multi-tenant safe)"""
+    """Email र password प्रयोग गरी लगइन गर्नुहोस् (Multi-tenant safe & Rate Limited [SEC-05])"""
+    # Security Guard [SEC-05]: Rate limit login attempts to prevent brute-force cracking
+    login_rate_limiter.check(request, key_prefix="login")
+
     email = body.email.strip().lower()
     tenant_subdomain = body.tenant_subdomain
 
@@ -173,8 +177,13 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(get_db)):
 
 
 @router.post("/public/register", status_code=status.HTTP_201_CREATED)
-def public_register(body: PublicRegisterRequest, db: Session = Depends(get_db)):
-    """नागरिक, ठेकेदार वा इन्जिनियरका रूपमा नयाँ सार्वजनिक खाता दर्ता गर्नुहोस्"""
+def public_register(
+    body: PublicRegisterRequest,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """नागरिक, ठेकेदार वा इन्जिनियरका रूपमा नयाँ सार्वजनिक खाता दर्ता गर्नुहोस् (Rate Limited [SEC-05])"""
+    registration_rate_limiter.check(request, key_prefix="register")
     existing = db.query(User).filter(User.email == body.email, User.deleted_at == None).first()
     if existing:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
