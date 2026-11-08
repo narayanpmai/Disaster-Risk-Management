@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
   Users,
@@ -49,6 +50,7 @@ import {
   Activity,
   ShieldAlert,
   HardHat,
+  Mountain,
 } from 'lucide-react';
 
 // ── Dark Sidebar Design Tokens ──────────────────────────────────────
@@ -318,9 +320,6 @@ export const publicNavSections: NavSection[] = [
     ],
   },
 ];
-
-
-import { useAuth } from '../../context/AuthContext';
 
 interface SidebarProps {
   isPublic?: boolean;

@@ -215,12 +215,12 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
 
   const { data: miningSites = [] } = useQuery<MiningSite[]>({
     queryKey: ['gis-mining-sites'],
-    queryFn: () => environmentalMiningApi.getMiningSites(),
+    queryFn: () => environmentalMiningApi.getMiningSites().then((r: any) => Array.isArray(r) ? r : (r?.data || [])).catch(() => []),
   });
 
   const { data: vulnerableSettlements = [] } = useQuery<VulnerableSettlement[]>({
     queryKey: ['gis-vulnerable-settlements'],
-    queryFn: () => disasterApi.getSettlements(),
+    queryFn: () => disasterApi.getSettlements().then((r: any) => Array.isArray(r) ? r : (r?.data || [])).catch(() => []),
   });
 
   const allFacilities = useMemo(() => {
@@ -713,7 +713,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
     });
 
     // Real High-Risk Vulnerable Settlements (जोखिमयुक्त बस्तीहरू)
-    vulnerableSettlements.forEach((vs: VulnerableSettlement, idx: number) => {
+    (Array.isArray(vulnerableSettlements) ? vulnerableSettlements : []).forEach((vs: VulnerableSettlement, idx: number) => {
       const coord = WARD_OFFSETS[vs.wardNumber] || WARD_OFFSETS[3];
       list.push({
         id: `vs-${vs.id || idx}`,
@@ -730,7 +730,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
     });
 
     // Riverine Mining Sites & IEE Boundary (नदीजन्य खानी तथा वातावरण)
-    miningSites.forEach((ms: MiningSite, idx: number) => {
+    (Array.isArray(miningSites) ? miningSites : []).forEach((ms: MiningSite, idx: number) => {
       const coord = WARD_OFFSETS[ms.wardNumber] || WARD_OFFSETS[2];
       const lat = ms.gpsCoordinates?.lat || (coord.lat + (idx * 0.0018 - 0.002));
       const lng = ms.gpsCoordinates?.lng || (coord.lng + (idx * 0.0015 - 0.002));

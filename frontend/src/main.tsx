@@ -6,6 +6,7 @@ import App from './App';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import 'leaflet/dist/leaflet.css';
 import './styles/app.css';
 
 const queryClient = new QueryClient({

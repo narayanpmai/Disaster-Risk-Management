@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { municipalityApi, type SensorItem, type CameraItem } from '../../api/municipality';
 import { useAuth } from '../../context/AuthContext';
+import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { GisMapPage } from '../../features/gis/GisMapPage';
 import { DashboardOverview, toNepaliDigits } from '../../features/dashboard/DashboardOverview';
 import { PublicModulesDirectory } from '../../components/home/PublicModulesDirectory';
@@ -758,7 +759,9 @@ export const Home: React.FC = () => {
 
       {/* ── 2.5 LIVE SECTORAL DATA OVERVIEW (Dashboard Widget) ────────────────────── */}
       <section style={{ padding: '2.5rem 1.5rem', backgroundColor: '#f8fafc' }}>
-        <DashboardOverview readOnly={true} />
+        <ErrorBoundary>
+          <DashboardOverview readOnly={true} />
+        </ErrorBoundary>
       </section>
 
       {/* ── 3. REAL-TIME HYDROMET & RIVER LEVEL BANNER ────────────────────────────── */}
@@ -995,7 +998,9 @@ export const Home: React.FC = () => {
       {/* ── 5.5 EMBEDDED GIS MAP ─────────────────────────────────────────────────── */}
       <section style={{ width: '100%', maxWidth: '100%', margin: '0 0 3rem', padding: '0 0.5rem' }}>
         <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', padding: '1.5rem', overflow: 'hidden' }}>
-          <GisMapPage isPublic={true} />
+          <ErrorBoundary>
+            <GisMapPage isPublic={true} />
+          </ErrorBoundary>
         </div>
       </section>
 
