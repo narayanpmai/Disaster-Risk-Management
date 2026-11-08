@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ShieldAlert,
@@ -113,24 +113,86 @@ const LANDSLIDE_ZONES = [
 
 export const Disaster: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const validTabs = ['river_twin', 'landslide', 'siren', 'cameras', 'shelters', 'hotlines'] as const;
   type TabType = typeof validTabs[number];
 
-  const queryTab = searchParams.get('tab') as TabType | null;
-  const initialTab: TabType = (queryTab && validTabs.includes(queryTab)) ? queryTab : 'river_twin';
+  const getTabFromLocation = (): TabType => {
+    const p = location.pathname;
+    if (p.includes('/landslide')) return 'landslide';
+    if (p.includes('/siren')) return 'siren';
+    if (p.includes('/shelters')) return 'shelters';
+    if (p.includes('/cameras') || p.includes('/cctv')) return 'cameras';
+    if (p.includes('/hotlines') || p.includes('/eoc')) return 'hotlines';
+    if (p.includes('/river-twin')) return 'river_twin';
+    const queryTab = searchParams.get('tab') as TabType | null;
+    if (queryTab && validTabs.includes(queryTab)) return queryTab;
+    return 'river_twin';
+  };
 
-  const [activePublicTab, setActivePublicTab] = useState<TabType>(initialTab);
+  const [activePublicTab, setActivePublicTab] = useState<TabType>(getTabFromLocation);
 
   useEffect(() => {
-    const tab = searchParams.get('tab') as TabType | null;
-    if (tab && validTabs.includes(tab) && tab !== activePublicTab) {
-      setActivePublicTab(tab);
+    const matched = getTabFromLocation();
+    if (matched !== activePublicTab) {
+      setActivePublicTab(matched);
     }
-  }, [searchParams]);
+  }, [location.pathname, searchParams]);
 
   const changeTab = (tabId: TabType) => {
     setActivePublicTab(tabId);
     setSearchParams({ tab: tabId });
+  };
+
+  const pageMeta: Record<TabType, { badge: string; badgeIcon: React.ReactNode; title: string; desc: string; bannerGradient: string; iconWatermark: React.ReactNode }> = {
+    river_twin: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित जलसतह टेलिमेट्री तथा बाढी डिजिटल ट्विन',
+      badgeIcon: <Waves size={16} color="#38bdf8" />,
+      title: 'मेलम्ची-इन्द्रावती नदी जलसतह तथा बाढी पूर्वसूचना प्रणाली',
+      desc: 'थाङपालधाप र गुन्सा स्वचालित IoT राडार जलसतह गेज, मेलम्ची खोलाको प्रत्यक्ष जलस्तर अनुगमन तथा सम्भावित बाढीको पूर्वचेतावनी डिजिटल ट्विन।',
+      bannerGradient: 'linear-gradient(135deg, #0b192c 0%, #1e3e62 50%, #001f3f 100%)',
+      iconWatermark: <Waves size={360} color="#38bdf8" />,
+    },
+    landslide: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — पहिरो संवेदनशीलता, धाँजा तथा इन्क्लिनोमिटर अनुगमन',
+      badgeIcon: <Mountain size={16} color="#eab308" />,
+      title: 'पहिरो जोखिम, धाँजा तथा इन्क्लिनोमिटर चाल पूर्वसूचना प्रणाली',
+      desc: 'मानेखर्क डाँडागाउँ, सेर्माथाङ र भिरालो बस्तीहरूमा जडित उच्च-सटीक इन्क्लिनोमिटर, माटोको आर्द्रता (Soil Moisture) तथा भौगर्भिक चालको प्रत्यक्ष अनुगमन।',
+      bannerGradient: 'linear-gradient(135deg, #1c1917 0%, #44403c 50%, #292524 100%)',
+      iconWatermark: <Mountain size={360} color="#eab308" />,
+    },
+    siren: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित आपतकालीन साइरन तथा नागरिक सुरक्षा सतर्कता',
+      badgeIcon: <Radio size={16} color="#ef4444" />,
+      title: 'स्वचालित विपद् साइरन तथा आपतकालीन पूर्वसूचना SMS प्रणाली',
+      desc: 'मेलम्ची तटीय क्षेत्र तथा पहिरो संवेदनशील वडाहरूमा स्वचालित उच्च ध्वनिका साइरन परीक्षण, साइरन सक्रियता र नागरिकलाई तत्काल आपतकालीन सतर्कता प्रसारण।',
+      bannerGradient: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #3f0909 100%)',
+      iconWatermark: <Radio size={360} color="#ef4444" />,
+    },
+    shelters: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — सुरक्षित आश्रयस्थल प्रमाणीकरण तथा राहत सामग्री मौज्दात',
+      badgeIcon: <Tent size={16} color="#10b981" />,
+      title: 'सुरक्षित आश्रयस्थल (Evacuation Shelters) तथा राहत मौज्दात प्रणाली',
+      desc: 'पालिकाका सबै ८ वटै वडामा प्रमाणीकरण गरिएका १,३१० जना क्षमताका ६ वटा सुरक्षित आश्रयस्थल, वडा सम्पर्क व्यक्ति, र आपतकालीन त्रिपाल/औषधि मौज्दात।',
+      bannerGradient: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #022c22 100%)',
+      iconWatermark: <Tent size={360} color="#10b981" />,
+    },
+    cameras: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — २४/७ प्रत्यक्ष CCTV क्यामेरा भिडियो सर्भिलेन्स',
+      badgeIcon: <Video size={16} color="#a855f7" />,
+      title: 'उच्च जोखिम क्षेत्र प्रत्यक्ष CCTV क्यामेरा लाइभ सर्भिलेन्स',
+      desc: 'मेलम्ची नदी पुल, गाम्चेत बजार, मानेखर्क भिरालो क्षेत्र र पालिका प्रवेशद्वारमा जडित २४/७ प्रत्यक्ष हाई-डेफिनिसन क्यामेरा भिडियो निगरानी कक्ष।',
+      bannerGradient: 'linear-gradient(135deg, #3b0764 0%, #581c87 50%, #2e1065 100%)',
+      iconWatermark: <Video size={360} color="#a855f7" />,
+    },
+    hotlines: {
+      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — २४/७ आपतकालीन कार्यसञ्चालन केन्द्र (EOC) हटलाइन',
+      badgeIcon: <PhoneCall size={16} color="#f97316" />,
+      title: 'आपतकालीन नियन्त्रण कक्ष (EOC) तथा खोज-उद्धार टेलिफोन डाइरेक्टरी',
+      desc: 'नेपाल प्रहरी, सशस्त्र प्रहरी बल, प्राथमिक उपचार एम्बुलेन्स सेवा, स्वास्थ्य चौकी र वडास्तरीय विपद् फोकल पर्सनहरूको २४/७ हटलाइन डाइरेक्टरी।',
+      bannerGradient: 'linear-gradient(135deg, #431407 0%, #7c2d12 50%, #270d05 100%)',
+      iconWatermark: <PhoneCall size={360} color="#f97316" />,
+    },
   };
   const [selectedRiverSensor, setSelectedRiverSensor] = useState<string>('SEN-MEL-01');
   const [isSirenTesting, setIsSirenTesting] = useState<boolean>(false);
@@ -277,22 +339,25 @@ export const Disaster: React.FC = () => {
     return sh.wardNumber === shelterWardFilter;
   });
 
+  const currentMeta = pageMeta[activePublicTab] || pageMeta.river_twin;
+
   return (
     <div style={{ maxWidth: '1380px', margin: '0 auto', padding: '1.5rem 1rem 3.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       
-      {/* Top Banner with Glassmorphism & Flood Twin Highlight */}
+      {/* Top Banner with Dynamic Meta according to Selected Single Module */}
       <div style={{
         position: 'relative',
         borderRadius: '20px',
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0b192c 0%, #1e3e62 50%, #001f3f 100%)',
+        background: currentMeta.bannerGradient,
         color: '#ffffff',
         padding: '2.5rem 2rem',
         marginBottom: '2rem',
         boxShadow: '0 20px 35px -10px rgba(11, 25, 44, 0.4)',
-        border: '1px solid rgba(255, 255, 255, 0.12)'
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        transition: 'background 0.3s ease',
       }}>
-        {/* Subtle Water Waves Backdrop */}
+        {/* Dynamic Watermark */}
         <div style={{
           position: 'absolute',
           right: '-40px',
@@ -300,7 +365,7 @@ export const Disaster: React.FC = () => {
           opacity: 0.12,
           pointerEvents: 'none',
         }}>
-          <Waves size={360} color="#38bdf8" />
+          {currentMeta.iconWatermark}
         </div>
 
         <div style={{ maxWidth: '850px', position: 'relative', zIndex: 2 }}>
@@ -317,39 +382,18 @@ export const Disaster: React.FC = () => {
             marginBottom: '1rem',
             border: '1px solid rgba(255, 255, 255, 0.25)',
           }}>
-            <ShieldAlert size={16} color="#ef4444" /> पाँचपोखरी थाङपाल गाउँपालिका — विपद् पूर्वसूचना तथा नदी जलसतह डिजिटल ट्विन
+            {currentMeta.badgeIcon} <span>{currentMeta.badge}</span>
           </div>
 
           <h1 style={{ fontSize: '2.3rem', fontWeight: 800, lineHeight: 1.25, margin: '0 0 0.85rem 0', letterSpacing: '-0.5px' }}>
-            मेलम्ची-इन्द्रावती बाढी पूर्वसूचना, पहिरो जोखिम तथा सुरक्षित आश्रयस्थल प्रणाली
+            {currentMeta.title}
           </h1>
           
           <p style={{ fontSize: '1.02rem', lineHeight: 1.65, opacity: 0.92, margin: '0 0 1.75rem 0' }}>
-            स्वचालित IoT नदी जलसतह गेज (थाङपालधाप र गुन्सा), भोताङ वर्षा सेन्सर, मानेखर्क इन्क्लिनोमिटर, २४/७ प्रत्यक्ष CCTV क्यामेरा सर्भिलेन्स, र वडास्तरीय सुरक्षित आश्रयस्थलहरूको एकीकृत डिजिटल नियन्त्रण कक्ष।
+            {currentMeta.desc}
           </p>
 
           <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => changeTab('river_twin')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.55rem',
-                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                color: '#ffffff',
-                border: 'none',
-                padding: '0.75rem 1.4rem',
-                borderRadius: '10px',
-                fontWeight: 700,
-                fontSize: '0.92rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
-                transition: 'all 0.2s'
-              }}
-            >
-              🌊 नदी जलसतह प्रत्यक्ष गेज ट्विन
-            </button>
-
             <button
               onClick={handleToggleSirenTest}
               style={{
@@ -386,10 +430,31 @@ export const Disaster: React.FC = () => {
                 fontWeight: 600,
                 fontSize: '0.92rem',
                 cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
             >
-              🌐 GIS नक्सामा सुरक्षित आश्रयस्थल
+              <Compass size={18} /> ३D GIS विपद् जोखिम नक्सा
             </button>
+
+            <a
+              href="tel:011460123"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.55rem',
+                background: 'rgba(255, 255, 255, 0.12)',
+                color: '#ffffff',
+                textDecoration: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                padding: '0.75rem 1.4rem',
+                borderRadius: '10px',
+                fontWeight: 600,
+                fontSize: '0.92rem',
+                transition: 'all 0.2s'
+              }}
+            >
+              <PhoneCall size={18} /> २४/७ EOC हटलाइन: ०११-४६०१२३
+            </a>
           </div>
         </div>
       </div>
@@ -521,53 +586,8 @@ export const Disaster: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs Bar */}
-      <div style={{
-        display: 'flex',
-        gap: '0.4rem',
-        marginBottom: '1.75rem',
-        background: '#ffffff',
-        padding: '0.5rem',
-        borderRadius: '14px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
-        flexWrap: 'wrap'
-      }}>
-        {[
-          { id: 'river_twin', label: '🌊 नदी जलसतह तथा बाढी गेज ट्विन', icon: <Waves size={16} /> },
-          { id: 'landslide', label: '⛰️ पहिरो जोखिम तथा इन्क्लिनोमिटर', icon: <Mountain size={16} /> },
-          { id: 'siren', label: '🚨 स्वचालित साइरन र नागरिक सुरक्षा', icon: <Radio size={16} /> },
-          { id: 'shelters', label: '🏢 सुरक्षित आश्रयस्थल र राहत मौज्दात', icon: <Tent size={16} /> },
-          { id: 'cameras', label: '📹 CCTV क्यामेरा लाइभ सर्भिलेन्स', icon: <Video size={16} /> },
-          { id: 'hotlines', label: '📞 २४/७ आपतकालीन नियन्त्रण कक्ष', icon: <PhoneCall size={16} /> },
-        ].map(t => (
-          <button
-            key={t.id}
-            onClick={() => changeTab(t.id as any)}
-            style={{
-              padding: '0.65rem 1.05rem',
-              borderRadius: '10px',
-              border: 'none',
-              fontWeight: activePublicTab === t.id ? 700 : 600,
-              fontSize: '0.88rem',
-              cursor: 'pointer',
-              backgroundColor: activePublicTab === t.id ? '#0f172a' : 'transparent',
-              color: activePublicTab === t.id ? '#ffffff' : '#475569',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              boxShadow: activePublicTab === t.id ? '0 4px 8px rgba(15, 23, 42, 0.25)' : 'none',
-              transition: 'all 0.15s ease-in-out',
-            }}
-          >
-            {t.icon}
-            <span>{t.label}</span>
-          </button>
-        ))}
-      </div>
-
       {/* ========================================================================= */}
-      {/* TAB 1: RIVER LEVEL TWIN & UPSTREAM-DOWNSTREAM FLOOD CORRELATION */}
+      {/* SECTION 1: RIVER LEVEL TWIN & UPSTREAM-DOWNSTREAM FLOOD CORRELATION */}
       {/* ========================================================================= */}
       {activePublicTab === 'river_twin' && (
         <div>
