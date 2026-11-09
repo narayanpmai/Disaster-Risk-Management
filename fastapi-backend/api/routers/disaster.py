@@ -13,7 +13,8 @@ from models.disaster import (
     ReliefInventory, DisasterReliefFund, VulnerableSettlement
 )
 from models.disaster_risk import (
-    DisasterIncident, IncidentDamageReport, RecoveryProject
+    DisasterIncident, IncidentDamageReport, RecoveryProject,
+    IncidentVerification, DisasterLessonsLearned
 )
 from models.audit import AuditLog
 from models.user import User, UserRole
@@ -160,8 +161,67 @@ def get_disaster_events(
             )
         )
 
-    events = query.order_by(DisasterEvent.created_at.desc()).all()
-    return [e.to_dict() for e in events]
+    events = [e.to_dict() for e in query.order_by(DisasterEvent.created_at.desc()).all()]
+
+    # Unified Schema Bridge [DB-01]: Bridge incidents from drrm_incidents into events stream
+    existing_ids = {e["id"] for e in events}
+    inc_query = db.query(DisasterIncident).filter(
+        or_(DisasterIncident.tenant_id == active_tenant, DisasterIncident.tenant_id.is_(None))
+    )
+    if ward and ward > 0:
+        inc_query = inc_query.filter(DisasterIncident.ward_id == str(ward))
+    if type and type != 'all':
+        inc_query = inc_query.filter(DisasterIncident.incident_type.ilike(f"%{type}%"))
+    if severity and severity != 'all':
+        inc_query = inc_query.filter(DisasterIncident.severity.ilike(f"%{severity}%"))
+    if status and status != 'all':
+        inc_query = inc_query.filter(DisasterIncident.status.ilike(f"%{status}%"))
+
+    for inc in inc_query.order_by(DisasterIncident.created_at.desc()).all():
+        if inc.id not in existing_ids:
+            lat = None
+            lng = None
+            if isinstance(inc.gis_location, dict):
+                lat = inc.gis_location.get("lat")
+                lng = inc.gis_location.get("lng")
+            try:
+                w_num = int(inc.ward_id or 1)
+            except ValueError:
+                w_num = 1
+            events.append({
+                "id": inc.id,
+                "title": f"{inc.incident_type} (वडा नं {inc.ward_id or '१'})",
+                "type": inc.incident_type,
+                "severity": inc.severity,
+                "status": "active" if inc.status.lower() == "active" else "resolved",
+                "description": inc.description,
+                "lat": lat,
+                "lng": lng,
+                "wardNumber": w_num,
+                "reporterName": "LEOC / PWA Field Officer",
+                "reporterPhone": "",
+                "incidentDateBs": inc.incident_date.strftime("%Y-%m-%d") if inc.incident_date else "",
+                "affectedHouseholds": len(inc.damage_reports) if inc.damage_reports else 0,
+                "affectedPeople": 0,
+                "humanCasualties": sum(d.human_casualties or 0 for d in inc.damage_reports) if inc.damage_reports else 0,
+                "missingPersons": 0,
+                "injuredCount": sum(d.injured_count or 0 for d in inc.damage_reports) if inc.damage_reports else 0,
+                "livestockLossCount": 0,
+                "fullyDamagedHouses": 0,
+                "partiallyDamagedHouses": 0,
+                "estimatedLossNPR": sum(float(d.estimated_loss_amount or 0) for d in inc.damage_reports) if inc.damage_reports else 0.0,
+                "reliefStatus": "आवश्यक",
+                "reliefMaterials": "",
+                "reliefDisbursedNPR": 0.0,
+                "rescueTeam": "",
+                "tolsSettlement": f"वडा नं {inc.ward_id}",
+                "resolvedAt": None,
+                "createdAt": inc.created_at.isoformat() if inc.created_at else None,
+                "updatedAt": inc.updated_at.isoformat() if inc.updated_at else None,
+                "drrm_unified": True
+            })
+
+    return events
 
 
 @router.get("/active")
@@ -235,6 +295,24 @@ def create_disaster_event(
             tols_settlement=data.get("tolsSettlement") or data.get("tols_settlement"),
         )
         db.add(event)
+        
+        # Dual-write sync to drrm_incidents [DB-01]
+        try:
+            relational_inc = DisasterIncident(
+                tenant_id=active_tenant,
+                id=str(event.id),
+                incident_type=event.type or "other",
+                incident_date=event.created_at or datetime.utcnow(),
+                ward_id=str(event.ward_number or 1),
+                severity=event.severity or "Medium",
+                description=f"{event.title}: {event.description or ''}".strip(),
+                gis_location={"lat": event.lat, "lng": event.lng} if (event.lat and event.lng) else None,
+                status="Active" if event.status == "active" else "Closed"
+            )
+            db.add(relational_inc)
+        except Exception:
+            pass
+
         db.commit()
         db.refresh(event)
         return event.to_dict()
@@ -604,9 +682,16 @@ def create_relief_inventory_item(
 def get_relief_funds(
     request: Request,
     tenant_id: Optional[str] = Query(None),
+    incident_id: Optional[str] = Query(None),
     db: Session = Depends(get_db)
 ):
-    funds = db.query(DisasterReliefFund).order_by(DisasterReliefFund.created_at.desc()).all()
+    active_tenant = resolve_tenant(request, tenant_id)
+    query = db.query(DisasterReliefFund).filter(
+        or_(DisasterReliefFund.tenant_id == active_tenant, DisasterReliefFund.tenant_id.is_(None))
+    )
+    if incident_id and incident_id != "all":
+        query = query.filter(DisasterReliefFund.incident_id == incident_id)
+    funds = query.order_by(DisasterReliefFund.created_at.desc()).all()
     return [f.to_dict() for f in funds]
 
 
@@ -617,9 +702,13 @@ def create_relief_fund(
     current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES, UserRole.ACCOUNTANT)),
     db: Session = Depends(get_db)
 ):
+    active_tenant = data.get("tenant_id") or resolve_tenant(request)
+    inc_id = data.get("incidentId") or data.get("incident_id")
     try:
         fund = DisasterReliefFund(
             id=uuid.uuid4(),
+            tenant_id=active_tenant,
+            incident_id=inc_id,
             disaster_title=data.get("disasterTitle") or data.get("disaster_title") or "विपद् राहत",
             ward_number=int(data.get("wardNumber") or data.get("ward_number") or 1),
             beneficiary_name=data.get("beneficiaryName") or data.get("beneficiary_name") or "",
@@ -981,14 +1070,133 @@ def create_damage_report(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"क्षति प्रतिवेदन सिर्जना गर्न सकिएन: {str(e)}")
 
+
+# ── 11. INCIDENT VERIFICATION (विपद् घटना प्रमाणीकरण कार्यप्रवाह) [DOM-01] ───
+@router.get("/incidents/{incident_id}/verifications")
+def get_incident_verifications(
+    incident_id: str,
+    db: Session = Depends(get_db)
+):
+    verifs = db.query(IncidentVerification).filter(
+        IncidentVerification.incident_id == incident_id
+    ).order_by(IncidentVerification.verified_at.desc()).all()
+    return [v.to_dict() for v in verifs]
+
+
+@router.post("/incidents/{incident_id}/verify", status_code=status.HTTP_201_CREATED)
+def verify_disaster_incident(
+    incident_id: str,
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
+    """
+    Formal Incident Verification [DOM-01]:
+    Authorizes Ward Officers, LEOC Operators, or Disaster Officers to confirm/adjust incident severity,
+    flag life-safety threat, and approve immediate operational dispatch.
+    """
+    incident = db.query(DisasterIncident).filter(DisasterIncident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail=f"विपद् घटना ID '{incident_id}' फेला परेन।")
+
+    confirmed_severity = data.get("confirmedSeverity") or data.get("confirmed_severity") or incident.severity
+    status_val = data.get("status") or "VERIFIED"
+
+    active_tenant = data.get("tenant_id") or (
+        current_user.tenant_id if current_user.tenant_id and current_user.tenant_id != "all" else resolve_tenant(request)
+    )
+
+    verif = IncidentVerification(
+        id=str(uuid.uuid4()),
+        tenant_id=active_tenant,
+        incident_id=incident_id,
+        verification_status=status_val,
+        verified_by_user_id=str(current_user.id),
+        verified_by_name=current_user.full_name,
+        verified_by_role=current_user.role,
+        original_severity=incident.severity,
+        confirmed_severity=confirmed_severity,
+        is_life_safety_threat=bool(data.get("isLifeSafetyThreat", False)),
+        immediate_action_required=data.get("immediateActionRequired") or data.get("immediate_action_required"),
+        verification_notes=data.get("notes") or data.get("verification_notes") or "",
+        verified_at=datetime.utcnow()
+    )
+
+    # Update parent incident severity and status
+    incident.severity = confirmed_severity
+    if status_val == "REJECTED":
+        incident.status = "Rejected"
+    else:
+        incident.status = "Verified"
+    incident.updated_at = datetime.utcnow()
+
     try:
-        db.add(report)
+        db.add(verif)
         db.commit()
-        db.refresh(report)
-        return report.to_dict()
+        db.refresh(verif)
+        return verif.to_dict()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"क्षति प्रतिवेदन सिर्जना गर्न सकिएन: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"प्रमाणीकरण सुरक्षित गर्न सकिएन: {str(e)}")
+
+
+# ── 12. AFTER ACTION REVIEW & LESSONS LEARNED (समीक्षा तथा सिकाइ) [DOM-01] ────
+@router.get("/incidents/{incident_id}/lessons-learned")
+def get_incident_lessons_learned(
+    incident_id: str,
+    db: Session = Depends(get_db)
+):
+    lessons = db.query(DisasterLessonsLearned).filter(
+        DisasterLessonsLearned.incident_id == incident_id
+    ).order_by(DisasterLessonsLearned.created_at.desc()).all()
+    return [l.to_dict() for l in lessons]
+
+
+@router.post("/incidents/{incident_id}/lessons-learned", status_code=status.HTTP_201_CREATED)
+def record_lessons_learned(
+    incident_id: str,
+    data: Dict[str, Any],
+    request: Request,
+    current_user: User = Depends(require_roles(*DISASTER_EDITOR_ROLES)),
+    db: Session = Depends(get_db)
+):
+    """
+    Post-Disaster After Action Review (AAR) [DOM-01]:
+    Completes Sendai Framework Lifecycle. Records operational strengths, challenges,
+    and policy recommendations for future municipal preparedness.
+    """
+    incident = db.query(DisasterIncident).filter(DisasterIncident.id == incident_id).first()
+    if not incident:
+        raise HTTPException(status_code=404, detail=f"विपद् घटना ID '{incident_id}' फेला परेन।")
+
+    title = data.get("title") or f"AAR Review: {incident.incident_type}"
+    active_tenant = data.get("tenant_id") or resolve_tenant(request)
+
+    lesson = DisasterLessonsLearned(
+        id=str(uuid.uuid4()),
+        tenant_id=active_tenant,
+        incident_id=incident_id,
+        title=title,
+        disaster_type=incident.incident_type,
+        lead_evaluator=data.get("leadEvaluator") or data.get("lead_evaluator") or current_user.full_name,
+        response_strengths=data.get("responseStrengths") or data.get("response_strengths") or "",
+        challenges_faced=data.get("challengesFaced") or data.get("challenges_faced") or "",
+        policy_recommendations=data.get("policyRecommendations") or data.get("policy_recommendations") or "",
+        infrastructure_improvements=data.get("infrastructureImprovements") or data.get("infrastructure_improvements") or "",
+        overall_rating=data.get("overallRating") or data.get("overall_rating") or "Satisfactory",
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
+    )
+
+    try:
+        db.add(lesson)
+        db.commit()
+        db.refresh(lesson)
+        return lesson.to_dict()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"समीक्षा प्रतिवेदन सुरक्षित गर्न सकिएन: {str(e)}")
 
 
 # ── 11. OFFLINE-FIRST PWA & LOCAL SYNC QUEUE (इन्टरनेट नहुँदा पनि काम गर्ने PWA तथा ब्याकग्राउन्ड सिङ्क) ──────

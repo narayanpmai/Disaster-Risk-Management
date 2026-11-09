@@ -41,6 +41,8 @@ class DisasterIncident(Base):
     
     damage_reports = relationship("IncidentDamageReport", back_populates="incident")
     recovery_projects = relationship("RecoveryProject", back_populates="incident")
+    verifications = relationship("IncidentVerification", back_populates="incident")
+    lessons_learned = relationship("DisasterLessonsLearned", back_populates="incident")
 
     def to_dict(self):
         return {
@@ -53,6 +55,9 @@ class DisasterIncident(Base):
             "description": self.description,
             "gis_location": self.gis_location,
             "status": self.status,
+            "verifications_count": len(self.verifications) if self.verifications else 0,
+            "damage_reports_count": len(self.damage_reports) if self.damage_reports else 0,
+            "recovery_projects_count": len(self.recovery_projects) if self.recovery_projects else 0,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -124,6 +129,99 @@ class RecoveryProject(Base):
             "reconstruction_type": self.reconstruction_type,
             "beneficiary_household_id": self.beneficiary_household_id,
             "recovery_status": self.recovery_status,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+
+class IncidentVerification(Base):
+    """
+    Formal Incident Verification Workflow [DOM-01]:
+    Enables authorized Ward Officers or LEOC Commanders to verify reported incidents,
+    adjust severity, assess authenticity, and approve for emergency dispatch.
+    """
+    __tablename__ = 'drrm_incident_verifications'
+    __table_args__ = {'extend_existing': True}
+    
+    tenant_id = Column(String, index=True, nullable=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    incident_id = Column(String, ForeignKey('drrm_incidents.id'), nullable=False)
+    
+    verification_status = Column(String, default='VERIFIED')  # VERIFIED, REJECTED, ESCALATED, UNDER_REVIEW
+    verified_by_user_id = Column(String, nullable=True)
+    verified_by_name = Column(String, nullable=False)
+    verified_by_role = Column(String, nullable=True)
+    
+    original_severity = Column(String, nullable=True)
+    confirmed_severity = Column(String, nullable=False)
+    
+    is_life_safety_threat = Column(Boolean, default=False)
+    immediate_action_required = Column(String, nullable=True)  # SAR Dispatch, Evacuation, Relief, Alert Sirens
+    verification_notes = Column(Text, nullable=True)
+    
+    verified_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    
+    incident = relationship("DisasterIncident", back_populates="verifications")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tenant_id": self.tenant_id,
+            "incident_id": self.incident_id,
+            "verification_status": self.verification_status,
+            "verified_by_user_id": self.verified_by_user_id,
+            "verified_by_name": self.verified_by_name,
+            "verified_by_role": self.verified_by_role,
+            "original_severity": self.original_severity,
+            "confirmed_severity": self.confirmed_severity,
+            "is_life_safety_threat": bool(self.is_life_safety_threat),
+            "immediate_action_required": self.immediate_action_required,
+            "verification_notes": self.verification_notes or "",
+            "verified_at": self.verified_at.isoformat() if self.verified_at else None,
+        }
+
+
+class DisasterLessonsLearned(Base):
+    """
+    Post-Disaster After Action Review (AAR) & Lessons Learned [DOM-01]:
+    Completes the Sendai Framework Disaster Lifecycle.
+    Documents operational successes, response bottlenecks, and policy recommendations.
+    """
+    __tablename__ = 'drrm_lessons_learned'
+    __table_args__ = {'extend_existing': True}
+    
+    tenant_id = Column(String, index=True, nullable=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    incident_id = Column(String, ForeignKey('drrm_incidents.id'), nullable=False)
+    
+    title = Column(String, nullable=False)
+    disaster_type = Column(String, nullable=True)
+    lead_evaluator = Column(String, nullable=False)
+    
+    response_strengths = Column(Text, nullable=True)
+    challenges_faced = Column(Text, nullable=True)
+    policy_recommendations = Column(Text, nullable=True)
+    infrastructure_improvements = Column(Text, nullable=True)
+    overall_rating = Column(String, default='Satisfactory')  # Exemplary, Satisfactory, Needs Improvement
+    
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    incident = relationship("DisasterIncident", back_populates="lessons_learned")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tenant_id": self.tenant_id,
+            "incident_id": self.incident_id,
+            "title": self.title,
+            "disaster_type": self.disaster_type,
+            "lead_evaluator": self.lead_evaluator,
+            "response_strengths": self.response_strengths or "",
+            "challenges_faced": self.challenges_faced or "",
+            "policy_recommendations": self.policy_recommendations or "",
+            "infrastructure_improvements": self.infrastructure_improvements or "",
+            "overall_rating": self.overall_rating,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }

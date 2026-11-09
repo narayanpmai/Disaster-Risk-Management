@@ -193,7 +193,9 @@ class DisasterReliefFund(Base):
     __tablename__ = 'disaster_relief_funds'
     __table_args__ = {'extend_existing': True}
 
+    tenant_id = Column(String, nullable=True, name='tenant_id')
     id = Column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    incident_id = Column(String, nullable=True, name='incident_id')
     disaster_title = Column(String, nullable=False, name='disasterTitle')
     ward_number = Column(Integer, default=1, name='wardNumber')
     beneficiary_name = Column(String, nullable=False, name='beneficiaryName')
@@ -211,6 +213,9 @@ class DisasterReliefFund(Base):
     def to_dict(self):
         return {
             "id": str(self.id),
+            "tenant_id": self.tenant_id,
+            "incidentId": self.incident_id,
+            "incident_id": self.incident_id,
             "disasterTitle": self.disaster_title,
             "wardNumber": self.ward_number or 1,
             "beneficiaryName": self.beneficiary_name,
