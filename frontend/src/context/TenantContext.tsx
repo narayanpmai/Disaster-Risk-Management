@@ -139,8 +139,8 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       } as PublicSettings;
 
       setSettings(merged);
-      const palika = merged.palika_name || tenantDefaults?.palika_name || 'Municipal Digital Twins';
-      document.title = `${palika} — Municipal Digital Twins`;
+      const palika = merged.palika_name || tenantDefaults?.palika_name || 'विपद् जोखिम व्यवस्थापन प्रणाली';
+      document.title = `${palika} — Nepal Integrated Disaster Risk Management System (NIDRMS)`;
     } catch (err) {
       console.error('Failed to load municipal settings:', err);
     } finally {
@@ -181,7 +181,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setSettings((prev) => {
         const next = { ...(prev || {}), ...updates } as PublicSettings;
         if (next.palika_name) {
-          document.title = `${next.palika_name} — Municipal Digital Twins`;
+          document.title = `${next.palika_name} — Nepal Integrated Disaster Risk Management System (NIDRMS)`;
         }
         return next;
       });

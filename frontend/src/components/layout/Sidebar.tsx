@@ -485,24 +485,22 @@ export const publicNavSections: NavSection[] = [
 ];
 
 const EN_LABELS: Record<string, { label: string; badge?: string; title?: string }> = {
-  // Titles
-  '१. मुख्य कमान्ड तथा इन्टेलिजेन्स (COMMAND & INTELLIGENCE)': { label: '', title: '1. Command & Intelligence' },
-  '२. विपद् तथा वातावरण नियमन (DISASTER & ENVIRONMENT)': { label: '', title: '2. Disaster & Environment' },
+  // Titles (Exact Matches)
+  '१. मुख्य कमान्ड तथा इन्टेलिजेन्स (Command & Intelligence)': { label: '', title: '1. Command & Intelligence' },
+  '२. विपद् तथा वातावरण नियमन (Disaster & Environment)': { label: '', title: '2. Disaster & Environment' },
   '३. स्थानिक ट्विन तथा पूर्वाधार (Spatial Twin & Projects)': { label: '', title: '3. Spatial Twin & Projects' },
-  '४. प्रोफाइल, जनप्रतिनिधि तथा जनसांख्यिकी (PROFILE & DEMOGRAPHICS)': { label: '', title: '4. Profile & Demographics' },
-  '५. सुशासन, ई-सेवा तथा नागरिक सेवा (E-GOVERNANCE & CITIZEN SERVICES)': { label: '', title: '5. Citizen & E-Governance' },
-  '६. सामाजिक सुरक्षा तथा समावेशीकरण (SOCIAL WELFARE)': { label: '', title: '6. Social Welfare & Inclusion' },
-  '७. आर्थिक विकास तथा राजस्व (ECONOMY & REVENUE)': { label: '', title: '7. Economy & Revenue' },
-  '८. क्षेत्रगत विकास (SECTORAL SERVICES)': { label: '', title: '8. Sectoral Services' },
-  '९. प्रणाली सेटिङ तथा सुरक्षा (SYSTEM & SECURITY)': { label: '', title: '9. System & Security' },
+  '४. प्रोफाइल, जनप्रतिनिधि तथा जनसांख्यिकी (Profile & Demographics)': { label: '', title: '4. Profile & Demographics' },
+  '५. खुला तथ्याङ्क तथा नागरिक सहायता (Open Data & Support)': { label: '', title: '5. Open Data & Support' },
+  '६. प्रणाली नियन्त्रण (System Admin)': { label: '', title: '6. System Admin' },
 
   // Items
-  'एकीकृत कमान्ड ड्यासबोर्ड': { label: 'Command Dashboard' },
-  'एआई पालिका सहायक': { label: 'AI Palika Copilot' },
+  'एकीकृत कमान्ड ड्यासबोर्ड': { label: 'Command Dashboard', badge: 'Real-time BI' },
+  'एआई पालिका सहायक': { label: 'AI Disaster Copilot', badge: 'AI Copilot' },
+  'कार्यक्रम क्यालेन्डर': { label: 'Disaster Event Calendar' },
   'विपद् जोखिम व्यवस्थापन': { label: 'Disaster Risk Management', badge: 'DRRM Hub' },
   'नदी जलसतह तथा ३D डुबान सिमुलेटर': { label: 'River Water Level & 3D Inundation', badge: '3D Twin' },
   'राष्ट्रिय तथ्याङ्क मापदण्ड तथा DHM/BIPAD': { label: 'National Standard & DHM Gateways', badge: 'DHM/BIPAD' },
-  'पहिरो जोखिम तथा इन्क्लिनोमिटर': { label: 'Landslide Risk & Inclinometers', badge: 'Warning' },
+  'पहिरो जोखिम तथा इन्क्लिनोमिटर': { label: 'Landslide Risk & Inclinometers', badge: 'Early Warning' },
   'स्वचालित IVR कल र मेश-साइरन': { label: 'Automated IVR Calls & Siren', badge: 'Last-Mile' },
   'अति-संवेदनशील नागरिक (५,८०५ घरधुरी)': { label: 'Micro-Vulnerable Citizens (5,805 HH)', badge: 'Evacuation' },
   'डिजिटल क्षति मूल्याङ्कन (RDRA राहत)': { label: 'Rapid Damage Assessment (RDRA)', badge: 'Relief 2077' },
@@ -514,10 +512,15 @@ const EN_LABELS: Record<string, { label: string; badge?: string; title?: string 
   'नागरिक गुनासो व्यवस्थापन': { label: 'Citizen Grievance Management', badge: 'Complaints' },
   'प्रणाली अडिट ट्रेल तथा सुरक्षा लग (Audit Log)': { label: 'System Audit Trail & Security Log', badge: 'Audit & RBAC' },
   'डाटा ब्याकअप तथा DR रिकभरी (Backup & DR)': { label: 'Data Backup & Disaster Recovery', badge: 'DR <5m' },
-  '३डी/जीआईएस डिजिटल ट्विन': { label: '3D/GIS Digital Twin', badge: '3D GIS' },
-  'सम्पूर्ण आयोजना जीवनचक्र ३६०': { label: 'Project Lifecycle 360', badge: 'PPIS' },
+  '३डी/जीआईएस डिजिटल ट्विन': { label: '3D/GIS Hazard Twin', badge: '3D GIS' },
+  'सम्पूर्ण आयोजना जीवनचक्र ३६०': { label: 'Recovery Projects 360', badge: 'PPIS' },
   'पालिका डिजिटल प्रोफाइल': { label: 'Municipal Digital Profile' },
   'जनप्रतिनिधि विवरण': { label: 'Elected Representatives' },
+  'घरधुरी तथा जनसांख्यिकी ३६०': { label: 'Vulnerable Households 360', badge: 'C360/SVI' },
+  'खुला तथ्याङ्क तथा नागरिक सहायता': { label: 'Open Data & Transparency', badge: 'Open Data' },
+  'मद्दत तथा प्रयोगकर्ता पुस्तिका': { label: 'Help & Disaster SOP Manual' },
+  'पालिका प्रणाली कन्फिगरेसन': { label: 'System Configuration' },
+  'सुपर एडमिन कन्सोल': { label: 'Super Admin Console', badge: 'Super Admin' },
   'नागरिक बडापत्र': { label: 'Citizen Charter (Badapatra)' },
 };
 
@@ -534,7 +537,14 @@ const getDisplayBadge = (badge: string | undefined, label: string, isNp: boolean
 
 const getDisplayTitle = (title: string, isNp: boolean) => {
   if (isNp) return title;
-  return EN_LABELS[title]?.title || title;
+  if (EN_LABELS[title]?.title) return EN_LABELS[title].title;
+  // Fallback to fuzzy match
+  for (const [k, v] of Object.entries(EN_LABELS)) {
+    if (v.title && (k.toLowerCase() === title.toLowerCase() || title.includes(k) || k.includes(title))) {
+      return v.title;
+    }
+  }
+  return title;
 };
 
 interface SidebarProps {
@@ -645,25 +655,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
             width: '36px',
             height: '36px',
             borderRadius: '10px',
-            background: 'linear-gradient(135deg, #1565C0, #0284c7)',
+            background: 'linear-gradient(135deg, #dc2626, #0284c7)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
             fontWeight: 800,
-            fontSize: '0.9rem',
+            fontSize: '0.85rem',
             flexShrink: 0,
-            boxShadow: '0 2px 8px rgba(2,132,199,0.4)',
+            boxShadow: '0 2px 8px rgba(220,38,38,0.4)',
           }}
         >
-          P5
+          DRM
         </div>
         <div>
-          <div style={{ color: '#ffffff', fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.3 }}>
-            Municipal Digital Twins
+          <div style={{ color: '#ffffff', fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.3 }}>
+            {isNepali ? 'राष्ट्रिय एकीकृत विपद् व्यवस्थापन' : 'Nepal Integrated DRRMS'}
           </div>
           <div style={{ color: S.sectionLabel, fontSize: '0.72rem', marginTop: '1px' }}>
-            v2.0-ts
+            NIDRMS v2.0
           </div>
         </div>
       </div>

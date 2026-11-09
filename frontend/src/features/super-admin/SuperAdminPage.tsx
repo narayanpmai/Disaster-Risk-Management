@@ -211,7 +211,7 @@ export const SuperAdminPage: React.FC = () => {
 
   // System Settings State
   const [systemSettings, setSystemSettings] = useState({
-    platformName: 'Municipal Digital Twins Nepal',
+    platformName: 'Nepal Integrated Disaster Risk Management System (NIDRMS)',
     maintenanceMode: false,
     autoBackupDaily: true,
     smsGatewayEnabled: true,
@@ -987,7 +987,7 @@ export const SuperAdminPage: React.FC = () => {
                   सुपर एडमिन केन्द्रीय कन्सोल (Super Admin Portal)
                 </h2>
                 <small style={{ color: '#64748b' }}>
-                  Municipal Digital Twins Platform • केन्द्रीय नियन्त्रण कक्ष
+                  National DRRMS Platform • केन्द्रीय नियन्त्रण कक्ष
                 </small>
               </div>
             </div>

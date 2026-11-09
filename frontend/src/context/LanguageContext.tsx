@@ -12,12 +12,12 @@ interface Translations {
 export const DICTIONARY: Translations = {
   // Brand & General
   'app.name': {
-    np: 'डिजिटल पालिका ट्विन तथा राष्ट्रिय विपद् व्यवस्थापन',
-    en: 'Municipal Digital Twin & National Disaster Management',
+    np: 'नेपाल एकीकृत विपद् जोखिम व्यवस्थापन प्रणाली (NIDRMS)',
+    en: 'Nepal Integrated Disaster Risk Management System (NIDRMS)',
   },
   'app.tagline': {
-    np: 'नक्सामा विकास । तथ्याङ्कमा प्रगति । AI तथा IoT बाट आधुनिक सुशासन',
-    en: 'Progress on Maps | Growth in Data | Modern Governance via AI & IoT',
+    np: 'जोखिम नक्साङ्कन । पूर्वसूचना तथा प्रतिकार्य । उद्धार र पुनर्निर्माण',
+    en: 'Multi-Hazard Risk Mapping | Early Warning & Rapid Response | Rescue & Resilient Reconstruction',
   },
 
   // Navigation

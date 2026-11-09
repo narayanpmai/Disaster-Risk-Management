@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLanguage } from '../../context/LanguageContext';
 import { getSensorsSocket } from '../../api/socket';
 import { sectoralApi } from '../../api/sectoral';
 import { municipalityApi, type SensorItem, type CameraItem } from '../../api/municipality';
@@ -110,6 +111,7 @@ const INITIAL_VULNERABLE_SETTLEMENTS: VulnerableSettlement[] = [
 ];
 
 export const DisasterPage: React.FC = () => {
+  const { isNepali } = useLanguage();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -591,10 +593,12 @@ export const DisasterPage: React.FC = () => {
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <AlertTriangle size={28} color="#e11d48" />
-            <span>विपद् व्यवस्थापन तथा नागरिक पूर्वसूचना प्रणाली</span>
+            <span>{isNepali ? 'विपद् व्यवस्थापन तथा नागरिक पूर्वसूचना प्रणाली' : 'Disaster Management & Emergency Operations System'}</span>
           </h1>
           <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            बाढी, पहिरो तथा प्राकृतिक विपद् प्रत्यक्ष अनुगमन, राहत व्यवस्थापन र नागरिक आपतकालीन SMS/WhatsApp प्रसारण गेटवे
+            {isNepali
+              ? 'बाढी, पहिरो तथा प्राकृतिक विपद् प्रत्यक्ष अनुगमन, राहत व्यवस्थापन र नागरिक आपतकालीन SMS/WhatsApp प्रसारण गेटवे'
+              : 'Real-time flood, landslide & multi-hazard monitoring, relief distribution & SMS/IVR alert gateway'}
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -606,19 +610,19 @@ export const DisasterPage: React.FC = () => {
             className="dt-btn dt-btn-primary"
             style={{ backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            <Plus size={16} /> नयाँ विपद् घटना दर्ता
+            <Plus size={16} /> {isNepali ? 'नयाँ विपद् घटना दर्ता' : 'Report New Incident'}
           </button>
           <button
             onClick={handleExportCsv}
             className="dt-btn"
             style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            <Download size={16} /> CSV निर्यात
+            <Download size={16} /> {isNepali ? 'CSV निर्यात' : 'Export CSV'}
           </button>
         </div>
       </div>
 
-      {/* Navigation Tabs (8 Municipal Disaster Subsystems) */}
+      {/* Navigation Tabs (16 Municipal Disaster Subsystems) */}
       <div className="dt-card" style={{ padding: '0.75rem 1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
@@ -638,7 +642,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <AlertTriangle size={15} />
-            <span>१. विपद् घटना तथा पूर्वसूचना</span>
+            <span>{isNepali ? '१. विपद् घटना तथा पूर्वसूचना' : '1. Incidents & Early Warning'}</span>
           </button>
 
           <button
@@ -658,7 +662,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Boxes size={15} />
-            <span>२. राहत सामग्री जिन्सी भण्डार</span>
+            <span>{isNepali ? '२. राहत सामग्री जिन्सी भण्डार' : '2. Relief Stock & Inventory'}</span>
             <span style={{ backgroundColor: activeTab === 'relief_inventory' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'relief_inventory' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
               {reliefItems.length}
             </span>
@@ -681,9 +685,9 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Coins size={15} />
-            <span>३. पालिका विपद् कोष राहत वितरण</span>
+            <span>{isNepali ? '३. पालिका विपद् कोष राहत वितरण' : '3. Palika Relief Funds & DBT'}</span>
             <span style={{ backgroundColor: activeTab === 'relief_funds' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'relief_funds' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              रु. {(reliefFunds.reduce((a, b) => a + b.amountNPR, 0) / 1000).toFixed(0)}K
+              {isNepali ? `रु. ${(reliefFunds.reduce((a, b) => a + b.amountNPR, 0) / 1000).toFixed(0)}K` : `NPR ${(reliefFunds.reduce((a, b) => a + b.amountNPR, 0) / 1000).toFixed(0)}K`}
             </span>
           </button>
 
@@ -704,7 +708,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <ShieldCheck size={15} />
-            <span>४. जोखिमयुक्त बस्ती तथा स्थानान्तरण</span>
+            <span>{isNepali ? '४. जोखिमयुक्त बस्ती तथा स्थानान्तरण' : '4. Vulnerable Settlements'}</span>
             <span style={{ backgroundColor: activeTab === 'vulnerable_settlements' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'vulnerable_settlements' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
               {vulnerableSettlements.length}
             </span>
@@ -727,7 +731,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <AlertTriangle size={15} />
-            <span>५. वातावरणीय तथा पहिरो/बाढी जोखिम क्षेत्र</span>
+            <span>{isNepali ? '५. वातावरणीय तथा पहिरो/बाढी जोखिम क्षेत्र' : '5. Environmental & Landslide Risks'}</span>
             <span style={{ backgroundColor: activeTab === 'environmental_risks' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'environmental_risks' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
               {environmentalRisks.length}
             </span>
@@ -750,7 +754,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Building size={15} />
-            <span>५. सुरक्षित आश्रयस्थल</span>
+            <span>{isNepali ? '६. सुरक्षित आश्रयस्थल' : '6. Certified Safe Shelters'}</span>
             <span style={{ backgroundColor: activeTab === 'shelters' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'shelters' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
               {shelters.length}
             </span>
@@ -773,10 +777,10 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Waves size={15} />
-            <span>६. वर्षा तथा जलसतह (IoT)</span>
+            <span>{isNepali ? '७. वर्षा तथा जलसतह (IoT)' : '7. Hydromet Telemetry (IoT)'}</span>
             {activeSensorAlerts.length > 0 && (
               <span style={{ backgroundColor: '#ef4444', color: '#fff', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-                {activeSensorAlerts.length} अलर्ट
+                {activeSensorAlerts.length} {isNepali ? 'अलर्ट' : 'Alert'}
               </span>
             )}
           </button>
@@ -798,7 +802,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Video size={15} />
-            <span>७. CCTV क्यामेरा</span>
+            <span>{isNepali ? '८. CCTV क्यामेरा' : '8. CCTV Live Surveillance'}</span>
             <span style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
               {cameras.length} Live
             </span>
@@ -821,7 +825,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <MessageSquare size={15} />
-            <span>८. आपतकालीन SMS/WhatsApp प्रसारण</span>
+            <span>{isNepali ? '९. आपतकालीन SMS/WhatsApp प्रसारण' : '9. Emergency SMS & Broadcast'}</span>
           </button>
 
           <button
@@ -841,7 +845,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <HardHat size={15} />
-            <span>९. विपद् पुनःलाभ तथा पुनर्निर्माण</span>
+            <span>{isNepali ? '१०. विपद् पुनःलाभ तथा पुनर्निर्माण' : '10. Build Back Better'}</span>
           </button>
 
           <button
@@ -861,7 +865,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Activity size={15} />
-            <span>१०. बहुक्षेत्रीय जोखिम मूल्याङ्कन (MSRA Matrix)</span>
+            <span>{isNepali ? '११. बहुक्षेत्रीय जोखिम मूल्याङ्कन (MSRA Matrix)' : '11. Multi-Sector Risk Assessment'}</span>
           </button>
 
           <button
@@ -882,7 +886,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Globe size={15} />
-            <span>११. राष्ट्रिय विपद् पोर्टल (BIPAD Sync)</span>
+            <span>{isNepali ? '१२. राष्ट्रिय विपद् पोर्टल (BIPAD Sync)' : '12. BIPAD National Gateway'}</span>
           </button>
 
           <button
@@ -902,7 +906,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Users size={15} />
-            <span>१२. अति-संवेदनशील नागरिक (५,८०५ घरधुरी)</span>
+            <span>{isNepali ? '१३. अति-संवेदनशील नागरिक (५,८०५ घरधुरी)' : '13. Micro-Vulnerable Citizens (5,805 HH)'}</span>
           </button>
 
           <button
@@ -922,7 +926,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Coins size={15} />
-            <span>१३. क्षति मूल्याङ्कन (RDRA मापदण्ड २०७७)</span>
+            <span>{isNepali ? '१४. क्षति मूल्याङ्कन (RDRA मापदण्ड २०७७)' : '14. Damage Assessment (RDRA 2077)'}</span>
           </button>
 
           <button
@@ -942,7 +946,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <Truck size={15} />
-            <span>१४. खोज-उद्धार (SAR) र डोजर डाइरेक्टरी</span>
+            <span>{isNepali ? '१५. खोज-उद्धार (SAR) र डोजर डाइरेक्टरी' : '15. SAR Equipment & Volunteers'}</span>
           </button>
 
           <button
@@ -962,7 +966,7 @@ export const DisasterPage: React.FC = () => {
             }}
           >
             <WifiOff size={15} />
-            <span>१५. अफलाइन सञ्चालन र VHF रेडियो</span>
+            <span>{isNepali ? '१६. अफलाइन सञ्चालन र VHF रेडियो' : '16. Offline PWA & VHF Radio'}</span>
           </button>
         </div>
       </div>

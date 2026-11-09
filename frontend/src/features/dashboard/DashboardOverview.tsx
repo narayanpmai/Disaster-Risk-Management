@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useTenant } from '../../context/TenantContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Activity,
   Layers,
@@ -36,6 +37,8 @@ import {
   ExternalLink,
   Landmark,
   BarChart3,
+  Waves,
+  Mountain,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HouseholdRegistryTab } from '../citizen-portal/components/HouseholdRegistryTab';
@@ -44,12 +47,13 @@ import { MunicipalGISMap } from '../../components/maps/MunicipalGISMap';
 import ssisFallbackData from '../../data/ssis_vital_report.json';
 
 // ── Devanagari / Nepali Digits Formatter ──────────────────────────────────────
-export const toNepaliDigits = (val: number | string | undefined | null): string => {
-  if (val === undefined || val === null) return '०';
-  const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+export const toNepaliDigits = (val: number | string | undefined | null, forceNepali = true): string => {
+  if (val === undefined || val === null) return forceNepali ? '०' : '0';
   const formatted = typeof val === 'number'
     ? val.toLocaleString('en-IN')
     : String(val);
+  if (!forceNepali) return formatted;
+  const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
   return formatted.replace(/[0-9]/g, (d) => nepaliDigits[parseInt(d, 10)] ?? d);
 };
 
@@ -376,7 +380,9 @@ const StatCard: React.FC<StatCardProps> = (props) => {
 // ── Main Component ────────────────────────────────────────────────────────────
 export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const { settings } = useTenant();
-  const palikaName = settings?.palika_name || 'पाँचपोखरी थाङपाल गाउँपालिका';
+  const { isNepali } = useLanguage();
+  const palikaName = settings?.palika_name || (isNepali ? 'पाँचपोखरी थाङपाल गाउँपालिका' : 'Panchpokhari Thangpal Rural Municipality');
+  const fmt = (v: any) => toNepaliDigits(v, isNepali);
 
   const [stats, setStats] = useState<Record<string, any>>(DEFAULT_STATS);
   const [loading, setLoading] = useState(true);
@@ -941,29 +947,136 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
     },
   ];
 
-  // Thematic sectors navigation
+  // Disaster & Resilience Sectors navigation (100% NIDRMS Core Domain)
   const thematicSectors = [
-    { label: 'व्यवसाय दर्ता (Businesses)', path: '/businesses', badge: 'Gov SaaS', icon: <Briefcase size={22} color="#6366f1" />, color: '#eef2ff', desc: 'व्यवसाय दर्ता, नवीकरण र डिजिटल प्रमाणपत्र' },
-    { label: 'दर्ता तथा चलानी (Darta)', path: '/darta-chalani', badge: 'Gov SaaS', icon: <Inbox size={22} color="#f97316" />, color: '#fff7ed', desc: 'कागजविहीन डिजिटल दर्ता-चलानी' },
-    { label: 'सामाजिक सुरक्षा तथा व्यक्तिगत घटना दर्ता (SSIS)', path: '/vital-events', badge: 'Gov SaaS', icon: <HeartHandshake size={22} color="#059669" />, color: '#ecfdf5', desc: 'सामाजिक सुरक्षा भत्ता तथा जन्म, मृत्यु, विवाह, बसाइँसराइ लगत' },
-    { label: 'श्रम बैंक तथा PMEP (ESC)', path: '/employment', badge: 'Gov SaaS', icon: <Briefcase size={22} color="#0284c7" />, color: '#f0f9ff', desc: '१०० दिने रोजगारी ग्यारेन्टी' },
-    { label: 'किसान लगत र माटो कार्ड', path: '/agriculture', icon: <Sprout size={22} color="#10b981" />, color: '#ecfdf5', desc: '५०% अनुदान र N-P-K माटो कार्ड' },
-    { label: 'घर-नक्सा पास (e-BPS)', path: '/building-permits', badge: 'Gov SaaS', icon: <Layers size={22} color="#d97706" />, color: '#fffbeb', desc: 'भवन संहिता (NBC) तथा DPC पास' },
-    { label: 'सहकारी नियमन (COPOMIS)', path: '/app/cooperatives', badge: 'Gov SaaS', icon: <Landmark size={22} color="#0d9488" />, color: '#f0fdfa', desc: 'सहकारी दर्ता, PEARLS अनुगमन, दोहोरो ऋण जाँच र COPOMIS सिङ्क' },
-    { label: 'स्थानीय कर तथा राजस्व', path: '/revenue', badge: 'Gov SaaS', icon: <TrendingUp size={22} color="#16a34a" />, color: '#f0fdf4', desc: 'वैज्ञानिक सम्पत्ति कर र मलेप रसिद' },
-    { label: 'ई-बोलपत्र तथा खरिद', path: '/procurement', badge: 'Gov SaaS', icon: <FileText size={22} color="#ea580c" />, color: '#fff7ed', desc: 'सार्वजनिक खरिद तथा LOI सम्झौता' },
-    { label: 'सार्वजनिक जिन्सी (PAMS)', path: '/assets', badge: 'Gov SaaS', icon: <Database size={22} color="#2563eb" />, color: '#eff6ff', desc: 'मलेप फाराम र QR सम्पत्ति ट्र्याकिङ' },
-    { label: 'न्यायिक समिति इजलास', path: '/judicial', badge: 'Gov SaaS', icon: <Scale size={22} color="#dc2626" />, color: '#fef2f2', desc: 'संविधान धारा २१७ विवाद निरुपण' },
-    { label: 'विपद् राहत केन्द्र (DMIS)', path: '/disaster', icon: <AlertTriangle size={22} color="#f59e0b" />, color: '#fffbeb', desc: '२४x७ EOC र तत्काल राहत वितरण' },
-    { label: 'नागरिक ई-सेवा (e-Sifarish)', path: '/citizen-services', icon: <FileCheck2 size={22} color="#14b8a6" />, color: '#f0fdfa', desc: 'सिफारिस र अनलाइन फारम' },
-    { label: 'नागरिक बडापत्र', path: '/badapatra', icon: <FileText size={22} color="#6366f1" />, color: '#eef2ff', desc: 'सेवा, दस्तुर र शाखा' },
-    { label: 'स्वास्थ्य सेवा', path: '/health', icon: <HeartPulse size={22} color="#ef4444" />, color: '#fef2f2', desc: 'स्वास्थ्य संस्था र जनशक्ति' },
-    { label: 'शिक्षा प्रणाली (MunSMS)', path: '/education', icon: <GraduationCap size={22} color="#3b82f6" />, color: '#eff6ff', desc: 'विद्यालय, शिक्षक र विद्यार्थी' },
-    { label: 'पर्यटन तथा सम्पदा', path: '/tourism', icon: <Compass size={22} color="#06b6d4" />, color: '#ecfeff', desc: 'पाँचपोखरी र धार्मिक पदमार्ग' },
-    { label: 'विकास योजनाहरू', path: '/projects', icon: <FolderGit2 size={22} color="#8b5cf6" />, color: '#f5f3ff', desc: 'योजना सम्झौता र प्रगति' },
-    { label: 'डिजिटल नक्सा (GIS)', path: '/gis-map', icon: <Layers size={22} color="#10b981" />, color: '#ecfdf5', desc: '2D/3D टोपोग्राफी ट्विन' },
-    { label: 'गुनासो व्यवस्थापन', path: '/complaints', icon: <Users size={22} color="#dc2626" />, color: '#fef2f2', desc: 'नागरिक उजुरी तथा सम्बोधन' },
-    { label: 'खुला तथ्याङ्क', path: '/open-data', icon: <Database size={22} color="#0284c7" />, color: '#f0f9ff', desc: 'बजेट, प्रतिवेदन र सूचक' },
+    {
+      label: isNepali ? 'विपद् जोखिम व्यवस्थापन केन्द्र' : 'Disaster Management Hub',
+      path: '/app/disaster',
+      badge: 'DRRM Hub',
+      icon: <AlertTriangle size={22} color="#dc2626" />,
+      color: '#fee2e2',
+      desc: isNepali ? 'घटना दर्ता, स्थलगत प्रमाणीकरण र २४/७ EOC प्रतिकार्य' : 'Incident logging, verification & 24/7 EOC response',
+    },
+    {
+      label: isNepali ? 'नदी जलसतह तथा ३D डुबान सिमुलेटर' : 'River Water Level & 3D Flood',
+      path: '/app/disaster?tab=hydromet',
+      badge: '3D Twin',
+      icon: <Waves size={22} color="#0284c7" />,
+      color: '#e0f2fe',
+      desc: isNepali ? 'मेलम्ची खोला, भोताङ र बाढी पूर्वसूचना टेलिमेट्री' : 'Melamchi River telemetry & 3D inundation models',
+    },
+    {
+      label: isNepali ? 'पहिरो जोखिम तथा इन्क्लिनोमिटर' : 'Landslide Risk & Inclinometers',
+      path: '/app/disaster?tab=vulnerable_settlements',
+      badge: isNepali ? 'पूर्वसूचना' : 'Sensors',
+      icon: <Mountain size={22} color="#d97706" />,
+      color: '#fef3c7',
+      desc: isNepali ? 'मानेखर्क, सेर्माथाङ र भिरालो बस्ती स्थानान्तरण' : 'Slope sensors & vulnerable settlement relocation',
+    },
+    {
+      label: isNepali ? '३D/जीआईएस बहु-जोखिम डिजिटल नक्सा' : '3D/GIS Multi-Hazard Map',
+      path: '/app/gis-map',
+      badge: '3D GIS',
+      icon: <Layers size={22} color="#6366f1" />,
+      color: '#e0e7ff',
+      desc: isNepali ? '५,८०५ घरधुरी, नदी कटान २००m बफर र ३डी टोपोग्राफी' : '5,805 households, river erosion buffers & 3D GIS',
+    },
+    {
+      label: isNepali ? 'खोज-उद्धार (SAR) र डोजर डाइरेक्टरी' : 'SAR Heavy Equipment Directory',
+      path: '/app/disaster?tab=heavy_equipment',
+      badge: isNepali ? 'स्ट्यान्डबाइ' : 'Standby',
+      icon: <HardHat size={22} color="#ea580c" />,
+      color: '#ffedd5',
+      desc: isNepali ? 'डोजर, एक्साभेटर, डुङ्गा तथा ६४ प्रमाणित स्वयंसेवक' : 'Dozers, excavators, boats & 64 SAR certified teams',
+    },
+    {
+      label: isNepali ? 'सुरक्षित आश्रयस्थल र राहत जिन्सी' : 'Safe Shelters & Relief Stock',
+      path: '/app/disaster?tab=shelters',
+      badge: isNepali ? '६ वटा' : '6 Shelters',
+      icon: <Building2 size={22} color="#10b981" />,
+      color: '#dcfce7',
+      desc: isNepali ? '१,३१० क्षमता, सौर्य ऊर्जा, खानेपानी र त्रिपाल भण्डार' : '1,310 capacity with solar, water & emergency tarps',
+    },
+    {
+      label: isNepali ? 'डिजिटल क्षति मूल्याङ्कन (RDRA मापदण्ड)' : 'Rapid Damage Assessment (RDRA)',
+      path: '/app/disaster?tab=rdra_damage',
+      badge: isNepali ? 'मापदण्ड २०७७' : 'MoHA 2077',
+      icon: <Coins size={22} color="#059669" />,
+      color: '#ecfdf5',
+      desc: isNepali ? 'गृहमन्त्रालय राहत मापदण्ड २०७७ अनुसार क्षति अभिलेख' : 'MoHA Standard 2077 field damage audits & reports',
+    },
+    {
+      label: isNepali ? 'अति-संवेदनशील नागरिक उद्धार सूची' : 'Micro-Vulnerable Evacuation',
+      path: '/app/disaster?tab=micro_vulnerability',
+      badge: isNepali ? '५,८०५ घरधुरी' : '5,805 HH',
+      icon: <Users size={22} color="#ec4899" />,
+      color: '#fdf2f8',
+      desc: isNepali ? 'सुत्केरी, अपाङ्गता र ७०+ ज्येष्ठ नागरिक प्राथमिकता' : 'Evacuation list for pregnant, disabled & seniors',
+    },
+    {
+      label: isNepali ? 'वातावरण तथा नदीजन्य खानी नियमन' : 'Environment & Mining (IEE)',
+      path: '/app/environmental-mining',
+      badge: 'IEE/खानी',
+      icon: <Sprout size={22} color="#047857" />,
+      color: '#d1fae5',
+      desc: isNepali ? 'नदीजन्य गिट्टी-बालुवा उत्खनन नियमन र कटान नियन्त्रण' : 'Riverbed quarry quota monitoring & slope control',
+    },
+    {
+      label: isNepali ? 'पुनर्लाभ, पुनर्निर्माण तथा आयोजना ३६०' : 'Recovery Projects 360',
+      path: '/app/projects',
+      badge: 'PPIS',
+      icon: <FolderGit2 size={22} color="#7c3aed" />,
+      color: '#ede9fe',
+      desc: isNepali ? 'विपद् पुनर्निर्माण आयोजनाहरूको GIS प्रगति ट्र्याकिङ' : 'Long-term disaster recovery & infrastructure PPIS',
+    },
+    {
+      label: isNepali ? 'अफलाइन PWA तथा VHF सञ्चार मेश' : 'Offline PWA & VHF Mesh',
+      path: '/pwa',
+      badge: 'PWA/VHF',
+      icon: <Siren size={22} color="#4338ca" />,
+      color: '#eef2ff',
+      desc: isNepali ? 'शून्य-इन्टरनेट फिल्ड रिपोर्टिङ र VHF रेडियो डाइरेक्टरी' : 'Off-grid field reporting & VHF emergency frequencies',
+    },
+    {
+      label: isNepali ? 'स्वचालित IVR कल र मेश-साइरन' : 'Automated IVR Calls & Siren',
+      path: '/app/disaster?tab=broadcast',
+      badge: 'Last-Mile',
+      icon: <Activity size={22} color="#ef4444" />,
+      color: '#fee2e2',
+      desc: isNepali ? 'खतरा विन्दु नाघ्दा नागरिकलाई स्वचालित कल र साइरन' : 'Automated outbound phone calls & solar sirens',
+    },
+    {
+      label: isNepali ? 'पालिका विपद् कोष राहत वितरण (DBT)' : 'Disaster Relief Funds (DBT)',
+      path: '/app/disaster?tab=relief_funds',
+      badge: 'DBT Cash',
+      icon: <Banknote size={22} color="#16a34a" />,
+      color: '#f0fdf4',
+      desc: isNepali ? 'प्रत्यक्ष बैंक खातामै राहत रकम भुक्तानी तथा अडिट' : 'Direct bank transfer cash assistance & vouchers',
+    },
+    {
+      label: isNepali ? 'राष्ट्रिय विपद् पोर्टल एकीकरण' : 'National BIPAD Gateway',
+      path: '/app/disaster?tab=bipad_sync',
+      badge: 'DHM/BIPAD',
+      icon: <Database size={22} color="#0284c7" />,
+      color: '#f0f9ff',
+      desc: isNepali ? 'DHM जलसतह, BIPAD पोर्टल र NEOC तथ्याङ्क सिङ्क' : 'DHM telemetry, BIPAD gateway & NEOC data sync',
+    },
+    {
+      label: isNepali ? 'विपद् गुनासो तथा उजुरी सुनुवाई' : 'Disaster Grievances & Appeals',
+      path: '/app/complaints',
+      badge: isNepali ? 'उजुरी' : 'Appeals',
+      icon: <Inbox size={22} color="#f97316" />,
+      color: '#fff7ed',
+      desc: isNepali ? 'नागरिक राहत गुनासो र क्षति उजुरी प्रत्यक्ष सम्बोधन' : 'Citizen relief claims and field damage grievances',
+    },
+    {
+      label: isNepali ? 'डाटा ब्याकअप तथा आपतकालीन DR' : 'Data Backup & DR Recovery',
+      path: '/backup-dr',
+      badge: 'DR <५m',
+      icon: <Shield size={22} color="#059669" />,
+      color: '#ecfdf5',
+      desc: isNepali ? 'PostGIS ब्याकअप, विकेन्द्रीकृत रिडन्डन्सी र DR ड्रिल' : 'PostGIS backup, off-site replication & DR drills',
+    },
   ];
 
   return (
@@ -1041,12 +1154,12 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                       display: 'inline-block',
                     }}
                   />
-                  <span style={{ letterSpacing: '0.02em' }}>LIVE · एकीकृत डिजिटल ट्विन प्लेटफर्म</span>
+                  <span style={{ letterSpacing: '0.02em' }}>{isNepali ? 'LIVE · एकीकृत विपद् व्यवस्थापन प्लेटफर्म' : 'LIVE · Integrated DRRM Platform'}</span>
                   <span style={{ opacity: 0.4 }}>|</span>
-                  <span style={{ color: '#a7f3d0', fontWeight: 700 }}>३३ विषयगत क्षेत्र सिङ्क</span>
+                  <span style={{ color: '#a7f3d0', fontWeight: 700 }}>{isNepali ? '१६ विपद् तथा जोखिम क्षेत्र सिङ्क' : '16 Disaster Resilience Sectors'}</span>
                   <span style={{ opacity: 0.4 }}>|</span>
                   <span style={{ fontSize: '0.75rem', opacity: 0.9 }}>
-                    अन्तिम अपडेट: {lastUpdated.toLocaleTimeString('ne-NP')}
+                    {isNepali ? `अन्तिम अपडेट: ${lastUpdated.toLocaleTimeString('ne-NP')}` : `Updated: ${lastUpdated.toLocaleTimeString('en-US')}`}
                   </span>
                 </div>
 
@@ -1060,13 +1173,14 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                     letterSpacing: '-0.02em',
                   }}
                 >
-                  नक्सामा विकास। तथ्याङ्कमा प्रगति। <br />
-                  <span style={{ color: '#fbbf24' }}>AI र GIS बाट एकीकृत निर्णय प्रणाली</span>
+                  {isNepali ? 'नक्सामा विपद् जोखिम। पूर्वसूचनामा सुरक्षा।' : 'Multi-Hazard Intelligence. Early Warning Safety.'} <br />
+                  <span style={{ color: '#fbbf24' }}>{isNepali ? 'AI र GIS बाट एकीकृत विपद् प्रतिकार्य निर्णय प्रणाली' : 'AI & GIS Integrated Disaster Decision Support'}</span>
                 </h1>
 
                 <p style={{ opacity: 0.92, fontSize: '0.98rem', lineHeight: 1.6, margin: 0, color: '#e2e8f0', maxWidth: '820px' }}>
-                  {palikaName}को आधिकारिक एकीकृत डिजिटल ट्विन — ३३ विषयगत क्षेत्रहरू, राष्ट्रिय जनगणना तथा डिजिटल घरधुरी लगत,
-                  ३D टोपोग्राफी, र नागरिक सेवा एउटै प्रणालीमा।
+                  {isNepali
+                    ? `${palikaName}को आधिकारिक राष्ट्रिय एकीकृत विपद् व्यवस्थापन प्रणाली (NIDRMS) — रियल-टाइम टेलिमेट्री, ५,८०५ घरधुरी, नदी कटान बफर र खोज-उद्धार।`
+                    : `${palikaName} National Integrated Disaster Risk Management System (NIDRMS) — real-time telemetry, 5,805 households, river erosion buffers & SAR directory.`}
                 </p>
               </div>
 
@@ -1087,27 +1201,27 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '0.5rem' }}>
                   <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#a7f3d0', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    डिजिटल ट्विन अवस्था
+                    {isNepali ? 'विपद् कमाण्ड अवस्था' : 'Disaster EOC Status'}
                   </span>
                   <span style={{ fontSize: '0.7rem', background: 'rgba(16,185,129,0.25)', color: '#34d399', padding: '2px 8px', borderRadius: '9999px', fontWeight: 700, border: '1px solid rgba(52,211,153,0.3)' }}>
-                    ● सक्रिय
+                    ● {isNepali ? 'सक्रिय' : 'Live'}
                   </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.55rem' }}>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
-                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>कुल घरधुरी</div>
-                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{toNepaliDigits(stats.totalHouseholds ?? 5357)}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'कुल घरधुरी' : 'Total Households'}</div>
+                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{fmt(stats.totalHouseholds ?? 5357)}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
-                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>कुल जनसंख्या</div>
-                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{toNepaliDigits(stats.totalPopulation ?? 21536)}</div>
+                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'कुल जनसंख्या' : 'Total Population'}</div>
+                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{fmt(stats.totalPopulation ?? 21536)}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
-                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>विषयगत शाखा</div>
-                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#fbbf24' }}>३३ क्षेत्र</div>
+                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'विपद् मोड्युल' : 'DRM Modules'}</div>
+                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#fbbf24' }}>{isNepali ? '१६ क्षेत्र' : '16 Sectors'}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
-                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>GPS प्रमाणीकरण</div>
+                    <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'GPS प्रमाणीकरण' : 'GPS Verified'}</div>
                     <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#34d399' }}>१००%</div>
                   </div>
                 </div>
@@ -1152,32 +1266,32 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 }}
               >
                 <Layers size={16} />
-                <span>३D डिजिटल ट्विन नक्सा</span>
+                <span>{isNepali ? '३D डिजिटल जोखिम नक्सा' : '3D Hazard Twin'}</span>
               </Link>
               <Link
-                to="/app/executive-dashboard"
+                to="/app/disaster"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '0.45rem',
-                  backgroundColor: '#3b82f6',
+                  backgroundColor: '#dc2626',
                   color: '#ffffff',
                   padding: '0.55rem 1.05rem',
                   borderRadius: '10px',
                   fontWeight: 700,
                   fontSize: '0.84rem',
                   textDecoration: 'none',
-                  boxShadow: '0 2px 8px rgba(59,130,246,0.35)',
+                  boxShadow: '0 2px 8px rgba(220,38,38,0.35)',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   transition: 'all 0.15s ease',
                 }}
               >
-                <BarChart3 size={16} />
-                <span>कार्यपालिका कमाण्ड</span>
+                <AlertTriangle size={16} />
+                <span>{isNepali ? 'विपद् कमाण्ड ड्यासबोर्ड' : 'Disaster EOC Hub'}</span>
               </Link>
               <Link
-                to="/app/progress-reports"
+                to="/app/projects"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -1195,8 +1309,8 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                   transition: 'all 0.15s ease',
                 }}
               >
-                <FileCheck2 size={16} />
-                <span>३३ विषयगत प्रगति प्रतिवेदन</span>
+                <FolderGit2 size={16} />
+                <span>{isNepali ? 'पुनर्निर्माण आयोजना ३६०' : 'Recovery Projects'}</span>
               </Link>
               <a
                 href="#household-matrix-registry"
@@ -1219,7 +1333,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 }}
               >
                 <Home size={16} />
-                <span>घरधुरी लगत ({toNepaliDigits(stats.totalHouseholds ?? 5357)} घर)</span>
+                <span>{isNepali ? `घरधुरी लगत (${fmt(stats.totalHouseholds ?? 5357)} घर)` : `Vulnerable HH (${fmt(stats.totalHouseholds ?? 5357)})`}</span>
               </a>
               <Link
                 to="/demographics"
@@ -1241,7 +1355,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 }}
               >
                 <Users size={16} />
-                <span>विस्तृत जनसांख्यिकी</span>
+                <span>{isNepali ? 'विस्तृत जनसांख्यिकी' : 'Demographics 360'}</span>
               </Link>
               <button
                 onClick={fetchStats}
@@ -1264,7 +1378,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 }}
               >
                 <RefreshCw size={14} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
-                <span>{isRefreshing ? 'ताजा हुँदै...' : 'डाटा ताजा गर्नुहोस्'}</span>
+                <span>{isRefreshing ? (isNepali ? 'ताजा हुँदै...' : 'Refreshing...') : (isNepali ? 'डाटा ताजा गर्नुहोस्' : 'Refresh Data')}</span>
               </button>
             </div>
           </div>
@@ -1720,10 +1834,12 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       <div>
         <div style={{ marginBottom: '1.25rem' }}>
           <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            विषयगत शाखाहरू तथा डिजिटल सेवा (Thematic Sectors & Gov SaaS)
+            {isNepali ? 'विपद् व्यवस्थापन तथा बहु-जोखिम न्यूनीकरण मोड्युलहरू' : 'Disaster Risk Management & Resilience Modules'}
           </h2>
           <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
-            सबै शाखाहरूको अन्तरसम्बन्धित डिजिटल ट्विन प्रणाली, ई-सेवा र नागरिक बडापत्र
+            {isNepali
+              ? 'राष्ट्रिय विपद् व्यवस्थापन कार्यढाँचा अनुसार अन्तरसम्बन्धित पूर्वसूचना, प्रतिकार्य, राहत तथा पुनरुत्थान प्रणाली'
+              : 'Interconnected early warning, emergency response, relief and recovery modules under National DRRM Framework'}
           </p>
         </div>
 
@@ -1820,10 +1936,12 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
           <div style={{ marginBottom: '1.25rem' }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Activity size={24} color="#3b82f6" /> 
-              डिजिटल ट्विन स्मार्ट ड्यासबोर्ड (Predictive AI & GIS)
+              {isNepali ? 'विपद् जोखिम स्मार्ट ड्यासबोर्ड (Predictive AI & GIS)' : 'Disaster Risk Smart Dashboard (Predictive AI & GIS)'}
             </h2>
             <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
-              आर्टिफिसियल इन्टेलिजेन्समा आधारित प्रक्षेपण र भौगोलिक नक्साङ्कन प्रणाली
+              {isNepali
+                ? 'आर्टिफिसियल इन्टेलिजेन्समा आधारित डुबान प्रक्षेपण र भौगोलिक नक्साङ्कन प्रणाली'
+                : 'AI-powered flood inundation forecasting & geospatial hazard mapping'}
             </p>
           </div>
           

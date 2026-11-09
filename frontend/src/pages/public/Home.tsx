@@ -30,14 +30,15 @@ import {
 } from 'lucide-react';
 import { municipalityApi, type SensorItem, type CameraItem } from '../../api/municipality';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { GisMapPage } from '../../features/gis/GisMapPage';
 import { DashboardOverview, toNepaliDigits } from '../../features/dashboard/DashboardOverview';
-import { PublicModulesDirectory } from '../../components/home/PublicModulesDirectory';
 
 export const Home: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { isNepali, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch real-time sensors
@@ -55,7 +56,7 @@ export const Home: React.FC = () => {
   });
 
   const melamchiSensor = sensors.find(s => s.sensorId === 'SEN-MEL-01') || {
-    name: 'मेलम्ची खोला जलसतह',
+    name: isNepali ? 'मेलम्ची खोला जलसतह' : 'Melamchi River Water Level',
     lastValue: 3.2,
     unit: 'm',
     dangerThreshold: 5.5,
@@ -63,7 +64,7 @@ export const Home: React.FC = () => {
   };
 
   const bhotangSensor = sensors.find(s => s.sensorId === 'SEN-BHO-02') || {
-    name: 'भोताङ स्वचालित वर्षा मापन',
+    name: isNepali ? 'भोताङ स्वचालित वर्षा मापन' : 'Bhotang Automated Rainfall Station',
     lastValue: 42.0,
     unit: 'mm',
     dangerThreshold: 80.0,
@@ -72,84 +73,104 @@ export const Home: React.FC = () => {
 
   const citizenServices = [
     {
-      title: 'नागरिक ई-सिफारिस (e-Sifarish)',
-      desc: 'नाता प्रमाणित, चार किल्ला, व्यवसाय लगायतका ४५+ वडा सिफारिस अनलाइनबाटै',
-      icon: <FileCheck2 size={28} color="#0284c7" />,
-      link: '/citizen-services',
-      badge: 'अनलाइन उपलब्ध',
+      title: isNepali ? 'विपद् जोखिम व्यवस्थापन केन्द्र (DRRM Hub)' : 'Disaster Risk Management Hub',
+      desc: isNepali
+        ? 'घटना दर्ता, स्थलगत प्रमाणीकरण, राहत वितरण र आपतकालीन नियन्त्रण कक्ष'
+        : 'Incident reporting, verification, relief distribution & emergency operation centre',
+      icon: <AlertTriangle size={28} color="#dc2626" />,
+      link: '/disaster',
+      badge: isNepali ? 'केन्द्र' : 'DRRM Hub',
+      badgeColor: '#dc2626',
+    },
+    {
+      title: isNepali ? '३D/जीआईएस विपद् जोखिम नक्सा (Hazard Map)' : '3D/GIS Disaster Risk Map',
+      desc: isNepali
+        ? '५,८०५+ घरधुरी, नदी कटान २००m बफर, पहिरो जोखिम क्षेत्र र ३डी डिजिटल मोडल'
+        : '5,805+ households, river erosion 200m buffer zones, landslide hazards & 3D models',
+      icon: <Layers size={28} color="#0284c7" />,
+      link: '/gis-map',
+      badge: isNepali ? '३D GIS ट्विन' : '3D GIS Twin',
       badgeColor: '#0284c7',
     },
     {
-      title: 'प्रगति प्रतिवेदन तथा विकास सूचक',
-      desc: 'वार्षिक तथा पञ्चवर्षीय भौतिक र वित्तीय प्रगति, विकास सूचकाङ्क र आधिकारिक प्रतिवेदन',
-      icon: <TrendingUp size={28} color="#8b5cf6" />,
-      link: '/progress-reports',
-      badge: 'आधिकारिक प्रतिवेदन',
-      badgeColor: '#8b5cf6',
+      title: isNepali ? 'स्वचालित IVR कल तथा मेश-साइरन' : 'Automated IVR Calls & Mesh Siren',
+      desc: isNepali
+        ? 'खतरा विन्दु पार हुनासाथ तटीय बासिन्दालाई स्वचालित फोन कल र ५-१० किमी सौर्य-साइरन'
+        : 'Automated outbound alert calls to downstream residents and 5-10 km solar sirens',
+      icon: <Waves size={28} color="#0284c7" />,
+      link: '/disaster?tab=siren',
+      badge: isNepali ? 'Last-Mile' : 'Last-Mile',
+      badgeColor: '#0284c7',
     },
     {
-      title: 'एआई डिजिटल सहायक (AI Assistant)',
-      desc: 'पालिकाका सेवा, योजना, नियम तथा आकस्मिक सुविधाहरूबारे २४/७ प्रत्यक्ष नेपाली संवाद',
-      icon: <Sparkles size={28} color="#06b6d4" />,
-      link: '/ai-assistant',
-      badge: '२४/७ डिजिटल सेवा',
-      badgeColor: '#06b6d4',
-    },
-    {
-      title: 'घर-नक्सा पास तथा भवन अनुमति (e-BPS)',
-      desc: 'नागरिकले घरमै बसी अनलाइन नक्सा पेश, डिजिटल ड्रइङ रुजु र प्रत्यक्ष फाइल ट्र्याकिङ',
-      icon: <Layers size={28} color="#7c3aed" />,
-      link: '/ebps?tab=apply',
-      badge: 'अनलाइन नक्सा दरखास्त',
-      badgeColor: '#10b981',
-    },
-    {
-      title: 'व्यक्तिगत घटना पञ्जीकरण',
-      desc: 'जन्म, मृत्यु, विवाह, बसाइँसराइ र सम्बन्धविच्छेद अनलाइन दर्ता तथा लगत',
-      icon: <Users size={28} color="#10b981" />,
-      link: '/vital-events',
-      badge: 'राष्ट्रिय प्रणाली',
-      badgeColor: '#10b981',
-    },
-    {
-      title: 'स्थानीय कर तथा राजस्व भुक्तानी (e-Tax)',
-      desc: 'सम्पत्ति कर, व्यवसाय कर र मालपोत सिधै eSewa/Khalti/ConnectIPS बाट',
-      icon: <CreditCard size={28} color="#f59e0b" />,
-      link: '/revenue',
-      badge: 'ई-पेमेन्ट',
+      title: isNepali ? 'खोज-उद्धार (SAR) र हेभी इक्युपमेन्ट' : 'SAR Heavy Equipment Directory',
+      desc: isNepali
+        ? 'पालिका तथा निजी डोजर, एक्साभेटर, र्याफ्टिङ बोट र ६४ जना स्वयंसेवक कार्यदल'
+        : 'Dozers, excavators, rescue boats and 64 certified local SAR volunteers',
+      icon: <Briefcase size={28} color="#f59e0b" />,
+      link: '/disaster?tab=heavy_equipment',
+      badge: isNepali ? 'स्ट्यान्डबाइ' : 'Standby',
       badgeColor: '#f59e0b',
     },
     {
-      title: 'डिजिटल नक्सा (GIS) तथा डिजिटल ट्विन',
-      desc: '५,८०५+ घरधुरी, पूर्वाधार, जोखिम क्षेत्र र ३डी डिजिटल मोडल अवलोकन',
-      icon: <MapPin size={28} color="#ec4899" />,
-      link: '/gis-map',
-      badge: '३D GIS ट्विन',
-      badgeColor: '#ec4899',
-    },
-    {
-      title: 'गुनासो तथा उजुरी सुनुवाई',
-      desc: 'नागरिकका समस्या, सुझाव र उजुरी प्रत्यक्ष दर्ता तथा ट्र्याकिङ प्रणाली',
-      icon: <AlertTriangle size={28} color="#ef4444" />,
-      link: '/complaints',
-      badge: 'द्रुत सुनुवाई',
-      badgeColor: '#ef4444',
-    },
-    {
-      title: 'कृषक प्रोफाइल तथा अनुदान पोर्टल',
-      desc: 'किसान सूचीकरण, माटो स्वास्थ्य कार्ड, कृषि अनुदान तथा उत्पादन विवरण',
-      icon: <Briefcase size={28} color="#16a34a" />,
-      link: '/farmer-profile',
-      badge: 'किसान पोर्टल',
+      title: isNepali ? 'सुरक्षित आश्रयस्थल र राहत मौज्दात' : 'Evacuation Shelters & Relief Stock',
+      desc: isNepali
+        ? '८ वटै वडाका १,३१० जना क्षमताका ६ वटा आश्रयस्थल, सौर्य ऊर्जा, पानी र त्रिपाल मौज्दात'
+        : '6 certified shelters across all 8 wards (1,310 capacity) with water, power & tarpaulins',
+      icon: <Building2 size={28} color="#16a34a" />,
+      link: '/disaster?tab=shelters',
+      badge: isNepali ? '६ आश्रयस्थल' : '6 Shelters',
       badgeColor: '#16a34a',
     },
     {
-      title: 'खुला तथ्याङ्क (Open Data Portal)',
-      desc: 'बजेट, खर्च, जनसांख्यिकी र विकास योजनाहरूको पारदर्शी खुला तथ्याङ्क',
-      icon: <FileText size={28} color="#3b82f6" />,
-      link: '/open-data',
-      badge: 'खुला तथ्याङ्क',
-      badgeColor: '#3b82f6',
+      title: isNepali ? 'द्रुत क्षति मूल्याङ्कन (Mobile RDRA राहत)' : 'Rapid Damage Assessment (RDRA)',
+      desc: isNepali
+        ? 'गृहमन्त्रालय राहत मापदण्ड २०७७ अनुसार घटनास्थलमै क्षति मूल्याङ्कन र DBT सिफारिस'
+        : 'MoHA Standard 2077 field damage assessments and direct bank cash grants (DBT)',
+      icon: <TrendingUp size={28} color="#10b981" />,
+      link: '/disaster?tab=rdra_damage',
+      badge: isNepali ? 'राहत मापदण्ड' : 'Relief 2077',
+      badgeColor: '#10b981',
+    },
+    {
+      title: isNepali ? 'अति-संवेदनशील नागरिक उद्धार सूची' : 'Vulnerable Citizens Evacuation',
+      desc: isNepali
+        ? 'सुत्केरी, अपाङ्गता भएका नागरिक, ७०+ ज्येष्ठ नागरिक र काँचो माटोका घरहरूको प्राथमिकता सूची'
+        : 'Prioritized evacuation list for pregnant mothers, disabled citizens & senior citizens',
+      icon: <Users size={28} color="#ec4899" />,
+      link: '/disaster?tab=micro_vulnerability',
+      badge: isNepali ? '५,८०५ घरधुरी' : '5,805 HH',
+      badgeColor: '#ec4899',
+    },
+    {
+      title: isNepali ? 'अफलाइन PWA तथा VHF रेडियो सञ्चार' : 'Offline PWA & VHF Radio Mesh',
+      desc: isNepali
+        ? 'इन्टरनेट नहुँदा पनि फिल्ड रिपोर्टिङ, स्थानीय IndexedDB भण्डार र VHF रेडियो डाइरेक्टरी'
+        : 'Zero-internet offline field reporting with local IndexedDB vault & VHF radio contacts',
+      icon: <PhoneCall size={28} color="#6366f1" />,
+      link: '/pwa',
+      badge: isNepali ? 'PWA/VHF' : 'PWA/VHF',
+      badgeColor: '#6366f1',
+    },
+    {
+      title: isNepali ? 'वातावरण तथा नदीजन्य खानी नियमन (IEE)' : 'Environment & Mining Regulation',
+      desc: isNepali
+        ? 'नदीजन्य ढुङ्गा, गिट्टी, बालुवा उत्खनन कोटा नियमन र पहिरो न्यूनीकरण अनुगमन'
+        : 'Riverbed quarry extraction quotas, environmental monitoring & slope stabilization',
+      icon: <FileText size={28} color="#059669" />,
+      link: '/environmental-mining',
+      badge: isNepali ? 'IEE/वातावरण' : 'IEE/Mining',
+      badgeColor: '#059669',
+    },
+    {
+      title: isNepali ? 'विपद् गुनासो तथा उजुरी सुनुवाई' : 'Disaster Grievances & Complaints',
+      desc: isNepali
+        ? 'नागरिकका विपद् सम्बन्धी समस्या, राहत गुनासो र क्षति उजुरी प्रत्यक्ष दर्ता तथा ट्र्याकिङ'
+        : 'Citizen disaster grievance tracking, relief inquiries and damage appeals',
+      icon: <AlertTriangle size={28} color="#ef4444" />,
+      link: '/complaints',
+      badge: isNepali ? 'द्रुत सुनुवाई' : 'Fast Response',
+      badgeColor: '#ef4444',
     },
   ];
 
@@ -268,10 +289,12 @@ export const Home: React.FC = () => {
               }}
             />
             <span style={{ letterSpacing: '0.02em', color: '#f8fafc' }}>
-              LIVE · पाँचपोखरी थाङपाल गाउँपालिका · एकीकृत डिजिटल ट्विन
+              LIVE · {isNepali ? 'पाँचपोखरी थाङपाल गाउँपालिका · राष्ट्रिय एकीकृत विपद् व्यवस्थापन' : 'Panchpokhari Thangpal · Nepal Integrated DRRMS'}
             </span>
             <span style={{ opacity: 0.35 }}>|</span>
-            <span style={{ color: '#a7f3d0', fontWeight: 700 }}>८ वडा · ३३ विषयगत क्षेत्र</span>
+            <span style={{ color: '#a7f3d0', fontWeight: 700 }}>
+              {isNepali ? '८ वडा · राष्ट्रिय विपद् नियन्त्रण' : '8 Wards · National Operations'}
+            </span>
           </div>
 
           {/* Hero Heading */}
@@ -285,17 +308,35 @@ export const Home: React.FC = () => {
               textShadow: '0 3px 16px rgba(0,0,0,0.45)',
             }}
           >
-            नक्सामा विकास । तथ्याङ्कमा प्रगति ।<br />
-            <span
-              style={{
-                background: 'linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #fbbf24 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: 'inline-block',
-              }}
-            >
-              AI तथा IoT बाट आधुनिक सुशासन
-            </span>
+            {isNepali ? (
+              <>
+                नक्सामा विकास । पूर्वसूचनामा सतर्कता ।<br />
+                <span
+                  style={{
+                    background: 'linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #fbbf24 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block',
+                  }}
+                >
+                  AI, IoT तथा GIS बाट एकीकृत विपद् जोखिम व्यवस्थापन
+                </span>
+              </>
+            ) : (
+              <>
+                Resilience on Maps | Preparedness in Action |<br />
+                <span
+                  style={{
+                    background: 'linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #fbbf24 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    display: 'inline-block',
+                  }}
+                >
+                  Integrated Disaster Risk Management via AI, IoT & GIS
+                </span>
+              </>
+            )}
           </h1>
 
           <p
@@ -308,7 +349,9 @@ export const Home: React.FC = () => {
               opacity: 0.95,
             }}
           >
-            पालिकाका ८ वटै वडा, ५,८०५ घरधुरी, नदी जलसतह सेन्सर, CCTV सर्भिलेन्स, डिजिटल नक्सा र नागरिक सेवाहरू एउटै अत्याधुनिक डिजिटल प्लेटफर्मबाट।
+            {isNepali
+              ? 'पालिकाका ८ वटै वडा, ५,८०५ घरधुरी, नदी जलसतह सेन्सर, CCTV सर्भिलेन्स, डिजिटल नक्सा र आपतकालीन सेवाहरू एउटै अत्याधुनिक डिजिटल प्लेटफर्मबाट।'
+              : 'Real-time telemetry across 8 wards, 5,805 households, river level sensors, CCTV surveillance, 3D risk mapping, and emergency services.'}
           </p>
 
           {/* Smart Search Bar */}
@@ -329,7 +372,7 @@ export const Home: React.FC = () => {
               <Search size={18} color="#0284c7" style={{ flexShrink: 0, marginRight: '0.55rem' }} />
               <input
                 type="text"
-                placeholder="सिफारिस, घर-नक्सा, योजना, बाढी सतर्कता वा वडा सेवा खोज्नुहोस्..."
+                placeholder={isNepali ? "बाढी पूर्वसूचना, सुरक्षित आश्रयस्थल, राहत वा वडा सेवा खोज्नुहोस्..." : "Search flood warnings, shelters, relief, or emergency services..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
@@ -360,7 +403,7 @@ export const Home: React.FC = () => {
                   transition: 'all 0.2s ease',
                 }}
               >
-                <span>खोज्नुहोस्</span>
+                <span>{isNepali ? 'खोज्नुहोस्' : 'Search'}</span>
                 <ArrowRight size={15} />
               </button>
             </div>
@@ -379,15 +422,15 @@ export const Home: React.FC = () => {
             }}
           >
             <span style={{ color: '#94a3b8', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span>⚡</span> द्रुत खोज:
+              <span>⚡</span> {isNepali ? 'द्रुत खोज:' : 'Quick Tags:'}
             </span>
             {[
-              { label: '३D नक्सा', path: '/gis-map' },
-              { label: 'नागरिक सिफारिस', path: '/citizen-services' },
-              { label: 'घर-नक्सा (e-BPS)', path: '/ebps' },
-              { label: 'विकास योजना', path: '/projects' },
-              { label: 'बाढी सतर्कता', path: '/disaster' },
-              { label: 'राजस्व तथा कर', path: '/revenue' },
+              { label: isNepali ? '३D जोखिम नक्सा' : '3D Risk Map', path: '/gis-map' },
+              { label: isNepali ? 'बाढी पूर्वसूचना' : 'Early Warning', path: '/disaster' },
+              { label: isNepali ? 'सुरक्षित आश्रयस्थल' : 'Shelters', path: '/disaster?tab=shelters' },
+              { label: isNepali ? 'खोज तथा उद्धार SAR' : 'SAR Equipment', path: '/disaster?tab=heavy_equipment' },
+              { label: isNepali ? 'राहत वितरण RDRA' : 'Relief RDRA', path: '/disaster?tab=rdra_damage' },
+              { label: isNepali ? 'अफलाइन PWA' : 'Offline PWA', path: '/pwa' },
             ].map((tag) => (
               <button
                 key={tag.label}
@@ -461,7 +504,7 @@ export const Home: React.FC = () => {
               }}
             >
               <Layers size={16} />
-              <span>३D डिजिटल नक्सा (GIS Twin)</span>
+              <span>{isNepali ? '३D डिजिटल जोखिम नक्सा (GIS Twin)' : '3D Hazard Twin (GIS Map)'}</span>
               <span
                 style={{
                   fontSize: '0.66rem',
@@ -477,9 +520,9 @@ export const Home: React.FC = () => {
               </span>
             </Link>
 
-            {/* 2. Citizen Services Portal */}
+            {/* 2. Disaster EOC & Early Warning */}
             <Link
-              to="/citizen-services"
+              to="/disaster"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 color: '#0f172a',
@@ -504,29 +547,29 @@ export const Home: React.FC = () => {
                 e.currentTarget.style.boxShadow = '0 6px 18px rgba(0, 0, 0, 0.12)';
               }}
             >
-              <FileCheck2 size={16} color="#0284c7" />
-              <span>नागरिक ई-सेवा तथा सिफारिस</span>
+              <ShieldAlert size={16} color="#dc2626" />
+              <span>{isNepali ? 'विपद् पूर्वसूचना तथा आपतकालीन केन्द्र' : 'Disaster EOC & Early Warning'}</span>
               <span
                 style={{
                   fontSize: '0.66rem',
-                  background: '#e0f2fe',
-                  color: '#0369a1',
+                  background: '#fee2e2',
+                  color: '#dc2626',
                   padding: '1px 6px',
                   borderRadius: '9999px',
                   fontWeight: 800,
                   marginLeft: '0.15rem',
                 }}
               >
-                ४५+ सेवा
+                {isNepali ? '२४/७ सक्रिय' : '24/7 EOC'}
               </span>
             </Link>
 
-            {/* 3. AI Municipal Assistant */}
+            {/* 3. Offline Citizen PWA & VHF Mesh */}
             <Link
-              to="/ai-assistant"
+              to="/pwa"
               style={{
-                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.35) 0%, rgba(99, 102, 241, 0.45) 100%)',
-                border: '1.5px solid rgba(192, 132, 252, 0.55)',
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(59, 130, 246, 0.45) 100%)',
+                border: '1.5px solid rgba(165, 180, 252, 0.55)',
                 color: '#ffffff',
                 backdropFilter: 'blur(12px)',
                 padding: '0.62rem 1.25rem',
@@ -537,34 +580,34 @@ export const Home: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.45rem',
-                boxShadow: '0 6px 18px rgba(139, 92, 246, 0.25)',
+                boxShadow: '0 6px 18px rgba(99, 102, 241, 0.25)',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 10px 24px rgba(168, 85, 247, 0.4)';
-                e.currentTarget.style.borderColor = 'rgba(216, 180, 254, 0.8)';
+                e.currentTarget.style.boxShadow = '0 10px 24px rgba(99, 102, 241, 0.4)';
+                e.currentTarget.style.borderColor = 'rgba(199, 210, 254, 0.8)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 18px rgba(139, 92, 246, 0.25)';
-                e.currentTarget.style.borderColor = 'rgba(192, 132, 252, 0.55)';
+                e.currentTarget.style.boxShadow = '0 6px 18px rgba(99, 102, 241, 0.25)';
+                e.currentTarget.style.borderColor = 'rgba(165, 180, 252, 0.55)';
               }}
             >
-              <Sparkles size={16} color="#c084fc" />
-              <span>AI पालिका सहायक</span>
+              <PhoneCall size={16} color="#a5b4fc" />
+              <span>{isNepali ? 'अफलाइन PWA तथा VHF सञ्चार' : 'Offline PWA & VHF Mesh'}</span>
               <span
                 style={{
                   fontSize: '0.66rem',
-                  background: 'rgba(192, 132, 252, 0.25)',
-                  color: '#f5d0fe',
+                  background: 'rgba(165, 180, 252, 0.25)',
+                  color: '#e0e7ff',
                   padding: '1px 6px',
                   borderRadius: '9999px',
                   fontWeight: 800,
                   marginLeft: '0.15rem',
                 }}
               >
-                २४/७
+                {isNepali ? 'अफलाइन' : 'Off-Grid'}
               </span>
             </Link>
           </div>
@@ -610,10 +653,10 @@ export const Home: React.FC = () => {
             <div style={{ display: 'inline-flex', padding: '0.35rem', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', marginBottom: '0.35rem' }}>
               <MapPin size={16} />
             </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>८</div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>वडाहरू (Wards)</div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{isNepali ? '८' : '8'}</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>{isNepali ? 'वडाहरू' : 'Wards'}</div>
             <div style={{ fontSize: '0.7rem', color: '#059669', fontWeight: 600, marginTop: '0.25rem', background: '#ecfdf5', padding: '1px 7px', borderRadius: '20px', display: 'inline-block' }}>
-              ● १००% डिजिटल अभिलेखीकरण
+              {isNepali ? '● १००% डिजिटल अभिलेखीकरण' : '● 100% Geo-Mapped'}
             </div>
           </div>
 
@@ -644,10 +687,10 @@ export const Home: React.FC = () => {
             <div style={{ display: 'inline-flex', padding: '0.35rem', borderRadius: '8px', background: '#dcfce7', color: '#16a34a', marginBottom: '0.35rem' }}>
               <Users size={16} />
             </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>१७,५२१</div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>कुल जनसंख्या</div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{isNepali ? '१७,५२१' : '17,521'}</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>{isNepali ? 'कुल जनसंख्या' : 'Total Population'}</div>
             <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600, marginTop: '0.25rem', background: '#f1f5f9', padding: '1px 7px', borderRadius: '20px', display: 'inline-block' }}>
-              ५,२३४ घरधुरी प्रोफाइल
+              {isNepali ? '५,२३४ घरधुरी प्रोफाइल' : '5,234 Household Profiles'}
             </div>
           </div>
 
@@ -678,10 +721,10 @@ export const Home: React.FC = () => {
             <div style={{ display: 'inline-flex', padding: '0.35rem', borderRadius: '8px', background: '#fef3c7', color: '#d97706', marginBottom: '0.35rem' }}>
               <FolderGit2 size={16} />
             </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>२४७</div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>विकास योजनाहरू</div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{isNepali ? '२४७' : '247'}</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>{isNepali ? 'विपद् तथा पूर्वाधार योजनाहरू' : 'Disaster & Recovery Projects'}</div>
             <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 600, marginTop: '0.25rem', background: '#fffbeb', padding: '1px 7px', borderRadius: '20px', display: 'inline-block' }}>
-              १३२ सम्पन्न · ११५ चालु
+              {isNepali ? '१३२ सम्पन्न · ११५ चालु' : '132 Completed · 115 Active'}
             </div>
           </div>
 
@@ -712,10 +755,10 @@ export const Home: React.FC = () => {
             <div style={{ display: 'inline-flex', padding: '0.35rem', borderRadius: '8px', background: '#ede9fe', color: '#7c3aed', marginBottom: '0.35rem' }}>
               <Building2 size={16} />
             </div>
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>५,८०५</div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>GPS नक्साङ्कन घरहरू</div>
+            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{isNepali ? '५,८०५' : '5,805'}</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>{isNepali ? 'GPS नक्साङ्कन घरहरू' : 'GPS Mapped Households'}</div>
             <div style={{ fontSize: '0.7rem', color: '#6d28d9', fontWeight: 600, marginTop: '0.25rem', background: '#f5f3ff', padding: '1px 7px', borderRadius: '20px', display: 'inline-block' }}>
-              QR कोड डिजिटल ठेगाना
+              {isNepali ? 'QR कोड डिजिटल ठेगाना' : 'QR Code Digital Address'}
             </div>
           </div>
 
@@ -747,11 +790,11 @@ export const Home: React.FC = () => {
               <Activity size={16} />
             </div>
             <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-              {toNepaliDigits(sensors.length || 5)} + {toNepaliDigits(cameras.length || 4)}
+              {isNepali ? `${toNepaliDigits(sensors.length || 5)} + ${toNepaliDigits(cameras.length || 4)}` : `${sensors.length || 5} + ${cameras.length || 4}`}
             </div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>IoT सेन्सर र CCTV</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', textTransform: 'uppercase', marginTop: '0.2rem', letterSpacing: '0.03em' }}>{isNepali ? 'IoT सेन्सर र CCTV' : 'IoT Sensors & CCTV'}</div>
             <div style={{ fontSize: '0.7rem', color: '#dc2626', fontWeight: 600, marginTop: '0.25rem', background: '#fef2f2', padding: '1px 7px', borderRadius: '20px', display: 'inline-block' }}>
-              ● २४/७ लाइभ टेलिमेट्री
+              {isNepali ? '● २४/७ लाइभ टेलिमेट्री' : '● 24/7 Live Telemetry'}
             </div>
           </div>
         </div>
@@ -796,10 +839,10 @@ export const Home: React.FC = () => {
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                प्रत्यक्ष जलसतह तथा बाढी पूर्वसूचना (Live Hydromet Alert)
+                {isNepali ? 'प्रत्यक्ष जलसतह तथा बाढी पूर्वसूचना (Live Hydromet Alert)' : 'Live Water Level & Flood Early Warning'}
               </div>
               <h3 style={{ margin: '0.2rem 0 0', fontSize: '1.15rem', fontWeight: 700 }}>
-                मेलम्ची खोला: <span style={{ color: melamchiSensor.status === 'Critical' ? '#ef4444' : '#38bdf8' }}>{melamchiSensor.lastValue} {melamchiSensor.unit}</span> (खतरा: {melamchiSensor.dangerThreshold}m) · भोताङ वर्षा: <span style={{ color: '#a78bfa' }}>{bhotangSensor.lastValue} {bhotangSensor.unit}</span>
+                {isNepali ? 'मेलम्ची खोला' : 'Melamchi River'}: <span style={{ color: melamchiSensor.status === 'Critical' ? '#ef4444' : '#38bdf8' }}>{melamchiSensor.lastValue} {melamchiSensor.unit}</span> ({isNepali ? 'खतरा' : 'Danger'}: {melamchiSensor.dangerThreshold}m) · {isNepali ? 'भोताङ वर्षा' : 'Bhotang Rain'}: <span style={{ color: '#a78bfa' }}>{bhotangSensor.lastValue} {bhotangSensor.unit}</span>
               </h3>
             </div>
           </div>
@@ -820,7 +863,7 @@ export const Home: React.FC = () => {
                 gap: '0.3rem',
               }}
             >
-              <Video size={15} /> प्रत्यक्ष सेन्सर र CCTV हेर्नुहोस्
+              <Video size={15} /> {isNepali ? 'प्रत्यक्ष सेन्सर र CCTV हेर्नुहोस्' : 'View Sensors & CCTV'}
             </Link>
             <a
               href="tel:011460111"
@@ -838,7 +881,7 @@ export const Home: React.FC = () => {
                 gap: '0.3rem',
               }}
             >
-              <PhoneCall size={15} /> हटलाइन: ०११-४६०१११
+              <PhoneCall size={15} /> {isNepali ? 'हटलाइन: ०११-४६०१११' : 'Hotline: 011-460111'}
             </a>
           </div>
         </div>
@@ -848,13 +891,13 @@ export const Home: React.FC = () => {
       <section style={{ width: '100%', maxWidth: '100%', margin: '3rem 0', padding: '0 0.5rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284c7', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            नागरिक सेवाहरू (Citizen Services)
+            {isNepali ? 'नागरिक विपद् सेवाहरू (Citizen DRRM Services)' : 'Citizen Disaster Services'}
           </span>
           <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#0f172a', margin: '0.3rem 0 0.5rem' }}>
-            घरबाटै पालिकाका डिजिटल सेवाहरूको उपयोग गर्नुहोस्
+            {isNepali ? 'एकीकृत विपद् व्यवस्थापन तथा नागरिक पूर्वसूचना प्रणाली' : 'Integrated Disaster Management & Citizen Early Warning'}
           </h2>
           <p style={{ color: '#64748b', maxWidth: '600px', margin: '0 auto', fontSize: '1rem' }}>
-            पारदर्शी, छिटो र प्रभावकारी सार्वजनिक सेवा प्रवाहका लागि एकीकृत डिजिटल गेटवे
+            {isNepali ? 'बाढी, पहिरो तथा आपतकालीन अवस्थामा तत्काल प्रतिकार्य, राहत र नागरिक सुरक्षाका लागि एकीकृत डिजिटल गेटवे' : 'Integrated digital gateway for immediate disaster response, relief tracking and citizen safety'}
           </p>
         </div>
 
@@ -905,7 +948,7 @@ export const Home: React.FC = () => {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#0284c7', fontWeight: 700, fontSize: '0.85rem', marginTop: '1.25rem' }}>
-                <span>सेवा सुरु गर्नुहोस्</span>
+                <span>{isNepali ? 'सेवा सुरु गर्नुहोस्' : 'Launch Service'}</span>
                 <ArrowRight size={15} />
               </div>
             </Link>
@@ -913,8 +956,69 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* ── 4.5 PALIKA 9 SECTORAL DOMAINS & 53 MODULES DIRECTORY ─────────────── */}
-      <PublicModulesDirectory />
+      {/* ── 4.5 SENDAI FRAMEWORK 10-STAGE DISASTER RISK MANAGEMENT LIFECYCLE ─────── */}
+      <section style={{ width: '100%', maxWidth: '100%', margin: '2rem 0 3rem', padding: '0 0.5rem' }}>
+        <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', border: '1.5px solid #e2e8f0', padding: '2rem', boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '1px', background: '#fee2e2', padding: '3px 10px', borderRadius: '20px' }}>
+              {isNepali ? 'सेन्डाई संरचना १०-चरण विपद् जीवनचक्र' : 'Sendai Framework 10-Stage DRRM Lifecycle'}
+            </span>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0.5rem 0 0.25rem' }}>
+              {isNepali ? 'एकीकृत विपद् व्यवस्थापन चक्र (End-to-End Resilience)' : 'Comprehensive Disaster Management Lifecycle'}
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '700px', margin: '0 auto' }}>
+              {isNepali ? 'घटना दर्तादेखि पुनर्निर्माणसम्म एउटै घटना ID (Incident ID) द्वारा अन्तरसम्बन्धित राष्ट्रिय मापदण्ड' : 'Single Incident ID connecting Prevention, Early Warning, Rescue, Relief & Reconstruction'}
+            </p>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '0.85rem' }}>
+            {[
+              { phase: '1', titleNp: 'पूर्वतयारी तथा रोकथाम', titleEn: '1. Prevention & Mitigation', descNp: 'नदी कटान तटबन्धन तथा IEE नियमन', descEn: 'Erosion control & IEE quarry limits', link: '/environmental-mining', color: '#0284c7' },
+              { phase: '2', titleNp: 'जोखिम नक्साङ्कन', titleEn: '2. Hazard Mapping', descNp: '३D जीआईएस तथा २००m बफर सिमुलेसन', descEn: '3D GIS twin & 200m river buffers', link: '/gis-map', color: '#6366f1' },
+              { phase: '3', titleNp: 'पूर्वसूचना तथा साइरन', titleEn: '3. Early Warning & Siren', descNp: 'टेलिमेट्री, IVR कल र मेश-साइरन', descEn: 'Telemetry, IVR calls & mesh siren', link: '/disaster?tab=siren', color: '#ea580c' },
+              { phase: '4', titleNp: 'घटना दर्ता वडा तह', titleEn: '4. Ward Incident Log', descNp: 'वडा सचिवद्वारा स्थानीय घटना दर्ता', descEn: 'Ward-level field incident logging', link: '/disaster?tab=events', color: '#ef4444' },
+              { phase: '5', titleNp: 'स्थलगत प्रमाणीकरण', titleEn: '5. Field Verification', descNp: 'EOC टोलीद्वारा GPS प्रमाण प्रमाणीकरण', descEn: 'GPS photo & technical verification', link: '/disaster?tab=events', color: '#dc2626' },
+              { phase: '6', titleNp: 'खोज तथा उद्धार (SAR)', titleEn: '6. SAR Dispatch', descNp: 'डोजर, डुङ्गा र स्वयंसेवक परिचालन', descEn: 'Dozers, boats & volunteer teams', link: '/disaster?tab=heavy_equipment', color: '#d97706' },
+              { phase: '7', titleNp: 'सुरक्षित आश्रयस्थल', titleEn: '7. Shelter Evacuation', descNp: '१,३१० क्षमताका ६ आश्रयस्थल व्यवस्थापन', descEn: '6 certified shelters (1,310 cap)', link: '/disaster?tab=shelters', color: '#059669' },
+              { phase: '8', titleNp: 'द्रुत क्षति मूल्याङ्कन', titleEn: '8. RDRA Damage Assessment', descNp: 'मापदण्ड २०७७ अनुसार क्षति अभिलेख', descEn: 'MoHA Standard 2077 damage audits', link: '/disaster?tab=rdra_damage', color: '#10b981' },
+              { phase: '9', titleNp: 'राहत वितरण तथा DBT', titleEn: '9. Direct Bank Relief', descNp: 'बैंक खातामै नगद राहत तथा सामग्री', descEn: 'Direct bank cash grants & ration', link: '/disaster?tab=relief_funds', color: '#16a34a' },
+              { phase: '10', titleNp: 'पुनर्लाभ तथा पुनर्निर्माण', titleEn: '10. Build Back Better', descNp: 'दीर्घकालीन पुनर्निर्माण आयोजना ३६०', descEn: 'Long-term resilient reconstruction', link: '/projects', color: '#7c3aed' },
+            ].map((p, idx) => (
+              <Link
+                key={idx}
+                to={p.link}
+                style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '1rem',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  transition: 'all 0.15s ease',
+                  borderTop: `3px solid ${p.color}`,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.06)';
+                  e.currentTarget.style.borderColor = p.color;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.borderColor = '#e2e8f0';
+                }}
+              >
+                <div style={{ fontSize: '0.86rem', fontWeight: 800, color: p.color, marginBottom: '0.25rem' }}>
+                  {isNepali ? p.titleNp : p.titleEn}
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b', lineHeight: 1.4 }}>
+                  {isNepali ? p.descNp : p.descEn}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── 5. DIGITAL TWIN 3D/GIS SHOWCASE ───────────────────────────────────────── */}
       <section style={{ width: '100%', maxWidth: '100%', margin: '3rem 0', padding: '0 0.5rem' }}>
@@ -932,13 +1036,15 @@ export const Home: React.FC = () => {
           <div style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#0284c7', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.75rem' }}>
               <Sparkles size={16} />
-              <span>नेपालकै पहिलो नगरस्तरीय डिजिटल ट्विन</span>
+              <span>{isNepali ? 'नेपालकै पहिलो नगरस्तरीय विपद् डिजिटल ट्विन' : 'Nepal First Municipal Disaster Digital Twin'}</span>
             </div>
             <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, margin: '0 0 1rem' }}>
-              पाँचपोखरीको ३डी नक्सा तथा भू-स्थानिक (GIS) इन्टेलिजेन्स
+              {isNepali ? 'पाँचपोखरीको ३डी जोखिम नक्सा तथा भू-स्थानिक (GIS) इन्टेलिजेन्स' : '3D Multi-Hazard Twin & Geospatial GIS Intelligence'}
             </h2>
             <p style={{ color: '#64748b', fontSize: '0.95rem', lineHeight: 1.6, margin: '0 0 1.5rem' }}>
-              प्रत्येक घरधुरीको स्थान, भवन संरचना, बाढी तथा पहिरो जोखिम क्षेत्र, खानेपानी तथा सडक सञ्जाललाई एकीकृत थ्री-डी जियो-पोर्टलमा अवलोकन गर्नुहोस्।
+              {isNepali
+                ? 'प्रत्येक घरधुरीको स्थान, भवन संरचना, बाढी तथा पहिरो जोखिम क्षेत्र, खानेपानी तथा सडक सञ्जाललाई एकीकृत थ्री-डी जियो-पोर्टलमा अवलोकन गर्नुहोस्।'
+                : 'Interactive 3D geospatial intelligence showing 5,805+ households, river inundation buffers, landslide slopes, and evacuation routes.'}
             </p>
             <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <Link
@@ -956,7 +1062,7 @@ export const Home: React.FC = () => {
                   gap: '0.4rem',
                 }}
               >
-                <Layers size={18} /> GIS नक्सा खोल्नुहोस्
+                <Layers size={18} /> {isNepali ? 'GIS नक्सा खोल्नुहोस्' : 'Open 3D GIS Twin'}
               </Link>
               <Link
                 to="/projects"
@@ -970,7 +1076,7 @@ export const Home: React.FC = () => {
                   fontSize: '0.95rem',
                 }}
               >
-                योजनाहरूको प्रगति हेर्नुहोस्
+                {isNepali ? 'पुनर्निर्माण आयोजनाहरू हेर्नुहोस्' : 'View Reconstruction Projects'}
               </Link>
             </div>
           </div>
@@ -988,8 +1094,8 @@ export const Home: React.FC = () => {
           >
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(15,23,42,0.85) 0%, transparent 60%)' }} />
             <div style={{ position: 'relative', zIndex: 2, color: '#ffffff' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#38bdf8' }}>३डी डिजिटल नक्सा प्रणाली</div>
-              <h4 style={{ margin: '0.2rem 0 0', fontSize: '1.25rem', fontWeight: 700 }}>थाङपाल भ्याली तथा पाँचपोखरी बेसिन मोडल</h4>
+              <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#38bdf8' }}>{isNepali ? '३डी डिजिटल नक्सा प्रणाली' : '3D Digital Hazard Twin'}</div>
+              <h4 style={{ margin: '0.2rem 0 0', fontSize: '1.25rem', fontWeight: 700 }}>{isNepali ? 'थाङपाल भ्याली तथा पाँचपोखरी बेसिन मोडल' : 'Thangpal Valley & Panchpokhari Basin Model'}</h4>
             </div>
           </div>
         </div>
@@ -1004,49 +1110,77 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* ── 6. TOURISM & HERITAGE HIGHLIGHTS ──────────────────────────────────────── */}
+      {/* ── 6. EMERGENCY CONTACTS & FIRST RESPONDER HOTLINES DIRECTORY ───────────── */}
       <section style={{ width: '100%', maxWidth: '100%', margin: '3rem 0 4rem', padding: '0 0.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0284c7', textTransform: 'uppercase' }}>पर्यटन तथा संस्कृति</span>
-            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', margin: '0.2rem 0 0' }}>धार्मिक, सांस्कृतिक तथा प्राकृतिक गन्तव्यहरू</h2>
+            <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>
+              {isNepali ? '२४/७ आपतकालीन सम्पर्क तथा सुरक्षा निकाय' : '24/7 Emergency Contacts & First Responders'}
+            </span>
+            <h2 style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', margin: '0.2rem 0 0' }}>
+              {isNepali ? 'सुरक्षा निकाय तथा आपतकालीन हटलाइन डाइरेक्टरी' : 'Emergency Hotlines & Security Directory'}
+            </h2>
           </div>
-          <Link to="/tourism" style={{ color: '#0284c7', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            सबै गन्तव्यहरू हेर्नुहोस् <ArrowRight size={16} />
+          <Link to="/disaster" style={{ color: '#0284c7', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            {isNepali ? 'विपद् केन्द्र ड्यासबोर्ड' : 'Disaster Hub Dashboard'} <ArrowRight size={16} />
           </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.25rem' }}>
           {[
-            { title: 'पवित्र पाँचपोखरी कुण्ड (४,१००m)', desc: 'विश्वकै नवौं उच्च स्थानमा रहेको पवित्र पाँच तलाउ', tag: 'धार्मिक / साहसिक' },
-            { title: 'आमा यांग्री पिक (३,७७१m)', desc: 'हेलम्बु-पाँचपोखरीको मनोरम दृश्यावलोकन केन्द्र', tag: 'पदयात्रा' },
-            { title: 'थाङपालधाप ड्रागन गुम्बा', desc: 'प्राचीन तिब्बती बौद्ध कला तथा ध्यान केन्द्र', tag: 'सम्पदा' },
-            { title: 'भोताङ रैथाने ट्राउट तथा अर्गानिक खेती', desc: 'हिमाली चिसो पानीको ट्राउट माछा र रैथाने स्वाद', tag: 'कृषि पर्यटन' },
+            { titleNp: 'नेपाल प्रहरी (Police)', titleEn: 'Nepal Police', phone: '100', descNp: '२४/७ तत्काल शान्ति सुरक्षा तथा उद्धार', descEn: '24/7 Immediate Law & Rescue', tagNp: 'आकस्मिक', tagEn: 'Hotline', color: '#dc2626' },
+            { titleNp: 'सशस्त्र प्रहरी बल (APF)', titleEn: 'Armed Police Force (APF)', phone: '1114', descNp: 'विपद् उद्धार तथा सीमा सुरक्षा', descEn: 'Disaster Rescue & Security', tagNp: 'SAR कार्यदल', tagEn: 'SAR Force', color: '#ea580c' },
+            { titleNp: 'नेपाली सेना (Army)', titleEn: 'Nepal Army', phone: '102', descNp: 'हेलिकप्टर उद्धार तथा हेभी अपरेसन', descEn: 'Helicopter Rescue & Heavy Ops', tagNp: 'आपतकालीन', tagEn: 'Air SAR', color: '#b45309' },
+            { titleNp: 'पालिका EOC नियन्त्रण कक्ष', titleEn: 'Palika EOC Control Room', phone: '011-460111', descNp: '२४ घण्टा कार्यरत स्थानीय विपद् कक्ष', descEn: '24/7 Municipal Disaster Desk', tagNp: 'LEOC', tagEn: 'LEOC', color: '#0284c7' },
+            { titleNp: 'एम्बुलेन्स सेवा (Ambulance)', titleEn: 'Local Ambulance', phone: '102', descNp: 'आकस्मिक स्वास्थ्य उपचार तथा ओसारपसार', descEn: 'Emergency Medical Transit', tagNp: 'स्वास्थ्य', tagEn: 'Medical', color: '#059669' },
+            { titleNp: 'दमकल तथा वारुणयन्त्र', titleEn: 'Fire Brigade', phone: '101', descNp: 'आगलागी नियन्त्रण तथा उद्धार', descEn: 'Firefighting & Suppression', tagNp: 'आगलागी', tagEn: 'Fire', color: '#e11d48' },
+            { titleNp: 'नेपाल रेडक्रस सोसाइटी', titleEn: 'Nepal Red Cross', phone: '011-460122', descNp: 'प्राथमिक उपचार, रक्तसञ्चार र राहत', descEn: 'First Aid, Blood & Relief', tagNp: 'राहत', tagEn: 'Relief', color: '#be123c' },
+            { titleNp: 'VHF रेडियो आपतकालीन फ्रिक्वेन्सी', titleEn: 'VHF Emergency Frequency', phone: 'Ch. 16 (148.5 MHz)', descNp: 'इन्टरनेट नहुँदा स्थानीय मेश रेडियो', descEn: 'Off-grid local mesh radio', tagNp: 'VHF रेडियो', tagEn: 'VHF Mesh', color: '#4f46e5' },
           ].map((item, idx) => (
             <div
               key={idx}
               style={{
                 backgroundColor: '#ffffff',
-                borderRadius: '12px',
-                padding: '1.5rem',
+                borderRadius: '14px',
+                padding: '1.25rem',
                 border: '1px solid #e2e8f0',
                 boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                gap: '1rem',
+                gap: '0.75rem',
+                borderLeft: `4px solid ${item.color}`,
               }}
             >
               <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0284c7', backgroundColor: '#e0f2fe', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
-                  {item.tag}
-                </span>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', margin: '0.6rem 0 0.3rem' }}>{item.title}</h3>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>{item.desc}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: item.color, backgroundColor: `${item.color}15`, padding: '0.15rem 0.5rem', borderRadius: '4px' }}>
+                    {isNepali ? item.tagNp : item.tagEn}
+                  </span>
+                  <PhoneCall size={15} color={item.color} />
+                </div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#0f172a', margin: '0.5rem 0 0.2rem' }}>
+                  {isNepali ? item.titleNp : item.titleEn}
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>
+                  {isNepali ? item.descNp : item.descEn}
+                </p>
               </div>
-              <Link to="/tourism" style={{ fontSize: '0.85rem', color: '#0284c7', fontWeight: 700, textDecoration: 'none' }}>
-                विस्तृत जानकारी →
-              </Link>
+              <a
+                href={item.phone.startsWith('Ch') ? '#/pwa' : `tel:${item.phone.replace(/[^0-9]/g, '')}`}
+                style={{
+                  fontSize: '0.92rem',
+                  color: item.color,
+                  fontWeight: 800,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  padding: '0.35rem 0',
+                }}
+              >
+                📞 {item.phone}
+              </a>
             </div>
           ))}
         </div>

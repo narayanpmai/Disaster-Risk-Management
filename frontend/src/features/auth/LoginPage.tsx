@@ -115,11 +115,11 @@ export const LoginPage: React.FC = () => {
           backdropFilter: 'blur(4px)', zIndex: 1
         }}></div>
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
-          <h1 style={{ fontSize: '3.5rem', fontWeight: 800, lineHeight: 1.1, marginBottom: '1.5rem' }}>
-            Municipal<br/>Digital Twins
+          <h1 style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.5rem' }}>
+            Disaster Risk<br/>Management System
           </h1>
-          <p style={{ fontSize: '1.1rem', lineHeight: 1.6, opacity: 0.85 }}>
-            एकीकृत डिजिटल प्रणालीमार्फत सुशासन, सेवा प्रवाह र पारदर्शीता प्रवर्द्धन गर्दै डिजिटल स्थानीय तह निर्माणको अभियान।
+          <p style={{ fontSize: '1.05rem', lineHeight: 1.6, opacity: 0.9 }}>
+            नेपाल एकीकृत विपद् व्यवस्थापन प्रणाली (NIDRMS) — रियल-टाइम पूर्वसूचना, बहु-क्षेत्रीय जोखिम मूल्याङ्कन, खोज-उद्धार र पुनर्निर्माण।
           </p>
         </div>
       </div>

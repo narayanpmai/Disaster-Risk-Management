@@ -69,8 +69,12 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
       if (match && match.name) tenantPalikaName = match.name;
     } catch (e) {}
   }
-  const palikaName = tenantPalikaName || 'विपद् जोखिम व्यवस्थापन तथा बहुक्षेत्रीय जोखिम मूल्याङ्कन प्रणाली';
-  const slogan = settings?.slogan || 'नेपालका जोखिमयुक्त बस्ती, पूर्वाधार आयोजना पहिचान तथा विपद् न्यूनीकरण प्लेटफर्म';
+  const palikaName = tenantPalikaName || (isNepali
+    ? 'विपद् जोखिम व्यवस्थापन तथा बहुक्षेत्रीय जोखिम मूल्याङ्कन प्रणाली'
+    : 'Disaster Risk Management & Multi-Sectoral Risk Assessment System');
+  const slogan = settings?.slogan || (isNepali
+    ? 'नेपालका जोखिमयुक्त बस्ती, पूर्वाधार आयोजना पहिचान तथा विपद् न्यूनीकरण प्लेटफर्म'
+    : 'National Platform for Vulnerable Settlements, Infrastructure & Disaster Mitigation');
 
   // Today's Nepali date
   const todayAD = new Date();
@@ -105,14 +109,14 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
 
   // Role display
   const roleLabel: Record<string, string> = {
-    super_admin: 'सुपर एडमिन',
-    admin: 'पालिका एडमिन',
-    cao: 'प्रमुख प्रशासकीय',
-    planning_officer: 'योजना अधिकृत',
-    revenue_officer: 'राजस्व अधिकृत',
-    ward_user: 'वडा सचिव',
-    it_admin: 'IT अधिकृत',
-    disaster_officer: 'विपद् अधिकृत',
+    super_admin: isNepali ? 'सुपर एडमिन' : 'Super Admin',
+    admin: isNepali ? 'पालिका एडमिन' : 'Palika Admin',
+    cao: isNepali ? 'प्रमुख प्रशासकीय' : 'Chief Officer',
+    planning_officer: isNepali ? 'योजना अधिकृत' : 'Planning Officer',
+    revenue_officer: isNepali ? 'राजस्व अधिकृत' : 'Revenue Officer',
+    ward_user: isNepali ? 'वडा सचिव' : 'Ward Secretary',
+    it_admin: isNepali ? 'IT अधिकृत' : 'IT Admin',
+    disaster_officer: isNepali ? 'विपद् अधिकृत' : 'Disaster Officer',
   };
   const roleColor: Record<string, string> = {
     super_admin: '#dc2626',
@@ -365,7 +369,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
               transition: 'all 0.15s ease',
               backgroundColor: '#f0f9ff',
             }}
-            title="नागरिक मोबाइल एप (PWA: अफलाइन बडापत्र र SOS साइरन)"
+            title={isNepali ? "नागरिक मोबाइल एप (PWA: अफलाइन बडापत्र र SOS साइरन)" : "Citizen Mobile App (Offline PWA & SOS Siren)"}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.backgroundColor = '#e0f2fe';
             }}
@@ -374,7 +378,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
             }}
           >
             <span>📱</span>
-            <span>नागरिक एप (PWA)</span>
+            <span>{isNepali ? 'नागरिक एप (PWA)' : 'Citizen PWA'}</span>
           </Link>
         )}
         {/* Integrated Digital Portals Dropdown */}
@@ -396,7 +400,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
-              title="विपद् तथा जोखिम व्यवस्थापन मोड्युलहरू"
+              title={isNepali ? "विपद् तथा जोखिम व्यवस्थापन मोड्युलहरू" : "Disaster & Hazard Modules"}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = '#f8fafc';
                 e.currentTarget.style.borderColor = '#94a3b8';
@@ -407,7 +411,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
               }}
             >
               <Building2 size={14} color="#0284c7" />
-              <span>विपद् तथा जोखिम मोड्युल</span>
+              <span>{isNepali ? 'विपद् तथा जोखिम मोड्युल' : 'Disaster Modules'}</span>
               <ChevronDown
                 size={14}
                 style={{
@@ -424,7 +428,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   right: 0,
-                  width: '280px',
+                  width: '290px',
                   backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
                   borderRadius: '12px',
@@ -458,35 +462,12 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                     <Building2 size={15} />
                   </div>
                   <div>
-                    <div style={{ color: '#0f172a', fontWeight: 700 }}>विपद् जोखिम व्यवस्थापन</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>घटना, पूर्वसूचना, राहत तथा आश्रयस्थल</div>
-                  </div>
-                </Link>
-
-                <Link
-                  to="/environmental-mining"
-                  onClick={() => setPortalMenuOpen(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.65rem',
-                    padding: '0.55rem 0.75rem',
-                    borderRadius: '8px',
-                    textDecoration: 'none',
-                    color: '#1e293b',
-                    fontSize: '0.82rem',
-                    fontWeight: 600,
-                    transition: 'background 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
-                >
-                  <div style={{ padding: '0.35rem', borderRadius: '6px', backgroundColor: '#dcfce7', color: '#16a34a' }}>
-                    <Briefcase size={15} />
-                  </div>
-                  <div>
-                    <div style={{ color: '#0f172a', fontWeight: 700 }}>वातावरण तथा नदीजन्य खानी (IEE)</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>गिट्टी, बालुवा खानी तथा वन संरक्षण</div>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>
+                      {isNepali ? 'विपद् जोखिम व्यवस्थापन' : 'Disaster Risk Management'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      {isNepali ? 'घटना, पूर्वसूचना, राहत तथा आश्रयस्थल' : 'Incidents, Early Warning & Shelters'}
+                    </div>
                   </div>
                 </Link>
 
@@ -512,8 +493,43 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                     <Coins size={15} />
                   </div>
                   <div>
-                    <div style={{ color: '#0f172a', fontWeight: 700 }}>३डी/जीआईएस डिजिटल ट्विन</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>जोखिम क्षेत्र, बफर तथा बस्ती म्यापिङ</div>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>
+                      {isNepali ? '३डी/जीआईएस विपद् नक्सा' : '3D/GIS Hazard Twin'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      {isNepali ? 'जोखिम क्षेत्र, बफर तथा बस्ती म्यापिङ' : 'Hazard Zones, 200m Buffers & GIS'}
+                    </div>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/environmental-mining"
+                  onClick={() => setPortalMenuOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.65rem',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: '#1e293b',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <div style={{ padding: '0.35rem', borderRadius: '6px', backgroundColor: '#dcfce7', color: '#16a34a' }}>
+                    <Briefcase size={15} />
+                  </div>
+                  <div>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>
+                      {isNepali ? 'वातावरण तथा नदीजन्य खानी (IEE)' : 'Environment & Mining (IEE)'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      {isNepali ? 'गिट्टी, बालुवा खानी तथा कटान नियन्त्रण' : 'Quarry Quotas & River Erosion'}
+                    </div>
                   </div>
                 </Link>
 
@@ -539,8 +555,43 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                     <Landmark size={15} />
                   </div>
                   <div>
-                    <div style={{ color: '#0f172a', fontWeight: 700 }}>आयोजना जीवनचक्र ३६०</div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>पूर्वाधार आयोजना तथा विपद् स्क्रिनिङ</div>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>
+                      {isNepali ? 'पुनर्निर्माण तथा आयोजना चक्र' : 'Recovery Projects 360'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      {isNepali ? 'विपद् पुनर्निर्माण तथा पूर्वाधार आयोजना' : 'Disaster Reconstruction & Projects'}
+                    </div>
+                  </div>
+                </Link>
+
+                <Link
+                  to="/backup-dr"
+                  onClick={() => setPortalMenuOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.65rem',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    color: '#1e293b',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#f0fdf4'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <div style={{ padding: '0.35rem', borderRadius: '6px', backgroundColor: '#dcfce7', color: '#15803d' }}>
+                    <Shield size={15} />
+                  </div>
+                  <div>
+                    <div style={{ color: '#0f172a', fontWeight: 700 }}>
+                      {isNepali ? 'डाटा ब्याकअप तथा DR रिकभरी' : 'Data Backup & DR Recovery'}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                      {isNepali ? 'PostGIS ब्याकअप तथा RPO/RTO ड्रिल' : 'PostGIS Backups & DR Drills'}
+                    </div>
                   </div>
                 </Link>
               </div>
@@ -564,7 +615,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
               transition: 'all 0.15s ease',
               backgroundColor: '#eff6ff',
             }}
-            title="प्रशासन ड्यासबोर्ड खोल्नुहोस्"
+            title={isNepali ? "प्रशासन ड्यासबोर्ड खोल्नुहोस्" : "Open Admin Dashboard"}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.backgroundColor = '#dbeafe';
             }}
@@ -573,7 +624,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
             }}
           >
             <Shield size={14} color="#1d4ed8" />
-            <span>प्रशासन ड्यासबोर्ड</span>
+            <span>{isNepali ? 'प्रशासन ड्यासबोर्ड' : 'Admin Dashboard'}</span>
           </Link>
         )}
         {!isPublic && (
@@ -593,7 +644,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
               transition: 'all 0.15s ease',
               backgroundColor: '#f8fafc',
             }}
-            title="नागरिक पोर्टल हेर्नुहोस्"
+            title={isNepali ? "सार्वजनिक पोर्टल हेर्नुहोस्" : "View Public Portal"}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.backgroundColor = '#f1f5f9';
             }}
@@ -602,7 +653,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
             }}
           >
             <ExternalLink size={14} color="#0284c7" />
-            <span>सार्वजनिक पोर्टल</span>
+            <span>{isNepali ? 'सार्वजनिक पोर्टल' : 'Public Portal'}</span>
           </Link>
         )}
 
@@ -695,7 +746,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                     onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                   >
                     <User size={15} style={{ color: N.textMuted }} />
-                    प्रोफाइल सेटिङ
+                    {isNepali ? 'प्रोफाइल सेटिङ' : 'Profile Settings'}
                   </Link>
 
                   {user.role === 'super_admin' && (
@@ -712,7 +763,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                     >
                       <Shield size={15} />
-                      Super Admin Console
+                      {isNepali ? 'सुपर एडमिन कन्सोल' : 'Super Admin Console'}
                     </Link>
                   )}
 
@@ -730,7 +781,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
                       onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; }}
                     >
                       <LogOut size={15} />
-                      लगआउट गर्नुहोस्
+                      {isNepali ? 'लगआउट गर्नुहोस्' : 'Logout'}
                     </button>
                   </div>
                 </div>

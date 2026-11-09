@@ -142,6 +142,20 @@ export const Disaster: React.FC = () => {
   ] as const;
   type TabType = typeof validTabs[number];
 
+  const DISASTER_TABS: { id: TabType; icon: React.ReactNode; labelNp: string; labelEn: string; badgeNp?: string; badgeEn?: string; color: string }[] = [
+    { id: 'river_twin', icon: <Waves size={16} />, labelNp: 'नदी जलसतह तथा ३D ट्विन', labelEn: 'River Water Level & 3D Twin', badgeNp: '३D Twin', badgeEn: '3D Twin', color: '#0284c7' },
+    { id: 'national_gateway', icon: <Globe size={16} />, labelNp: 'राष्ट्रिय गेटवे DHM/BIPAD', labelEn: 'National Standard & DHM Gateways', badgeNp: 'DHM/BIPAD', badgeEn: 'DHM/BIPAD', color: '#0369a1' },
+    { id: 'landslide', icon: <Mountain size={16} />, labelNp: 'पहिरो जोखिम तथा इन्क्लिनोमिटर', labelEn: 'Landslide Risk & Inclinometers', badgeNp: 'पूर्वसूचना', badgeEn: 'Warning', color: '#d97706' },
+    { id: 'siren', icon: <Radio size={16} />, labelNp: 'स्वचालित IVR कल तथा साइरन', labelEn: 'Automated IVR Calls & Siren', badgeNp: 'Last-Mile', badgeEn: 'Last-Mile', color: '#dc2626' },
+    { id: 'micro_vulnerability', icon: <Users size={16} />, labelNp: 'अति-संवेदनशील नागरिक (५,८०५)', labelEn: 'Vulnerable Citizens (5,805 HH)', badgeNp: 'उद्धार', badgeEn: 'Evacuation', color: '#db2777' },
+    { id: 'rdra_damage', icon: <Coins size={16} />, labelNp: 'डिजिटल क्षति मूल्याङ्कन (RDRA)', labelEn: 'Rapid Damage Assessment (RDRA)', badgeNp: 'राहत', badgeEn: 'Relief', color: '#059669' },
+    { id: 'heavy_equipment', icon: <Truck size={16} />, labelNp: 'खोज-उद्धार (SAR) र हेभी इक्युपमेन्ट', labelEn: 'SAR Heavy Equipment Directory', badgeNp: 'स्ट्यान्डबाइ', badgeEn: 'Standby', color: '#f59e0b' },
+    { id: 'offline_mesh', icon: <WifiOff size={16} />, labelNp: 'अफलाइन PWA तथा VHF रेडियो', labelEn: 'Offline PWA & VHF Radio', badgeNp: 'PWA/VHF', badgeEn: 'PWA/VHF', color: '#4f46e5' },
+    { id: 'shelters', icon: <Tent size={16} />, labelNp: 'सुरक्षित आश्रयस्थल र राहत मौज्दात', labelEn: 'Evacuation Shelters & Stock', badgeNp: '६ वटा', badgeEn: '6 Shelters', color: '#16a34a' },
+    { id: 'cameras', icon: <Video size={16} />, labelNp: 'CCTV प्रत्यक्ष क्यामेरा सर्भिलेन्स', labelEn: 'CCTV Live Video Surveillance', badgeNp: 'लाइभ', badgeEn: 'Live', color: '#7c3aed' },
+    { id: 'hotlines', icon: <PhoneCall size={16} />, labelNp: 'आपतकालीन EOC हटलाइन', labelEn: 'Emergency EOC Hotlines', badgeNp: '२४/७', badgeEn: '24/7', color: '#ea580c' },
+  ];
+
   const getTabFromLocation = (): TabType => {
     const p = location.pathname;
     if (p.includes('/national-gateway') || p.includes('/dhm') || p.includes('/bipad') || p.includes('/standard')) return 'national_gateway';
@@ -217,42 +231,72 @@ export const Disaster: React.FC = () => {
       iconWatermark: <Waves size={360} color="#38bdf8" />,
     },
     landslide: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — पहिरो संवेदनशीलता, धाँजा तथा इन्क्लिनोमिटर अनुगमन',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — पहिरो संवेदनशीलता, धाँजा तथा इन्क्लिनोमिटर अनुगमन'
+        : 'Panchpokhari Thangpal — Landslide Vulnerability & Inclinometer Telemetry',
       badgeIcon: <Mountain size={16} color="#eab308" />,
-      title: 'पहिरो जोखिम, धाँजा तथा इन्क्लिनोमिटर चाल पूर्वसूचना प्रणाली',
-      desc: 'मानेखर्क डाँडागाउँ, सेर्माथाङ र भिरालो बस्तीहरूमा जडित उच्च-सटीक इन्क्लिनोमिटर, माटोको आर्द्रता (Soil Moisture) तथा भौगर्भिक चालको प्रत्यक्ष अनुगमन।',
+      title: isNepali
+        ? 'पहिरो जोखिम, धाँजा तथा इन्क्लिनोमिटर चाल पूर्वसूचना प्रणाली'
+        : 'Landslide Hazard, Fissure & Inclinometer Early Warning System',
+      desc: isNepali
+        ? 'मानेखर्क डाँडागाउँ, सेर्माथाङ र भिरालो बस्तीहरूमा जडित उच्च-सटीक इन्क्लिनोमिटर, माटोको आर्द्रता (Soil Moisture) तथा भौगर्भिक चालको प्रत्यक्ष अनुगमन।'
+        : 'High-precision inclinometer stations at Manekharka Dandagaon and Sermathang monitoring subsurface slip rates, soil moisture saturation, and geological displacement.',
       bannerGradient: 'linear-gradient(135deg, #1c1917 0%, #44403c 50%, #292524 100%)',
       iconWatermark: <Mountain size={360} color="#eab308" />,
     },
     siren: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित आपतकालीन IVR भ्वाइस कल तथा मेश-साइरन',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित आपतकालीन IVR भ्वाइस कल तथा मेश-साइरन'
+        : 'Panchpokhari Thangpal — Automated Emergency IVR Voice Calls & Mesh Siren',
       badgeIcon: <Radio size={16} color="#ef4444" />,
-      title: 'स्वचालित भ्वाइस कल (IVR Alert) तथा अफलाइन सौर्य-साइरन (LoRa Mesh)',
-      desc: 'खतरा विन्दु पार हुनासाथ तटीय बासिन्दालाई नेपाली भाषामा स्वचालित फोन कल र बिना इन्टरनेट ५-१० कि.मी. टाढासम्म आवाज दिने सौर्य-साइरन।',
+      title: isNepali
+        ? 'स्वचालित भ्वाइस कल (IVR Alert) तथा अफलाइन सौर्य-साइरन (LoRa Mesh)'
+        : 'Automated IVR Voice Alert Calls & Off-Grid Solar Sirens (LoRa Mesh)',
+      desc: isNepali
+        ? 'खतरा विन्दु पार हुनासाथ तटीय बासिन्दालाई नेपाली भाषामा स्वचालित फोन कल र बिना इन्टरनेट ५-१० कि.मी. टाढासम्म आवाज दिने सौर्य-साइरन।'
+        : 'Zero-latency automated outbound telephony alerts to downstream flood-prone residents and solar-powered sirens audible across 5-10 km valley radius without internet.',
       bannerGradient: 'linear-gradient(135deg, #450a0a 0%, #7f1d1d 50%, #3f0909 100%)',
       iconWatermark: <Radio size={360} color="#ef4444" />,
     },
     micro_vulnerability: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — ५,८०५ घरधुरी डाटा अन्तर-आबद्धता (Micro-Vulnerability Index)',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — ५,८०५ घरधुरी डाटा अन्तर-आबद्धता (Micro-Vulnerability Index)'
+        : 'Panchpokhari Thangpal — 5,805 Household Micro-Vulnerability Index',
       badgeIcon: <Users size={16} color="#ec4899" />,
-      title: 'अति-संवेदनशील नागरिक तथा आवास संरचनात्मक जोखिम वर्गीकरण',
-      desc: 'सुत्केरी, पूर्ण अपाङ्गता, ७० वर्षमाथिका ज्येष्ठ नागरिक र भत्कने उच्च जोखिम रहेका काँचो ढुङ्गा-माटोका घरहरूको प्राथमिकता उद्धार व्यवस्थापन।',
+      title: isNepali
+        ? 'अति-संवेदनशील नागरिक तथा आवास संरचनात्मक जोखिम वर्गीकरण'
+        : 'High-Vulnerability Citizens & Residential Structural Risk Registry',
+      desc: isNepali
+        ? 'सुत्केरी, पूर्ण अपाङ्गता, ७० वर्षमाथिका ज्येष्ठ नागरिक र भत्कने उच्च जोखिम रहेका काँचो ढुङ्गा-माटोका घरहरूको प्राथमिकता उद्धार व्यवस्थापन।'
+        : 'Prioritized evacuation registry for pregnant mothers, disabled citizens, senior citizens (70+), and fragile stone-and-mud masonry households situated in hazard red zones.',
       bannerGradient: 'linear-gradient(135deg, #701a75 0%, #86198f 50%, #4a044e 100%)',
       iconWatermark: <Users size={360} color="#ec4899" />,
     },
     rdra_damage: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — गृह मन्त्रालय "विपद् राहत मापदण्ड २०७७" आधारित',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — गृह मन्त्रालय "विपद् राहत मापदण्ड २०७७" आधारित'
+        : 'Panchpokhari Thangpal — Ministry of Home Affairs Relief Standards 2077',
       badgeIcon: <Coins size={16} color="#10b981" />,
-      title: 'द्रुत क्षति मूल्याङ्कन (Mobile RDRA) र प्रत्यक्ष बैंक राहत (DBT)',
-      desc: 'घटनास्थलको फोटो र GPS सहित सरकारी दर (पूर्ण क्षति रु ५ लाख, आंशिक रु ५० हजार) स्वतः हिसाब भई सिधै बैंक खातामा क्षतिपूर्ति सिफारिस।',
+      title: isNepali
+        ? 'द्रुत क्षति मूल्याङ्कन (Mobile RDRA) र प्रत्यक्ष बैंक राहत (DBT)'
+        : 'Rapid Damage Assessment (Mobile RDRA) & Direct Benefit Cash Grants (DBT)',
+      desc: isNepali
+        ? 'घटनास्थलको फोटो र GPS सहित सरकारी दर (पूर्ण क्षति रु ५ लाख, आंशिक रु ५० हजार) स्वतः हिसाब भई सिधै बैंक खातामा क्षतिपूर्ति सिफारिस।'
+        : 'Field photos with geotagged coordinates calculating statutory relief compensation (NPR 500,000 for total loss, NPR 50,000 for partial damage) direct to beneficiary bank accounts.',
       bannerGradient: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #0f766e 100%)',
       iconWatermark: <Coins size={360} color="#10b981" />,
     },
     heavy_equipment: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — खोज तथा उद्धार (SAR) र हेभी इक्युपमेन्ट डाइरेक्टरी',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — खोज तथा उद्धार (SAR) र हेभी इक्युपमेन्ट डाइरेक्टरी'
+        : 'Panchpokhari Thangpal — SAR Heavy Equipment & Volunteer Taskforce',
       badgeIcon: <Truck size={16} color="#f59e0b" />,
-      title: 'डोजर/एक्साभेटर लाइभ डाइरेक्टरी तथा स्थानीय स्वयंसेवक कार्यदल',
-      desc: 'पालिका तथा निजी डोजर, एक्साभेटर, र्याफ्टिङ बोट र तालिमप्राप्त ६४ जना स्थानीय स्वयंसेवक दलको स्ट्यान्डबाइ नक्सा र सम्पर्क नम्बर।',
+      title: isNepali
+        ? 'डोजर/एक्साभेटर लाइभ डाइरेक्टरी तथा स्थानीय स्वयंसेवक कार्यदल'
+        : 'Excavator/Dozers Live Standby Directory & Certified First Responders',
+      desc: isNepali
+        ? 'पालिका तथा निजी डोजर, एक्साभेटर, र्याफ्टिङ बोट र तालिमप्राप्त ६४ जना स्थानीय स्वयंसेवक दलको स्ट्यान्डबाइ नक्सा र सम्पर्क नम्बर।'
+        : 'Real-time positioning and direct mobile contacts for municipal and private excavators, heavy earthmovers, inflatable rescue boats, and 64 trained ward volunteers.',
       bannerGradient: 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #0f172a 100%)',
       iconWatermark: <Truck size={360} color="#f59e0b" />,
     },
@@ -271,26 +315,44 @@ export const Disaster: React.FC = () => {
       iconWatermark: <WifiOff size={360} color="#6366f1" />,
     },
     shelters: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — सुरक्षित आश्रयस्थल प्रमाणीकरण तथा राहत सामग्री मौज्दात',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — सुरक्षित आश्रयस्थल प्रमाणीकरण तथा राहत सामग्री मौज्दात'
+        : 'Panchpokhari Thangpal — Certified Evacuation Shelters & Relief Stock',
       badgeIcon: <Tent size={16} color="#10b981" />,
-      title: 'सुरक्षित आश्रयस्थल (Evacuation Shelters) तथा राहत मौज्दात प्रणाली',
-      desc: 'पालिकाका सबै ८ वटै वडामा प्रमाणीकरण गरिएका १,३१० जना क्षमताका ६ वटा सुरक्षित आश्रयस्थल, वडा सम्पर्क व्यक्ति, र आपतकालीन त्रिपाल/औषधि मौज्दात।',
+      title: isNepali
+        ? 'सुरक्षित आश्रयस्थल (Evacuation Shelters) तथा राहत मौज्दात प्रणाली'
+        : 'Evacuation Shelters & Emergency Relief Inventory System',
+      desc: isNepali
+        ? 'पालिकाका सबै ८ वटै वडामा प्रमाणीकरण गरिएका १,३१० जना क्षमताका ६ वटा सुरक्षित आश्रयस्थल, वडा सम्पर्क व्यक्ति, र आपतकालीन त्रिपाल/औषधि मौज्दात।'
+        : 'Verified emergency shelters across all 8 wards with 1,310 person capacity, backup solar power, water supply, and stockpiled tarpaulins, medicines and emergency rations.',
       bannerGradient: 'linear-gradient(135deg, #064e3b 0%, #047857 50%, #022c22 100%)',
       iconWatermark: <Tent size={360} color="#10b981" />,
     },
     cameras: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — २४/७ प्रत्यक्ष CCTV क्यामेरा भिडियो सर्भिलेन्स',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — २४/७ प्रत्यक्ष CCTV क्यामेरा भिडियो सर्भिलेन्स'
+        : 'Panchpokhari Thangpal — 24/7 Live Video CCTV Surveillance Room',
       badgeIcon: <Video size={16} color="#a855f7" />,
-      title: 'उच्च जोखिम क्षेत्र प्रत्यक्ष CCTV क्यामेरा लाइभ सर्भिलेन्स',
-      desc: 'मेलम्ची नदी पुल, गाम्चेत बजार, मानेखर्क भिरालो क्षेत्र र पालिका प्रवेशद्वारमा जडित २४/७ प्रत्यक्ष हाई-डेफिनिसन क्यामेरा भिडियो निगरानी कक्ष।',
+      title: isNepali
+        ? 'उच्च जोखिम क्षेत्र प्रत्यक्ष CCTV क्यामेरा लाइभ सर्भिलेन्स'
+        : 'High-Risk Zones 24/7 Live CCTV Optical Surveillance',
+      desc: isNepali
+        ? 'मेलम्ची नदी पुल, गाम्चेत बजार, मानेखर्क भिरालो क्षेत्र र पालिका प्रवेशद्वारमा जडित २४/७ प्रत्यक्ष हाई-डेफिनिसन क्यामेरा भिडियो निगरानी कक्ष।'
+        : 'Continuous HD video feeds focused on Melamchi Bridge, Gamchet market, and Manekharka slide zones streaming to the central Municipal EOC.',
       bannerGradient: 'linear-gradient(135deg, #3b0764 0%, #581c87 50%, #2e1065 100%)',
       iconWatermark: <Video size={360} color="#a855f7" />,
     },
     hotlines: {
-      badge: 'पाँचपोखरी थाङपाल गाउँपालिका — २४/७ आपतकालीन कार्यसञ्चालन केन्द्र (EOC) हटलाइन',
+      badge: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — २४/७ आपतकालीन कार्यसञ्चालन केन्द्र (EOC) हटलाइन'
+        : 'Panchpokhari Thangpal — 24/7 Municipal EOC Emergency Hotline Directory',
       badgeIcon: <PhoneCall size={16} color="#f97316" />,
-      title: 'आपतकालीन नियन्त्रण कक्ष (EOC) तथा खोज-उद्धार टेलिफोन डाइरेक्टरी',
-      desc: 'नेपाल प्रहरी, सशस्त्र प्रहरी बल, प्राथमिक उपचार एम्बुलेन्स सेवा, स्वास्थ्य चौकी र वडास्तरीय विपद् फोकल पर्सनहरूको २४/७ हटलाइन डाइरेक्टरी।',
+      title: isNepali
+        ? 'आपतकालीन नियन्त्रण कक्ष (EOC) तथा खोज-उद्धार टेलिफोन डाइरेक्टरी'
+        : 'Emergency Operation Centre (EOC) & First Responder Phone Directory',
+      desc: isNepali
+        ? 'नेपाल प्रहरी, सशस्त्र प्रहरी बल, प्राथमिक उपचार एम्बुलेन्स सेवा, स्वास्थ्य चौकी र वडास्तरीय विपद् फोकल पर्सनहरूको २४/७ हटलाइन डाइरेक्टरी।'
+        : 'Round-the-clock emergency contacts for Nepal Police, Armed Police Force, ambulance operators, local health posts, and ward disaster focal officers.',
       bannerGradient: 'linear-gradient(135deg, #431407 0%, #7c2d12 50%, #270d05 100%)',
       iconWatermark: <PhoneCall size={360} color="#f97316" />,
     },
@@ -602,7 +664,7 @@ export const Disaster: React.FC = () => {
                 transition: 'all 0.2s'
               }}
             >
-              <PhoneCall size={18} /> २४/७ EOC हटलाइन: ०११-४६०१२३
+              <PhoneCall size={18} /> {isNepali ? '२४/७ EOC हटलाइन: ०११-४६०१२३' : '24/7 EOC Hotline: 011-460123'}
             </a>
           </div>
         </div>
@@ -629,10 +691,14 @@ export const Disaster: React.FC = () => {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#991b1b' }}>
-                🚨 उच्च बाढी/पहिरो पूर्वसूचना: {activeAlerts.map(a => a.name).join(', ')} खतरा स्तर पार!
+                {isNepali
+                  ? `🚨 उच्च बाढी/पहिरो पूर्वसूचना: ${activeAlerts.map(a => a.name).join(', ')} खतरा स्तर पार!`
+                  : `🚨 Critical Flood/Landslide Warning: ${activeAlerts.map(a => a.name).join(', ')} exceeded danger threshold!`}
               </h3>
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.88rem', color: '#b91c1c' }}>
-                तटीय क्षेत्र तथा भिरालो जमिन आसपासका नागरिकहरू तुरुन्तै सतर्क रहनुहोला र आवश्यक परे नजिकको सुरक्षित आश्रयस्थलमा जानुहोला।
+                {isNepali
+                  ? 'तटीय क्षेत्र तथा भिरालो जमिन आसपासका नागरिकहरू तुरुन्तै सतर्क रहनुहोला र आवश्यक परे नजिकको सुरक्षित आश्रयस्थलमा जानुहोला।'
+                  : 'Citizens along river banks and unstable slopes are urged to remain on high alert and evacuate to certified safe shelters if advised.'}
               </p>
             </div>
           </div>
@@ -651,7 +717,7 @@ export const Disaster: React.FC = () => {
               gap: '0.4rem',
             }}
           >
-            <PhoneCall size={16} /> २४/७ EOC हटलाइन: ०११-४६०१२३
+            <PhoneCall size={16} /> {isNepali ? '२४/७ EOC हटलाइन: ०११-४६०१२३' : '24/7 EOC Hotline: 011-460123'}
           </a>
         </div>
       ) : (
@@ -670,11 +736,13 @@ export const Disaster: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
             <span style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#16a34a', display: 'inline-block' }} />
             <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#166534' }}>
-              वर्तमान अवस्था सामान्य: मेलम्ची तथा गुन्सा जलसतह खतरा विन्दुभन्दा तल (सुरक्षित स्तर ३.२ मी.)
+              {isNepali
+                ? 'वर्तमान अवस्था सामान्य: मेलम्ची तथा गुन्सा जलसतह खतरा विन्दुभन्दा तल (सुरक्षित स्तर ३.२ मी.)'
+                : 'Current River Status Normal: Melamchi and Gunsa river levels are below alert threshold (Safe at 3.2m)'}
             </span>
           </div>
           <span style={{ fontSize: '0.8rem', color: '#15803d', fontWeight: 600 }}>
-            अन्तिम टेलिमेट्री सिङ्क: {new Date().toLocaleTimeString()} NPT
+            {isNepali ? 'अन्तिम टेलिमेट्री सिङ्क:' : 'Last Telemetry Sync:'} {new Date().toLocaleTimeString()} NPT
           </span>
         </div>
       )}
@@ -743,6 +811,63 @@ export const Disaster: React.FC = () => {
         </div>
       </div>
 
+      {/* ── 11 Disaster Modules Interactive Top Tab Bar ── */}
+      <div
+        className="dt-disaster-tabbar"
+        style={{
+          display: 'flex',
+          gap: '0.5rem',
+          overflowX: 'auto',
+          padding: '0.4rem 0.2rem 1.25rem',
+          marginBottom: '1rem',
+          scrollbarWidth: 'thin',
+        }}
+      >
+        {DISASTER_TABS.map((tab) => {
+          const isActive = activePublicTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => changeTab(tab.id)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.65rem 1rem',
+                borderRadius: '10px',
+                border: isActive ? `2px solid ${tab.color}` : '1.5px solid #cbd5e1',
+                backgroundColor: isActive ? '#ffffff' : '#f8fafc',
+                color: isActive ? tab.color : '#334155',
+                fontWeight: isActive ? 800 : 600,
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                boxShadow: isActive ? `0 4px 12px ${tab.color}25` : 'none',
+                transition: 'all 0.15s ease',
+                flexShrink: 0,
+              }}
+            >
+              {tab.icon}
+              <span>{isNepali ? tab.labelNp : tab.labelEn}</span>
+              {tab.badgeNp && (
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    padding: '1px 6px',
+                    borderRadius: '6px',
+                    backgroundColor: isActive ? `${tab.color}15` : '#e2e8f0',
+                    color: isActive ? tab.color : '#64748b',
+                    fontWeight: 700,
+                  }}
+                >
+                  {isNepali ? tab.badgeNp : tab.badgeEn}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       {/* ========================================================================= */}
       {/* SECTION 0: NATIONAL CENTRALIZED DATA STANDARD & DHM/SECURITY API GATEWAY */}
       {/* ========================================================================= */}
@@ -774,16 +899,20 @@ export const Disaster: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#0284c7', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-                  स्टेशन १ (मुख्य पुल)
+                  {isNepali ? 'स्टेशन १ (मुख्य पुल)' : 'Station 1 (Main Bridge)'}
                 </span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0369a1' }}>खतरा: ५.५ मी.</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0369a1' }}>
+                  {isNepali ? 'खतरा: ५.५ मी.' : 'Danger: 5.5 m'}
+                </span>
               </div>
               <h3 style={{ margin: '0 0 0.2rem', fontSize: '1.15rem', color: '#0f172a', fontWeight: 800 }}>
-                थाङपालधाप मेलम्ची पुल गेज (SEN-MEL-01)
+                {isNepali ? 'थाङपालधाप मेलम्ची पुल गेज (SEN-MEL-01)' : 'Thangpaldhap Melamchi Bridge Gauge (SEN-MEL-01)'}
               </h3>
-              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>वडा नं. ३ • अक्षांश: २७.९६२०° N • देशान्तर: ८५.६२८०° E</div>
+              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                {isNepali ? 'वडा नं. ३ • अक्षांश: २७.९६२०° N • देशान्तर: ८५.६२८०° E' : 'Ward 3 • Lat: 27.9620° N • Long: 85.6280° E'}
+              </div>
               <div style={{ marginTop: '0.6rem', fontSize: '1.5rem', fontWeight: 800, color: '#0284c7' }}>
-                {melamchiSensor.lastValue} मिटर <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#16a34a' }}>● सुरक्षित प्रवाह</span>
+                {melamchiSensor.lastValue} {isNepali ? 'मिटर' : 'm'} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#16a34a' }}>{isNepali ? '● सुरक्षित प्रवाह' : '● Safe Flow'}</span>
               </div>
             </button>
 
@@ -804,16 +933,20 @@ export const Disaster: React.FC = () => {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, background: '#7c3aed', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-                  स्टेशन २ (तटीय साइरन)
+                  {isNepali ? 'स्टेशन २ (तटीय साइरन)' : 'Station 2 (Coastal Siren)'}
                 </span>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6d28d9' }}>खतरा: ४.८ मी.</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#6d28d9' }}>
+                  {isNepali ? 'खतरा: ४.८ मी.' : 'Danger: 4.8 m'}
+                </span>
               </div>
               <h3 style={{ margin: '0 0 0.2rem', fontSize: '1.15rem', color: '#0f172a', fontWeight: 800 }}>
-                गुन्सा बाढी सतर्कता साइरन तथा गेज (SEN-GUN-04)
+                {isNepali ? 'गुन्सा बाढी सतर्कता साइरन तथा गेज (SEN-GUN-04)' : 'Gunsa Flood Warning Siren & Gauge (SEN-GUN-04)'}
               </h3>
-              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>वडा नं. ५ • अक्षांश: २७.९४५०° N • देशान्तर: ८५.६५१०° E</div>
+              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                {isNepali ? 'वडा नं. ५ • अक्षांश: २७.९४५०° N • देशान्तर: ८५.६५१०° E' : 'Ward 5 • Lat: 27.9450° N • Long: 85.6510° E'}
+              </div>
               <div style={{ marginTop: '0.6rem', fontSize: '1.5rem', fontWeight: 800, color: '#7c3aed' }}>
-                {gunsaSensor.lastValue} मिटर <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#16a34a' }}>● सामान्य जलसतह</span>
+                {gunsaSensor.lastValue} {isNepali ? 'मिटर' : 'm'} <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#16a34a' }}>{isNepali ? '● सामान्य जलसतह' : '● Normal Level'}</span>
               </div>
             </button>
           </div>
@@ -839,17 +972,17 @@ export const Disaster: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                   <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#0f172a' }}>
-                    वास्तविक-समय नदी स्तम्भ मिटर (Real-time Gauge)
+                    {isNepali ? 'वास्तविक-समय नदी स्तम्भ मिटर (Real-time Gauge)' : 'Real-time River Column Gauge'}
                   </h3>
                   <button
                     onClick={() => refetchSensors()}
                     style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '0.3rem 0.7rem', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                   >
-                    <RefreshCw size={12} className={isSensorsLoading ? 'spin' : ''} /> लाइभ रिड
+                    <RefreshCw size={12} className={isSensorsLoading ? 'spin' : ''} /> {isNepali ? 'लाइभ रिड' : 'Live Read'}
                   </button>
                 </div>
                 <p style={{ margin: '0 0 1.25rem', fontSize: '0.82rem', color: '#64748b' }}>
-                  {activeGauge.name} — खतरा स्तर {gaugeThreshold} मी.
+                  {activeGauge.name} — {isNepali ? 'खतरा स्तर' : 'Danger Threshold'}: {gaugeThreshold} {isNepali ? 'मी.' : 'm'}
                 </p>
 
                 {/* Vertical Graduated Water Level Column */}
