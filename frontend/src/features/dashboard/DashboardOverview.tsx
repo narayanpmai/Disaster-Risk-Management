@@ -39,6 +39,7 @@ import {
   BarChart3,
   Waves,
   Mountain,
+  Coins,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HouseholdRegistryTab } from '../citizen-portal/components/HouseholdRegistryTab';
