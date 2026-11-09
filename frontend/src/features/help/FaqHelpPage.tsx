@@ -6,24 +6,20 @@ import {
   Headphones,
   ChevronDown,
   ChevronUp,
-  FileText,
   Send,
   CheckCircle2,
   Phone,
   Mail,
   MapPin,
   Clock,
-  ExternalLink,
-  ShieldCheck,
-  Building,
   Sparkles,
-  Inbox,
   AlertCircle,
-  Download,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 import { FAQ_ITEMS, FAQ_CATEGORIES, USER_GUIDES, IT_SUPPORT_INFO } from './faqData';
 
 export const FaqHelpPage: React.FC = () => {
+  const { isNepali } = useLanguage();
   const [activeTab, setActiveTab] = useState<'faq' | 'guides' | 'support'>('faq');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -32,7 +28,7 @@ export const FaqHelpPage: React.FC = () => {
   // Support inquiry state
   const [ticketForm, setTicketForm] = useState({
     name: '',
-    department: 'प्रशासन तथा सामान्य सेवा शाखा',
+    department: 'विपद् व्यवस्थापन तथा LEOC शाखा',
     email: '',
     phone: '',
     subject: '',
@@ -49,13 +45,15 @@ export const FaqHelpPage: React.FC = () => {
       }
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
+      const question = (isNepali ? item.questionNp : item.questionEn).toLowerCase();
+      const answer = (isNepali ? item.answerNp : item.answerEn).toLowerCase();
       return (
-        item.question.toLowerCase().includes(q) ||
-        item.answer.toLowerCase().includes(q) ||
+        question.includes(q) ||
+        answer.includes(q) ||
         item.keywords.some((k) => k.toLowerCase().includes(q))
       );
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, isNepali]);
 
   const toggleFaq = (id: string) => {
     setExpandedFaqId((prev) => (prev === id ? null : id));
@@ -68,12 +66,12 @@ export const FaqHelpPage: React.FC = () => {
       setTicketSuccess(false);
       setTicketForm({
         name: '',
-        department: 'प्रशासन तथा सामान्य सेवा शाखा',
+        department: isNepali ? 'विपद् व्यवस्थापन तथा LEOC शाखा' : 'Disaster Management & LEOC Section',
         email: '',
         phone: '',
         subject: '',
         message: '',
-        priority: 'सामान्य',
+        priority: isNepali ? 'सामान्य' : 'Normal',
       });
     }, 4000);
   };
@@ -99,14 +97,16 @@ export const FaqHelpPage: React.FC = () => {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '850px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255,255,255,0.18)', padding: '4px 14px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.85rem' }}>
             <Sparkles size={14} />
-            <span>डिजिटल ट्विन आधिकारिक मद्दत तथा सहायता केन्द्र</span>
+            <span>{isNepali ? 'विपद् कमाण्ड तथा प्रतिकार्य सहायता केन्द्र' : 'Disaster EOC & Response Help Desk'}</span>
           </div>
 
           <h1 style={{ fontSize: '1.85rem', fontWeight: 900, margin: '0 0 0.5rem 0', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
-            प्रायः सोधिने प्रश्नहरू तथा प्रयोगकर्ता सहायता (FAQ & Help)
+            {isNepali ? 'प्रायः सोधिने प्रश्नहरू तथा प्रयोगकर्ता सहायता (FAQ & Help)' : 'Frequently Asked Questions & User Guides (FAQ & Help)'}
           </h1>
           <p style={{ fontSize: '0.95rem', opacity: 0.92, margin: '0 0 1.5rem 0', lineHeight: 1.6 }}>
-            पालिका डिजिटल प्रणालीका सबै मोड्युलहरू (दर्ता चलानी, नागरिक ई-सेवा, योजना, बडापत्र र गुनासो) सञ्चालन सम्बन्धी सम्पूर्ण सहयोग र निर्देशिकाहरू।
+            {isNepali
+              ? 'विपद् जोखिम व्यवस्थापन, नदी जलसतह पूर्वसूचना, पहिरो सेन्सर, खोज-उद्धार (SAR), राहत वितरण तथा अफलाइन PWA सञ्चालन सम्बन्धी सम्पूर्ण कार्यविधि (SOP) र सहयोग।'
+              : 'Standard Operating Procedures (SOPs), real-time river flood telemetry, landslide slope sensors, SAR rescue dispatch, and offline field PWA sync instructions.'}
           </p>
 
           {/* Quick Search Bar */}
@@ -117,7 +117,9 @@ export const FaqHelpPage: React.FC = () => {
               className="dt-input"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="कुनै पनि समस्या, प्रक्रिया वा शब्द खोज्नुहोस् (उदा. दर्ता, तोक आदेश, बडापत्र, पासवर्ड)..."
+              placeholder={isNepali
+                ? 'कुनै पनि विपद् प्रक्रिया, पूर्वसूचना, साइरन, खोज-उद्धार वा राहत सम्बन्धी खोज्नुहोस्...'
+                : 'Search disaster SOPs, flood alerts, SAR rescue protocols, offline PWA...'}
               style={{
                 width: '100%',
                 height: '48px',
@@ -187,7 +189,7 @@ export const FaqHelpPage: React.FC = () => {
           }}
         >
           <HelpCircle size={18} />
-          <span>प्रायः सोधिने प्रश्नहरू (FAQ)</span>
+          <span>{isNepali ? 'प्रायः सोधिने प्रश्नहरू (FAQ)' : 'Frequently Asked Questions (FAQ)'}</span>
           <span style={{ backgroundColor: activeTab === 'faq' ? 'rgba(255,255,255,0.22)' : '#e2e8f0', padding: '1px 8px', borderRadius: '10px', fontSize: '0.74rem' }}>
             {filteredFaqs.length}
           </span>
@@ -213,9 +215,9 @@ export const FaqHelpPage: React.FC = () => {
           }}
         >
           <BookOpen size={18} />
-          <span>प्रयोगकर्ता निर्देशिका (User Guides)</span>
+          <span>{isNepali ? 'प्रयोगकर्ता निर्देशिका (User Guides)' : 'Standard Operating Procedures (User Guides)'}</span>
           <span style={{ backgroundColor: activeTab === 'guides' ? 'rgba(255,255,255,0.22)' : '#e2e8f0', padding: '1px 8px', borderRadius: '10px', fontSize: '0.74rem' }}>
-            ३
+            {USER_GUIDES.length}
           </span>
         </button>
 
@@ -239,7 +241,7 @@ export const FaqHelpPage: React.FC = () => {
           }}
         >
           <Headphones size={18} />
-          <span>प्राविधिक सहायता डेस्क (IT Support)</span>
+          <span>{isNepali ? 'आपतकालीन EOC सहायता डेस्क (IT Support)' : 'Emergency EOC Helpdesk (IT Support)'}</span>
         </button>
       </div>
 
@@ -248,7 +250,9 @@ export const FaqHelpPage: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Category Filter Pills */}
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>वर्ग छान्नुहोस्:</span>
+            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>
+              {isNepali ? 'वर्ग छान्नुहोस्:' : 'Filter Category:'}
+            </span>
             {FAQ_CATEGORIES.map((cat) => {
               const isActive = selectedCategory === cat.id;
               return (
@@ -261,14 +265,14 @@ export const FaqHelpPage: React.FC = () => {
                     borderRadius: '8px',
                     fontSize: '0.82rem',
                     fontWeight: 600,
-                    border: isActive ? '1px solid #2563eb' : '1px solid #e2e8f0',
+                    border: isActive ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                     backgroundColor: isActive ? '#eff6ff' : '#ffffff',
                     color: isActive ? '#1d4ed8' : '#475569',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  {cat.label}
+                  {isNepali ? cat.labelNp : cat.labelEn}
                 </button>
               );
             })}
@@ -289,13 +293,20 @@ export const FaqHelpPage: React.FC = () => {
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.75rem' }}>
                 <Search size={22} color="#94a3b8" />
               </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>कुनै प्रश्न फेला परेन</h3>
-              <p style={{ fontSize: '0.88rem', margin: 0 }}>कृपया खोज शब्द सच्याउनुहोस् वा अन्य वर्ग चयन गर्नुहोस्।</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem 0' }}>
+                {isNepali ? 'कुनै प्रश्न फेला परेन' : 'No matching questions found'}
+              </h3>
+              <p style={{ fontSize: '0.88rem', margin: 0 }}>
+                {isNepali ? 'कृपया खोज शब्द सच्याउनुहोस् वा अन्य वर्ग चयन गर्नुहोस्।' : 'Please check your search terms or select another category.'}
+              </p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {filteredFaqs.map((faq) => {
                 const isExpanded = expandedFaqId === faq.id;
+                const questionText = isNepali ? faq.questionNp : faq.questionEn;
+                const answerText = isNepali ? faq.answerNp : faq.answerEn;
+
                 return (
                   <div
                     key={faq.id}
@@ -325,7 +336,7 @@ export const FaqHelpPage: React.FC = () => {
                       }}
                     >
                       <span style={{ fontSize: '0.98rem', fontWeight: 800, color: isExpanded ? '#1d4ed8' : '#1e293b', lineHeight: 1.4 }}>
-                        {faq.question}
+                        {questionText}
                       </span>
                       <div
                         style={{
@@ -347,7 +358,7 @@ export const FaqHelpPage: React.FC = () => {
                     {isExpanded && (
                       <div
                         style={{
-                          padding: '0.75rem 1.35rem 1.25rem',
+                          padding: '0.85rem 1.35rem 1.35rem',
                           fontSize: '0.92rem',
                           color: '#334155',
                           lineHeight: 1.7,
@@ -355,7 +366,7 @@ export const FaqHelpPage: React.FC = () => {
                           backgroundColor: '#ffffff',
                         }}
                       >
-                        {faq.answer}
+                        {answerText}
                       </div>
                     )}
                   </div>
@@ -387,14 +398,14 @@ export const FaqHelpPage: React.FC = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
                   <div>
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#059669', backgroundColor: '#ecfdf5', padding: '2px 8px', borderRadius: '6px' }}>
-                      {guide.category}
+                      {isNepali ? guide.categoryNp : guide.categoryEn}
                     </span>
-                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: '0.4rem 0 0 0' }}>
-                      {guide.title}
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#1e293b', margin: '0.4rem 0 0 0' }}>
+                      {isNepali ? guide.titleNp : guide.titleEn}
                     </h3>
                   </div>
                   <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-                    <Clock size={12} /> {guide.readTime}
+                    <Clock size={12} /> {isNepali ? guide.readTimeNp : guide.readTimeEn}
                   </span>
                 </div>
 
@@ -421,11 +432,15 @@ export const FaqHelpPage: React.FC = () => {
                         {step.stepNo}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>{step.title}</div>
-                        <div style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, marginTop: '2px' }}>{step.description}</div>
-                        {step.tip && (
+                        <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1e293b' }}>
+                          {isNepali ? step.titleNp : step.titleEn}
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, marginTop: '2px' }}>
+                          {isNepali ? step.descNp : step.descEn}
+                        </div>
+                        {(isNepali ? step.tipNp : step.tipEn) && (
                           <div style={{ marginTop: '4px', fontSize: '0.75rem', color: '#0284c7', backgroundColor: '#f0f9ff', padding: '3px 8px', borderRadius: '4px' }}>
-                            💡 <strong>सुझाव:</strong> {step.tip}
+                            💡 <strong>{isNepali ? 'सुझाव:' : 'Tip:'}</strong> {isNepali ? step.tipNp : step.tipEn}
                           </div>
                         )}
                       </div>
@@ -440,7 +455,7 @@ export const FaqHelpPage: React.FC = () => {
 
       {/* ─── TAB 3: IT SUPPORT & HELPDESK ─── */}
       {activeTab === 'support' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem', alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
           {/* Left Column: Support Form */}
           <div
             style={{
@@ -457,10 +472,12 @@ export const FaqHelpPage: React.FC = () => {
               </div>
               <div>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e293b', margin: 0 }}>
-                  प्राविधिक समस्या वा जिज्ञासा दर्ता गर्नुहोस्
+                  {isNepali ? 'प्राविधिक समस्या वा जिज्ञासा दर्ता गर्नुहोस्' : 'Submit Technical Inquiry or Issue Ticket'}
                 </h3>
                 <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '2px 0 0 0' }}>
-                  प्रणाली सञ्चालन सम्बन्धी कुनै प्राविधिक समस्या भएमा तुरुन्त सन्देश पठाउनुहोस्।
+                  {isNepali
+                    ? 'प्रणाली सञ्चालन सम्बन्धी कुनै प्राविधिक समस्या भएमा तुरुन्त सन्देश पठाउनुहोस्।'
+                    : 'Submit telemetry errors, VHF radio communications faults, or user inquiries.'}
                 </p>
               </div>
             </div>
@@ -469,10 +486,12 @@ export const FaqHelpPage: React.FC = () => {
               <div style={{ padding: '2rem 1.5rem', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '12px', textAlign: 'center' }}>
                 <CheckCircle2 size={36} color="#16a34a" style={{ margin: '0 auto 8px' }} />
                 <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#166534', margin: '0 0 4px 0' }}>
-                  तपाईंको जिज्ञासा सफलतापूर्वक दर्ता भयो!
+                  {isNepali ? 'तपाईंको जिज्ञासा सफलतापूर्वक दर्ता भयो!' : 'Your ticket has been successfully registered!'}
                 </h4>
                 <p style={{ fontSize: '0.85rem', color: '#15803d', margin: 0 }}>
-                  सूचना प्रविधि शाखाले यसलाई प्राथमिकताका साथ हेरेर शीघ्र सम्पर्क गर्नेछ।
+                  {isNepali
+                    ? 'सूचना प्रविधि तथा EOC शाखाले यसलाई प्राथमिकताका साथ हेरेर शीघ्र सम्पर्क गर्नेछ।'
+                    : 'The IT & LEOC Command Desk will review your submission and contact you shortly.'}
                 </p>
               </div>
             ) : (
@@ -480,27 +499,27 @@ export const FaqHelpPage: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                      तपाईंको नाम *
+                      {isNepali ? 'तपाईंको नाम *' : 'Your Full Name *'}
                     </label>
                     <input
                       className="dt-input"
-                      placeholder="उदा. राम बहादुर थापा"
+                      placeholder={isNepali ? 'उदा. राम बहादुर थापा' : 'e.g. Ram Bahadur Thapa'}
                       value={ticketForm.name}
                       onChange={(e) => setTicketForm({ ...ticketForm, name: e.target.value })}
                       required
-                      style={{ height: '36px', fontSize: '0.85rem' }}
+                      style={{ height: '36px', fontSize: '0.85rem', width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px' }}
                     />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                      शाखा / पद *
+                      {isNepali ? 'शाखा / पद *' : 'Section / Role *'}
                     </label>
                     <input
                       className="dt-input"
                       value={ticketForm.department}
                       onChange={(e) => setTicketForm({ ...ticketForm, department: e.target.value })}
                       required
-                      style={{ height: '36px', fontSize: '0.85rem' }}
+                      style={{ height: '36px', fontSize: '0.85rem', width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px' }}
                     />
                   </div>
                 </div>
@@ -508,60 +527,60 @@ export const FaqHelpPage: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                      सम्पर्क फोन / मोबाइल *
+                      {isNepali ? 'सम्पर्क फोन / मोबाइल *' : 'Phone / Mobile *'}
                     </label>
                     <input
                       className="dt-input"
-                      placeholder="९८xxxxxxxx"
+                      placeholder={isNepali ? '९८xxxxxxxx' : '98xxxxxxxx'}
                       value={ticketForm.phone}
                       onChange={(e) => setTicketForm({ ...ticketForm, phone: e.target.value })}
                       required
-                      style={{ height: '36px', fontSize: '0.85rem' }}
+                      style={{ height: '36px', fontSize: '0.85rem', width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px' }}
                     />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                      प्राथमिकता
+                      {isNepali ? 'प्राथमिकता' : 'Priority'}
                     </label>
                     <select
                       className="dt-select"
                       value={ticketForm.priority}
                       onChange={(e) => setTicketForm({ ...ticketForm, priority: e.target.value })}
-                      style={{ height: '36px', fontSize: '0.85rem' }}
+                      style={{ height: '36px', fontSize: '0.85rem', width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px' }}
                     >
-                      <option value="सामान्य">सामान्य (Normal)</option>
-                      <option value="जरुरी">जरुरी (Urgent)</option>
-                      <option value="अति जरुरी">अति जरुरी (Critical Issue)</option>
+                      <option value={isNepali ? 'सामान्य' : 'Normal'}>{isNepali ? 'सामान्य (Normal)' : 'Normal'}</option>
+                      <option value={isNepali ? 'जरुरी' : 'Urgent'}>{isNepali ? 'जरुरी (Urgent)' : 'Urgent'}</option>
+                      <option value={isNepali ? 'अति जरुरी' : 'Critical'}>{isNepali ? 'अति जरुरी (Critical Issue)' : 'Critical Issue'}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    समस्याको विषय (Subject) *
+                    {isNepali ? 'समस्याको विषय (Subject) *' : 'Subject *'}
                   </label>
                   <input
                     className="dt-input"
-                    placeholder="उदा. दर्ता नम्बर सम्पादन गर्न नमिल्ने समस्या..."
+                    placeholder={isNepali ? 'उदा. जलसतह सेन्सर अफलाइन भएको सम्बन्धी...' : 'e.g. Telemetry sensor offline alert issue...'}
                     value={ticketForm.subject}
                     onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
                     required
-                    style={{ height: '36px', fontSize: '0.85rem' }}
+                    style={{ height: '36px', fontSize: '0.85rem', width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px' }}
                   />
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    विस्तृत विवरण (Description) *
+                    {isNepali ? 'विस्तृत विवरण (Description) *' : 'Detailed Description *'}
                   </label>
                   <textarea
                     className="dt-input"
                     rows={4}
-                    placeholder="समस्याको पूर्ण विवरण यहाँ लेख्नुहोस्..."
+                    placeholder={isNepali ? 'समस्याको पूर्ण विवरण यहाँ लेख्नुहोस्...' : 'Describe the exact issue or question here...'}
                     value={ticketForm.message}
                     onChange={(e) => setTicketForm({ ...ticketForm, message: e.target.value })}
                     required
-                    style={{ fontSize: '0.85rem' }}
+                    style={{ fontSize: '0.85rem', width: '100%', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '8px 10px' }}
                   />
                 </div>
 
@@ -585,7 +604,7 @@ export const FaqHelpPage: React.FC = () => {
                   }}
                 >
                   <Send size={16} />
-                  <span>सहायता अनुरोध पठाउनुहोस्</span>
+                  <span>{isNepali ? 'सहायता अनुरोध पठाउनुहोस्' : 'Submit Support Request'}</span>
                 </button>
               </form>
             )}
@@ -603,28 +622,28 @@ export const FaqHelpPage: React.FC = () => {
               }}
             >
               <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-                आधिकारिक सम्पर्क केन्द्र
+                {isNepali ? 'आधिकारिक आपतकालीन सम्पर्क केन्द्र' : 'Official Emergency Command Center'}
               </div>
               <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e293b', margin: '0 0 1rem 0' }}>
-                {IT_SUPPORT_INFO.municipality}
+                {isNepali ? IT_SUPPORT_INFO.municipalityNp : IT_SUPPORT_INFO.municipalityEn}
               </h4>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.86rem', color: '#334155' }}>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <MapPin size={16} color="#2563eb" />
-                  <span>{IT_SUPPORT_INFO.headquarters}</span>
+                  <span>{isNepali ? IT_SUPPORT_INFO.headquartersNp : IT_SUPPORT_INFO.headquartersEn}</span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <Phone size={16} color="#059669" />
-                  <span>फोन: <strong>{IT_SUPPORT_INFO.phone}</strong></span>
+                  <span>{isNepali ? 'फोन' : 'Phone'}: <strong>{IT_SUPPORT_INFO.phone}</strong></span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <Mail size={16} color="#dc2626" />
-                  <span>ईमेल: <strong>{IT_SUPPORT_INFO.email}</strong></span>
+                  <span>{isNepali ? 'ईमेल' : 'Email'}: <strong>{IT_SUPPORT_INFO.email}</strong></span>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <Clock size={16} color="#d97706" />
-                  <span>समय: {IT_SUPPORT_INFO.officeHours}</span>
+                  <span>{isNepali ? 'समय' : 'Hours'}: {isNepali ? IT_SUPPORT_INFO.officeHoursNp : IT_SUPPORT_INFO.officeHoursEn}</span>
                 </div>
               </div>
             </div>
@@ -640,11 +659,11 @@ export const FaqHelpPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b91c1c', fontWeight: 800, fontSize: '0.95rem', marginBottom: '6px' }}>
                 <AlertCircle size={18} />
-                <span>निःशुल्क हटलाइन तथा आपतकालीन नम्बरहरू</span>
+                <span>{isNepali ? 'निःशुल्क हटलाइन तथा आपतकालीन च्यानलहरू' : 'Toll-Free Hotlines & Emergency Channels'}</span>
               </div>
               <div style={{ fontSize: '0.82rem', color: '#7f1d1d', lineHeight: 1.6 }}>
-                <div>टोल-फ्री नम्बर: <strong>{IT_SUPPORT_INFO.tollFree}</strong></div>
-                <div>विपद् व्यवस्थापन हटलाइन: <strong>{IT_SUPPORT_INFO.emergencyHotline}</strong></div>
+                <div>{isNepali ? 'टोल-फ्री नम्बर' : 'Toll-Free'}: <strong>{isNepali ? IT_SUPPORT_INFO.tollFreeNp : IT_SUPPORT_INFO.tollFreeEn}</strong></div>
+                <div>{isNepali ? 'विपद् व्यवस्थापन हटलाइन' : 'EOC Hotline'}: <strong>{isNepali ? IT_SUPPORT_INFO.emergencyHotlineNp : IT_SUPPORT_INFO.emergencyHotlineEn}</strong></div>
               </div>
             </div>
           </div>

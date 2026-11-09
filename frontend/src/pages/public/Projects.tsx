@@ -42,6 +42,7 @@ import {
 } from 'lucide-react';
 import { sectoralApi } from '../../api/sectoral';
 import type { Project } from '../../types/sectoral';
+import { useLanguage } from '../../context/LanguageContext';
 
 // Comprehensive authentic fallback demo projects for Panchpokhari Thangpal
 const DEMO_PROJECTS: Project[] = [
@@ -385,6 +386,7 @@ const INFRASTRUCTURE_ASSETS = [
 
 export const Projects: React.FC = () => {
   const navigate = useNavigate();
+  const { isNepali } = useLanguage();
 
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<'projects' | 'infrastructure' | 'governance'>('projects');
@@ -483,14 +485,16 @@ export const Projects: React.FC = () => {
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.35rem 0.85rem', borderRadius: '20px', fontSize: '0.825rem', fontWeight: 800, marginBottom: '0.5rem' }}>
             <HardHat size={16} />
-            <span>पाँचपोखरी थाङपाल गाउँपालिका · सार्वजनिक पूर्वाधार तथा योजना अनुगमन डिजिटल ट्विन</span>
+            <span>{isNepali ? 'पाँचपोखरी थाङपाल गाउँपालिका · विकास तथा पुनर्निर्माण आयोजना' : 'Panchpokhari Thangpal Rural Municipality · Development & Recovery Projects'}</span>
           </div>
           <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0, letterSpacing: '-0.5px' }}>
             <Pickaxe size={36} color="#0284c7" />
-            विकास योजना तथा भौतिक पूर्वाधार ट्विन
+            {isNepali ? 'विकास योजना तथा भौतिक पूर्वाधार' : 'Development & Infrastructure Projects'}
           </h1>
           <p style={{ color: '#64748b', fontSize: '1rem', marginTop: '0.4rem', margin: 0, maxWidth: '850px', lineHeight: 1.5 }}>
-            वडा नं. १ देखि ८ सम्म सञ्चालित गौरवका तथा वडास्तरीय सडक, खानेपानी, पुल, सिँचाइ र भवन आयोजनाहरूको भौतिक एवं वित्तीय प्रगति, उपभोक्ता समिति विवरण र प्राविधिक नापी किताब (MB) को प्रत्यक्ष पारदर्शी अनुगमन।
+            {isNepali
+              ? 'वडा नं. १ देखि ८ सम्म सञ्चालित गौरवका तथा वडास्तरीय सडक, खानेपानी, पुल, सिँचाइ र विपद् पुनर्निर्माण आयोजनाहरूको भौतिक एवं वित्तीय प्रगति विवरण।'
+              : 'Physical & financial progress tracking of roads, water supply, bridges, and disaster recovery reconstruction across Wards 1 to 8.'}
           </p>
         </div>
 
@@ -514,7 +518,7 @@ export const Projects: React.FC = () => {
             }}
           >
             <Compass size={18} />
-            <span>🗺️ GIS डिजिटल ट्विन नक्सा</span>
+            <span>{isNepali ? '🗺️ GIS जोखिम नक्सा' : '🗺️ 3D GIS Map'}</span>
           </button>
 
           <button
@@ -535,7 +539,7 @@ export const Projects: React.FC = () => {
             }}
           >
             <TrendingUp size={18} />
-            <span>📊 प्रगति प्रतिवेदन</span>
+            <span>{isNepali ? '📊 प्रगति प्रतिवेदन' : '📊 Progress Reports'}</span>
           </button>
 
           <button
@@ -552,11 +556,11 @@ export const Projects: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
-              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+              boxShadow: '0 4px 15px rgba(5, 150, 105, 0.35)',
             }}
           >
             <Briefcase size={18} />
-            <span>📑 ई-बोलपत्र (Procurement)</span>
+            <span>{isNepali ? '📑 ई-बोलपत्र (Procurement)' : '📑 Procurement'}</span>
           </button>
 
           <button
@@ -576,7 +580,7 @@ export const Projects: React.FC = () => {
             }}
           >
             <RefreshCw size={16} className={isLoading ? 'spin' : ''} />
-            <span>ताजा गर्नुहोस्</span>
+            <span>{isNepali ? 'ताजा गर्नुहोस्' : 'Refresh'}</span>
           </button>
         </div>
       </div>
@@ -674,7 +678,7 @@ export const Projects: React.FC = () => {
           }}
         >
           <Pickaxe size={18} />
-          <span>१. विकास योजना अनुगमन (Projects Tracker)</span>
+          <span>{isNepali ? '१. विकास योजना अनुगमन (Projects Tracker)' : '1. Projects Tracker'}</span>
           <span style={{ fontSize: '0.72rem', backgroundColor: activeTab === 'projects' ? 'rgba(255,255,255,0.25)' : '#e2e8f0', color: activeTab === 'projects' ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: '10px' }}>
             {totalCount}
           </span>
@@ -702,7 +706,7 @@ export const Projects: React.FC = () => {
           }}
         >
           <Building size={18} />
-          <span>२. भौतिक पूर्वाधार सम्पत्ति ट्विन (Assets Twin)</span>
+          <span>{isNepali ? '२. भौतिक पूर्वाधार सम्पत्ति (Infrastructure Assets)' : '2. Infrastructure Assets'}</span>
           <span style={{ fontSize: '0.72rem', backgroundColor: activeTab === 'infrastructure' ? 'rgba(255,255,255,0.25)' : '#e2e8f0', color: activeTab === 'infrastructure' ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: '10px' }}>
             २४४+ कि.मि.
           </span>
@@ -730,9 +734,9 @@ export const Projects: React.FC = () => {
           }}
         >
           <ShieldCheck size={18} />
-          <span>३. सुशासन, नापी किताब (MB) र फरफारक</span>
+          <span>{isNepali ? '३. सुशासन तथा सार्वजनिक अनुगमन (Governance)' : '3. Governance & Audit'}</span>
           <span style={{ fontSize: '0.72rem', backgroundColor: activeTab === 'governance' ? 'rgba(255,255,255,0.25)' : '#e2e8f0', color: activeTab === 'governance' ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: '10px' }}>
-            १००% पारदर्शी
+            {isNepali ? '१००% पारदर्शी' : '100% Transparent'}
           </span>
         </button>
       </div>

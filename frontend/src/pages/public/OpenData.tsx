@@ -34,6 +34,7 @@ import {
   GraduationCap,
   Wheat,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface DatasetItem {
   id: string;
@@ -342,6 +343,7 @@ const SDG_GOALS = [
 ];
 
 export const OpenData: React.FC = () => {
+  const { isNepali } = useLanguage();
   const [activeTab, setActiveTab] = useState<'datasets' | 'reports' | 'sdg' | 'practices'>('datasets');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -398,14 +400,16 @@ export const OpenData: React.FC = () => {
         <div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '0.35rem 0.85rem', borderRadius: '20px', fontSize: '0.825rem', fontWeight: 800, marginBottom: '0.5rem' }}>
             <Database size={16} />
-            <span>नेपाल सरकार स्थानीय तह खुला तथ्याङ्क (Open Government Data · CC-BY-SA 4.0)</span>
+            <span>{isNepali ? 'नेपाल सरकार स्थानीय तह खुला तथ्याङ्क (Open Government Data · CC-BY-SA 4.0)' : 'Government of Nepal Local Government Open Data · CC-BY-SA 4.0'}</span>
           </div>
           <h1 style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.75rem', margin: 0, letterSpacing: '-0.5px' }}>
             <Database size={36} color="#0284c7" />
-            खुला तथ्याङ्क तथा सार्वजनिक प्रतिवेदन पोर्टल
+            {isNepali ? 'खुला तथ्याङ्क तथा सार्वजनिक प्रतिवेदन पोर्टल' : 'Open Data & Transparency Portal'}
           </h1>
           <p style={{ color: '#64748b', fontSize: '1rem', marginTop: '0.4rem', margin: 0, maxWidth: '850px', lineHeight: 1.5 }}>
-            नागरिक, अनुसन्धानकर्ता, सञ्चारकर्मी र विकास साझेदारहरूका लागि पाँचपोखरी थाङपाल गाउँपालिकाको आधिकारिक, मेसिनले पढ्न मिल्ने (Machine-Readable CSV, JSON) खुला तथ्याङ्क र वार्षिक सार्वजनिक प्रतिवेदनहरू।
+            {isNepali
+              ? 'नागरिक, अनुसन्धानकर्ता, सञ्चारकर्मी र विकास साझेदारहरूका लागि पाँचपोखरी थाङपाल गाउँपालिकाको आधिकारिक, मेसिनले पढ्न मिल्ने (Machine-Readable CSV, JSON) खुला तथ्याङ्क र वार्षिक सार्वजनिक प्रतिवेदनहरू।'
+              : 'Official, machine-readable (CSV, JSON) datasets, hazard metrics, and annual public audit reports for citizens and researchers.'}
           </p>
         </div>
 
@@ -425,7 +429,7 @@ export const OpenData: React.FC = () => {
             }}
           >
             <ShieldCheck size={18} color="#16a34a" />
-            <span>शतप्रतिशत खुला एवं पारदर्शी</span>
+            <span>{isNepali ? 'शतप्रतिशत खुला एवं पारदर्शी' : '100% Open & Transparent'}</span>
           </div>
         </div>
       </div>
@@ -519,7 +523,7 @@ export const OpenData: React.FC = () => {
           }}
         >
           <Database size={18} />
-          <span>१. खुला डेटासेट सूची (Datasets & APIs)</span>
+          <span>{isNepali ? '१. खुला डेटासेट सूची (Datasets & APIs)' : '1. Open Datasets & APIs'}</span>
           <span style={{ fontSize: '0.72rem', backgroundColor: activeTab === 'datasets' ? 'rgba(255,255,255,0.25)' : '#e2e8f0', color: activeTab === 'datasets' ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: '10px' }}>
             {OPEN_DATASETS.length}
           </span>
@@ -547,7 +551,8 @@ export const OpenData: React.FC = () => {
           }}
         >
           <FileText size={18} />
-          <span>२. वार्षिक प्रगति तथा सार्वजनिक प्रतिवेदन</span>
+          <span>{isNepali ? '२. वार्षिक प्रगति तथा सार्वजनिक प्रतिवेदन' : '2. Annual Reports & Governance'}</span>
+        </button>
           <span style={{ fontSize: '0.72rem', backgroundColor: activeTab === 'reports' ? 'rgba(255,255,255,0.25)' : '#e2e8f0', color: activeTab === 'reports' ? '#ffffff' : '#475569', padding: '1px 6px', borderRadius: '10px' }}>
             {PUBLIC_REPORTS.length}
           </span>

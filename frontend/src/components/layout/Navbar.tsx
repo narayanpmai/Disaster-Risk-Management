@@ -60,7 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
     };
   }, []);
 
-  // Palika name
+  // Palika name & slogan with complete bilingual awareness
   let tenantPalikaName = settings?.palika_name;
   if (!tenantPalikaName) {
     try {
@@ -69,12 +69,12 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
       if (match && match.name) tenantPalikaName = match.name;
     } catch (e) {}
   }
-  const palikaName = tenantPalikaName || (isNepali
-    ? 'विपद् जोखिम व्यवस्थापन तथा बहुक्षेत्रीय जोखिम मूल्याङ्कन प्रणाली'
-    : 'Disaster Risk Management & Multi-Sectoral Risk Assessment System');
-  const slogan = settings?.slogan || (isNepali
-    ? 'नेपालका जोखिमयुक्त बस्ती, पूर्वाधार आयोजना पहिचान तथा विपद् न्यूनीकरण प्लेटफर्म'
-    : 'National Platform for Vulnerable Settlements, Infrastructure & Disaster Mitigation');
+  const palikaName = isNepali
+    ? (tenantPalikaName || 'पाँचपोखरी थाङपाल गाउँपालिका')
+    : 'Panchpokhari Thangpal Rural Municipality';
+  const slogan = isNepali
+    ? 'नेपाल एकीकृत विपद् जोखिम व्यवस्थापन प्रणाली (NIDRMS)'
+    : 'Nepal Integrated Disaster Risk Management System (NIDRMS)';
 
   // Today's Nepali date
   const todayAD = new Date();
@@ -235,7 +235,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
             }}
           >
             <Calendar size={13} />
-            <span>वि.सं. {nepaliParts[0]}/{nepaliParts[1]}/{nepaliParts[2]}</span>
+            <span>{isNepali ? 'वि.सं.' : 'BS'} {nepaliParts[0]}/{nepaliParts[1]}/{nepaliParts[2]}</span>
           </div>
         )}
       </div>

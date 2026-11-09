@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { adToBs, BS_MONTH_DAYS } from '../../utils/nepaliCalendar';
+import { useLanguage } from '../../context/LanguageContext';
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -22,7 +23,12 @@ const MONTHS_BS = [
   'वैशाख', 'जेठ', 'असार', 'साउन', 'भदौ', 'आश्विन',
   'कार्तिक', 'मंसिर', 'पुष', 'माघ', 'फागुन', 'चैत्र'
 ];
+const MONTHS_EN = [
+  'Baishakh', 'Jestha', 'Ashadh', 'Shrawan', 'Bhadra', 'Ashwin',
+  'Kartik', 'Mangsir', 'Poush', 'Magh', 'Falgun', 'Chaitra'
+];
 const DAYS_NEP = ['आइत', 'सोम', 'मंगल', 'बुध', 'बिही', 'शुक्र', 'शनि'];
+const DAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const NEPALI_NUMBERS = ['०','१','२','३','४','५','६','७','८','९'];
 
 const toNepali = (num: number) => num.toString().split('').map(n => NEPALI_NUMBERS[parseInt(n)] || n).join('');
@@ -58,6 +64,7 @@ const TYPE_CONFIG: Record<EventType, { color: string, bg: string, label: string 
 export const EventCalendarPage: React.FC = () => {
   const location = useLocation();
   const isAdmin = location.pathname.startsWith('/app');
+  const { isNepali } = useLanguage();
   
   // Get current Nepali date
   const todayAd = new Date().toISOString().split('T')[0];
@@ -127,8 +134,12 @@ export const EventCalendarPage: React.FC = () => {
             <CalendarIcon size={24} color="#0F4C81" />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>पालिका कार्यक्रम क्यालेन्डर</h1>
-            <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>पालिकाका सम्पूर्ण गतिविधि, विदा र बैठकहरूको सूची</p>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
+              {isNepali ? 'विपद् तथा पालिका कार्यक्रम क्यालेन्डर' : 'Disaster & Palika Event Calendar'}
+            </h1>
+            <p style={{ color: '#64748B', fontSize: '0.95rem', margin: 0 }}>
+              {isNepali ? 'विपद् पूर्वतयारी, तालिम, विदा र कार्यपालिका बैठकहरूको कार्यतालिका' : 'Schedule of disaster response drills, trainings, holidays, and meetings'}
+            </p>
           </div>
         </div>
         
@@ -137,7 +148,9 @@ export const EventCalendarPage: React.FC = () => {
             onClick={() => setIsEditing(!isEditing)} 
             style={{ padding: '8px 16px', background: isEditing ? '#DC2626' : '#0F4C81', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            {isEditing ? <><Save size={16}/> सुरक्षित गर्नुहोस्</> : <><Edit2 size={16}/> सम्पादन गर्नुहोस्</>}
+            {isEditing
+              ? <><Save size={16}/> {isNepali ? 'सुरक्षित गर्नुहोस्' : 'Save'}</>
+              : <><Edit2 size={16}/> {isNepali ? 'सम्पादन गर्नुहोस्' : 'Edit'}</>}
           </button>
         )}
       </div>
@@ -150,7 +163,9 @@ export const EventCalendarPage: React.FC = () => {
           </button>
           
           <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0F172A', minWidth: '180px', textAlign: 'center' }}>
-            {MONTHS_BS[currentMonth]} {toNepali(currentYear)}
+            {isNepali
+              ? `${MONTHS_BS[currentMonth]} ${toNepali(currentYear)}`
+              : `${MONTHS_EN[currentMonth]} ${currentYear} BS`}
           </div>
           
           <button onClick={nextMonth} style={{ padding: '8px', background: '#F1F5F9', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
@@ -163,7 +178,7 @@ export const EventCalendarPage: React.FC = () => {
             <Search size={16} color="#94A3B8" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
             <input 
               type="text" 
-              placeholder="कार्यक्रम खोज्नुहोस्..." 
+              placeholder={isNepali ? 'कार्यक्रम खोज्नुहोस्...' : 'Search events...'} 
               value={search}
               onChange={e => setSearch(e.target.value)}
               style={{ padding: '8px 16px 8px 36px', border: '1.5px solid #E2E8F0', borderRadius: '8px', fontSize: '0.85rem', outline: 'none' }} 
@@ -179,7 +194,7 @@ export const EventCalendarPage: React.FC = () => {
       <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #E2E8F0', overflow: 'hidden' }}>
         {/* Days Header */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: '#F8FAFC', borderBottom: '1px solid #E2E8F0' }}>
-          {DAYS_NEP.map((d, i) => (
+          {(isNepali ? DAYS_NEP : DAYS_EN).map((d, i) => (
             <div key={d} style={{ padding: '12px', textAlign: 'center', fontWeight: 700, fontSize: '0.9rem', color: i === 6 ? '#DC2626' : '#475569' }}>
               {d}
             </div>

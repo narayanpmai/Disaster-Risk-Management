@@ -1,202 +1,256 @@
 export interface FaqItem {
   id: string;
-  category: 'all' | 'darta-chalani' | 'citizen-services' | 'projects' | 'complaints' | 'technical';
-  question: string;
-  answer: string;
+  category: 'all' | 'incident' | 'telemetry' | 'sar' | 'relief' | 'pwa' | 'gis';
+  questionNp: string;
+  questionEn: string;
+  answerNp: string;
+  answerEn: string;
   keywords: string[];
 }
 
 export interface UserGuideItem {
   id: string;
-  title: string;
-  category: string;
-  readTime: string;
+  titleNp: string;
+  titleEn: string;
+  categoryNp: string;
+  categoryEn: string;
+  readTimeNp: string;
+  readTimeEn: string;
   steps: {
     stepNo: number;
-    title: string;
-    description: string;
-    tip?: string;
+    titleNp: string;
+    titleEn: string;
+    descNp: string;
+    descEn: string;
+    tipNp?: string;
+    tipEn?: string;
   }[];
 }
 
 export const FAQ_CATEGORIES = [
-  { id: 'all', label: 'सबै प्रश्नहरू (All)' },
-  { id: 'darta-chalani', label: 'दर्ता र चलानी (Darta & Chalani)' },
-  { id: 'citizen-services', label: 'नागरिक ई-सेवा तथा बडापत्र (Services)' },
-  { id: 'projects', label: 'योजना तथा कार्यक्रम (Projects)' },
-  { id: 'complaints', label: 'जनगुनासो व्यवस्थापन (Complaints)' },
-  { id: 'technical', label: 'प्रणाली तथा खाता (Technical & Login)' },
+  { id: 'all', labelNp: 'सबै प्रश्नहरू', labelEn: 'All Questions' },
+  { id: 'incident', labelNp: 'विपद् घटना तथा प्रमाणीकरण', labelEn: 'Incidents & Verification' },
+  { id: 'telemetry', labelNp: 'जलसतह तथा पूर्वसूचना साइरन', labelEn: 'Flood Telemetry & Siren' },
+  { id: 'sar', labelNp: 'खोज-उद्धार तथा हेभी इक्युपमेन्ट', labelEn: 'SAR & Heavy Equipment' },
+  { id: 'relief', labelNp: 'राहत वितरण तथा क्षति मूल्याङ्कन', labelEn: 'Relief & Damage Assessment' },
+  { id: 'pwa', labelNp: 'अफलाइन PWA तथा VHF सञ्चार', labelEn: 'Offline PWA & VHF Radio' },
+  { id: 'gis', labelNp: '३D नक्सा तथा डाटा ब्याकअप', labelEn: '3D GIS & Data Backup' },
 ] as const;
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
     id: 'faq-1',
-    category: 'darta-chalani',
-    question: '१. नयाँ दर्ता कसरी प्रविष्टि गर्ने र नम्बर स्वतः कसरी आउँछ?',
-    answer: 'बायाँ साइडबारबाट "दर्ता तथा चलानी" मेनुमा जानुहोस्। त्यहाँ "+ नयाँ दर्ता प्रविष्टि" बटनमा क्लिक गर्दा दर्ता फाराम खुल्नेछ। प्रणालीले चालू आर्थिक वर्षको आधारमा अर्को क्रमिक दर्ता नम्बर (जस्तै १, २, ३...) स्वतः सिफारिस गर्दछ। आवश्यक सबै विवरण भरी "दर्ता सुरक्षित गर्नुहोस्" मा क्लिक गर्नुहोस्।',
-    keywords: ['दर्ता', 'नयाँ दर्ता', 'darta', 'number', 'दर्ता नम्बर'],
+    category: 'incident',
+    questionNp: '१. नयाँ विपद् घटना कसरी दर्ता गर्ने र वडा तहबाट स्थलगत प्रमाणीकरण कसरी हुन्छ?',
+    questionEn: '1. How to report a disaster incident and conduct ward-level field verification?',
+    answerNp: 'विपद् व्यवस्थापन हबमा गई "+ नयाँ विपद् घटना दर्ता" बटनमा क्लिक गर्नुहोस्। विपद् प्रकार (बाढी, पहिरो, आगलागी), वडा नम्बर, प्रभावित घरधुरी संख्या, र GPS ठेगाना प्रविष्ट गरी सुरक्षित गर्नुहोस्। वडा सचिव वा प्राविधिक टोलीले घटनास्थल पुगी तस्वीर र वस्तुस्थिति जाँच गरी प्रणालीमा "प्रमाणित" (Verified) गर्दछन्।',
+    answerEn: 'Navigate to Disaster Hub and click "+ Report New Incident". Select hazard type (flood, landslide, fire), ward number, affected households, and GPS location. The ward secretary or technical inspector inspects the field site, attaches geo-tagged photos, and marks it "Verified".',
+    keywords: ['घटना', 'दर्ता', 'प्रमाणीकरण', 'incident', 'report', 'verification', 'ward'],
   },
   {
     id: 'faq-2',
-    category: 'darta-chalani',
-    question: '२. चलानी पत्र जारी गर्दा आधिकारिक QR कोड कसरी उत्पन्न हुन्छ?',
-    answer: 'चलानी किताबमा नयाँ चलानी प्रविष्टि गरेपछि सो चलानीको विवरणसँगै एक अद्वितीय प्रमाणीकरण कोड (Verification Code) स्वतः तयार हुन्छ। "पत्र प्रिन्ट" बटन थिच्दा लेटरहेडको माथिल्लो दायाँ भागमा प्रमाणीकरण QR कोड सहितको आधिकारिक पत्र तयार हुन्छ जसलाई जो-कोहीले स्क्यान गरी अनलाइन सत्यता जाँच्न सक्छन्।',
-    keywords: ['चलानी', 'qr code', 'लेटरहेड', 'पत्र प्रिन्ट', 'chalani'],
+    category: 'telemetry',
+    questionNp: '२. मेलम्ची नदीको जलसतह खतरा विन्दु नाघेमा स्वचालित अलर्ट कसरी जारी हुन्छ?',
+    questionEn: '2. How are automated alerts triggered when Melamchi river water level exceeds danger threshold?',
+    answerNp: 'मेलम्ची खोला (SEN-MEL-01) र भोताङ वर्षा मापन केन्द्रबाट प्रत्येक १० सेकेन्डमा रियल-टाइम टेलिमेट्री प्राप्त हुन्छ। जलसतह ५.५ मिटर खतरा विन्दु पार हुनासाथ प्रणालीले तटीय बासिन्दालाई स्वचालित IVR फोन कल, SMS र सौर्य-साइरन स्वतः सक्रिय गर्दछ।',
+    answerEn: 'Telemetry is ingested every 10 seconds from Melamchi River gauge (SEN-MEL-01) and Bhotang rainfall station. When water level exceeds the 5.5m danger threshold, automated outbound IVR voice calls, emergency SMS, and 5-10km mesh sirens are triggered automatically.',
+    keywords: ['जलसतह', 'बाढी', 'साइरन', 'ivr', 'telemetry', 'melamchi', 'flood'],
   },
   {
     id: 'faq-3',
-    category: 'darta-chalani',
-    question: '३. दर्ता भएको पत्रमा तोक आदेश (Tok Aadesh) कसरी लगाउने?',
-    answer: 'दर्ता किताबको तालिकामा प्रत्येक दर्ता भएको पत्रको दायाँपट्टि रहेको "तोक आदेश" बटनमा क्लिक गर्नुहोस्। त्यहाँ पालिकाका लागि उपयुक्त मानक निर्देशनहरू (Quick Presets) चयन गर्न वा नयाँ तोक आदेश लेख्न सकिन्छ। त्यसपछि सम्बन्धित शाखा, फाँटवाला र कार्यसम्पादन म्याद तोकी सुरक्षित गर्नुहोस्।',
-    keywords: ['तोक आदेश', 'tok aadesh', 'शाखा', 'निर्देशन', 'फाँट'],
+    category: 'telemetry',
+    questionNp: '३. पहिरो जोखिमयुक्त बस्तीको इन्क्लिनोमिटर सेन्सर तथा पूर्वसूचना कसरी हेर्ने?',
+    questionEn: '3. How to monitor landslide inclinometer sensors and slope displacement alerts?',
+    answerNp: 'विपद् हबको "पहिरो जोखिम तथा इन्क्लिनोमिटर" ट्याबमा जानुहोस्। मानेखर्क, सेर्माथाङ र भोताङका लेकाली भिरहरूमा जडान गरिएका डिजिटल इन्क्लिनोमिटरको मिलिमिटर चाल, वर्षा थ्रेसहोल्ड र विस्थापित हुनुपर्ने बस्तीहरूको प्राथमिकता सूची प्रत्यक्ष हेर्न सकिन्छ।',
+    answerEn: 'Open the "Landslide Sensors" tab under Disaster Hub. View real-time millimeter slope displacement, rainfall saturation thresholds, and prioritized evacuation lists for vulnerable steep settlements like Manekharka and Bhotang.',
+    keywords: ['पहिरो', 'इन्क्लिनोमिटर', 'सेन्सर', 'landslide', 'inclinometer', 'displacement'],
   },
   {
     id: 'faq-4',
-    category: 'darta-chalani',
-    question: '४. नागरिक दर्ता पावती रसिद (Slip) कसरी प्रिन्ट गर्ने?',
-    answer: 'दर्ता किताबको तालिकामा रहेको "पावती" (Printer) आइकनमा क्लिक गर्नुहोस्। त्यहाँ निवेदकको नाम, दर्ता नम्बर, मिति, तोकिएको शाखा र नागरिक अनलाइन ट्र्याकिङ QR कोड सहितको सफा रसिद खुल्नेछ जसलाई तत्काल प्रिन्ट गरी सेवाग्राहीलाई दिन सकिन्छ।',
-    keywords: ['पावती', 'रसिद', 'slip', 'receipt', 'प्रिन्ट'],
+    category: 'sar',
+    questionNp: '४. खोज-उद्धार (SAR) हेभी इक्युपमेन्ट र स्वयंसेवक कार्यदल कसरी परिचालन गरिन्छ?',
+    questionEn: '4. How are SAR heavy equipment (dozers, excavators) and volunteers dispatched?',
+    answerNp: '"खोज-उद्धार (SAR)" ट्याबमा पालिका तथा निजी क्षेत्रका डोजर, एक्साभेटर, लाइफ ज्याकेट, र्याफ्टिङ डुङ्गा र ६४ प्रमाणित स्वयंसेवकहरूको प्रत्यक्ष सम्पर्क र उपलब्धता स्थिति हुन्छ। आपतकालीन अवस्थामा सिधै कलिङ वा एक-क्लिक SAR Dispatch आदेश पठाउन सकिन्छ।',
+    answerEn: 'Open the "SAR Directory" tab to inspect availability of municipal & private dozers, excavators, rescue boats, and 64 certified local SAR volunteers. Authorized EOC commanders can transmit direct dispatch orders with one click.',
+    keywords: ['खोज-उद्धार', 'डोजर', 'स्वयंसेवक', 'sar', 'dozer', 'excavator', 'rescue'],
   },
   {
     id: 'faq-5',
-    category: 'citizen-services',
-    question: '५. नागरिक बडापत्र (Citizen Charter) मा सेवाको दस्तुर र म्याद कसरी खोज्ने?',
-    answer: 'साइडबारको "नागरिक बडापत्र" मेनुमा जानुहोस्। माथिल्लो खोज बाकसमा सेवाको नाम (उदा. जन्म दर्ता, व्यवसाय दर्ता, सिफारिस) टाइप गर्नुहोस्। बडापत्रमा आवश्यक कागजात, लाग्ने दस्तुर, जिम्मेवार अधिकारी र कार्यसम्पादन समय तालिका स्पष्ट रूपमा हेर्न सकिन्छ।',
-    keywords: ['बडापत्र', 'दस्तुर', 'कागजात', 'नागरिक बडापत्र', 'सेवा'],
+    category: 'relief',
+    questionNp: '५. सुरक्षित आश्रयस्थल र राहत सामग्री जिन्सी मौज्दात कसरी व्यवस्थापन गर्ने?',
+    questionEn: '5. How to manage certified evacuation shelters and relief inventory stocks?',
+    answerNp: 'पालिकाका ८ वटै वडामा १,३१० जना क्षमताका ६ वटा प्रमाणित आश्रयस्थलहरू (सामुदायिक भवन, विद्यालय, कभर्ड हल) सूचीकृत छन् जसमा खानेपानी, सौर्य ऊर्जा र शौचालयको व्यवस्था छ। जिन्सी शाखाबाट त्रिपाल, कम्बल, औषधि किट र खाद्यान्न मौज्दात प्रत्यक्ष ट्र्याक गरिन्छ।',
+    answerEn: '6 certified shelters across 8 wards provide 1,310 person capacity equipped with solar power, drinking water, and sanitation. Municipal relief warehouses track tarpaulins, blankets, first-aid kits, and food rations in real time.',
+    keywords: ['आश्रयस्थल', 'राहत', 'त्रिपाल', 'shelters', 'relief', 'inventory', 'warehouse'],
   },
   {
     id: 'faq-6',
-    category: 'citizen-services',
-    question: '६. अनलाइन नागरिक ई-सेवा (Citizen e-Services) बाट सिफारिस कसरी आवेदन गर्ने?',
-    answer: 'नागरिक ई-सेवा खण्डमा विभिन्न प्रकारका सिफारिसहरू (नाता प्रमाणित, चार किल्ला, व्यवसाय दर्ता, आदि) सूचीकृत छन्। सम्बन्धित सेवाको "अनलाइन आवेदन गर्नुहोस्" मा क्लिक गरी नागरिकले आफ्नो विवरण र आवश्यक प्रमाण कागजात अपलोड गरी टोकन प्राप्त गर्न सक्छन्।',
-    keywords: ['ई-सेवा', 'सिफारिस', 'अनलाइन आवेदन', 'e-services'],
+    category: 'relief',
+    questionNp: '६. गृहमन्त्रालय राहत मापदण्ड २०७७ अनुसार डिजिटल क्षति मूल्याङ्कन (RDRA) कसरी प्रविष्टि गर्ने?',
+    questionEn: '6. How to conduct Rapid Damage Assessment (RDRA) under MoHA Relief Standard 2077?',
+    answerNp: '"क्षति मूल्याङ्कन (RDRA मापदण्ड २०७७)" ट्याबमा फिल्ड प्राविधिकले पूर्ण क्षति, आंशिक क्षति र सामान्य क्षतिको वर्गीकरण गरी घरधुरी विवरण प्रविष्ट गर्दछन्। प्रणालीले गृहमन्त्रालय मापदण्ड बमोजिम तत्काल राहत रकम र DBT बैंक सिफारिस स्वतः गणना गर्दछ।',
+    answerEn: 'In the RDRA Damage Assessment tab, field engineers record complete, partial, or minor structural damage per household. The system automatically calculates cash relief entitlement and generates DBT bank vouchers per MoHA 2077 guidelines.',
+    keywords: ['क्षति मूल्याङ्कन', 'rdra', 'राहत मापदण्ड', 'damage', 'assessment', 'moha'],
   },
   {
     id: 'faq-7',
-    category: 'projects',
-    question: '७. पालिकाका विकास योजना तथा बजेट कार्यक्रमको अवस्था कसरी हेर्ने?',
-    answer: 'साइडबारको "योजना तथा कार्यक्रम" वा "खुला तथ्याङ्क (Open Data)" मा जानुहोस्। त्यहाँ वडा अनुसार र विषयगत क्षेत्र (पूर्वाधार, शिक्षा, स्वास्थ्य, कृषि) अनुसार सञ्चालित योजनाहरूको बजेट, सम्झौता मिति, भौतिक प्रगति र वित्तीय प्रगतिको ग्राफ तथा तालिका हेर्न सकिन्छ।',
-    keywords: ['योजना', 'बजेट', 'कार्यक्रम', 'प्रगति', 'projects', 'budget'],
+    category: 'pwa',
+    questionNp: '७. इन्टरनेट नहुँदा अफलाइन PWA र VHF रेडियो सञ्चार कसरी प्रयोग गर्ने?',
+    questionEn: '7. How does offline PWA field reporting and VHF emergency radio mesh work without internet?',
+    answerNp: 'नागरिक तथा उद्धारकर्ताले मोवाइलमा `/pwa` खोलेर इन्टरनेट बिना नै घटना विवरण स्थानीय IndexedDB भण्डारमा सुरक्षित गर्न सक्छन्। इन्टरनेट पुनः जोडिएपछि स्वतः सिङ्क हुन्छ। नेटवर्क पूर्ण अवरुद्ध हुँदा VHF आपतकालीन च्यानल १६ (१४८.५ MHz) बाट सूचना आदानप्रदान गरिन्छ।',
+    answerEn: 'Field personnel can open `/pwa` on mobile to record incidents offline into local browser IndexedDB. Upon network restoration, queued records synchronize automatically. In total telecom blackouts, VHF Radio Channel 16 (148.5 MHz) operates as an off-grid voice mesh.',
+    keywords: ['अफलाइन', 'pwa', 'vhf', 'रेडियो', 'offline', 'radio', 'indexeddb'],
   },
   {
     id: 'faq-8',
-    category: 'complaints',
-    question: '८. सेवाग्राहीबाट प्राप्त गुनासो कसरी फर्स्यौट गर्ने र स्थिति अद्यावधिक गर्ने?',
-    answer: '"गुनासो व्यवस्थापन" मेनुमा जानुहोस्। अनलाइन वा प्रत्यक्ष प्राप्त गुनासोहरूको सूची देखिनेछ। गुनासो विवरण खोली सम्बन्धित वडा वा शाखामा अग्रप्रेषण (Forward) गर्न वा कारबाही सम्पन्न भएपछि समाधानको व्यहोरा लेखी "फर्स्यौट भएको" मा अद्यावधिक गर्न सकिन्छ।',
-    keywords: ['गुनासो', 'फर्स्यौट', 'complaints', 'समाधान', 'अग्रप्रेषण'],
+    category: 'telemetry',
+    questionNp: '८. राष्ट्रिय BIPAD पोर्टल र जल तथा मौसम विज्ञान विभाग (DHM) तथ्याङ्क कसरी सिङ्क हुन्छ?',
+    questionEn: '8. How does NIDRMS synchronize data with the National BIPAD Portal and DHM telemetry?',
+    answerNp: '"राष्ट्रिय विपद् पोर्टल (BIPAD Sync)" ट्याबमा DHM, विपद् जोखिम न्यूनीकरण तथा व्यवस्थापन प्राधिकरण (NDRRMA) को BIPAD पोर्टल, नेपाली सेना र सशस्त्र प्रहरीको गेटवेसँग वास्तविक समयमा API मार्फत तथ्याङ्क आदानप्रदान हुन्छ।',
+    answerEn: 'Under the "National BIPAD Gateway" tab, two-way automated REST synchronization exchanges live river telemetry, incident verification logs, and damage matrices with NDRRMA BIPAD and DHM national databases.',
+    keywords: ['bipad', 'dhm', 'गेटवे', 'gateway', 'ndrrma', 'sync'],
   },
   {
     id: 'faq-9',
-    category: 'technical',
-    question: '९. पालिकाको लोगो तथा नाम परिवर्तन गर्दा सम्पूर्ण प्रणालीमा कसरी लागू हुन्छ?',
-    answer: '"पालिका सेटिङ तथा लोगो" मेनुमा गएर नयाँ लोगो अपलोड वा URL प्रविष्ट गरी "परिवर्तन सुरक्षित गर्नुहोस्" मा क्लिक गर्नासाथ तत्काल माथिल्लो हेडर, पत्र लेटरहेड, र पावती रसिदमा स्वतः नयाँ लोगो र नाम प्रतिबिम्बित हुन्छ।',
-    keywords: ['लोगो', 'सेटिङ', 'पालिका नाम', 'logo', 'settings'],
+    category: 'relief',
+    questionNp: '९. विपद् कोषबाट लाभग्राहीको बैंक खातामा नगद राहत (DBT) कसरी निकासा हुन्छ?',
+    questionEn: '9. How are direct cash relief grants disbursed via Direct Bank Transfer (DBT)?',
+    answerNp: '"पालिका विपद् कोष राहत वितरण" ट्याबमा प्रमाणित पीडित परिवारको नागरिकता, बैंक खाता र भौचर नम्बर प्रविष्टि गरी प्रत्यक्ष बैंक स्थानान्तरण (DBT) मार्फत पारदर्शी रूपमा रकम निकासा हुन्छ र प्रत्येक भुक्तानी अडिट ट्रेलमा सुरक्षित रहन्छ।',
+    answerEn: 'Under "Disaster Relief Funds", validated beneficiary citizenship numbers, bank accounts, and payment vouchers are recorded for transparent Direct Bank Transfers (DBT), fully locked into immutable audit logs.',
+    keywords: ['राहत कोष', 'dbt', 'बैंक', 'नगद', 'funds', 'cash', 'transfer'],
   },
   {
     id: 'faq-10',
-    category: 'technical',
-    question: '१०. कर्मचारी लगइन पासवर्ड बिर्सिएमा वा खाता सुरक्षित कसरी राख्ने?',
-    answer: 'प्रणालीमा कर्मचारी खाता सुरक्षित राख्न प्रत्येक प्रयोगकर्तालाई छुट्टाछुट्टै इमेल र बलियो पासवर्ड दिइएको हुन्छ। पासवर्ड परिवर्तन गर्न वा बिर्सिएमा सम्बन्धित पालिकाको सूचना प्रविधि (IT Admin) अधिकृत वा प्रमुख प्रशासकीय अधिकृतसँग सम्पर्क गरी रिसेट गराउन सकिन्छ।',
-    keywords: ['पासवर्ड', 'लगइन', 'सुरक्षा', 'it admin', 'password'],
+    category: 'gis',
+    questionNp: '१०. PostGIS डाटाबेस ब्याकअप र आपतकालीन DR रिकभरी कसरी परीक्षण गरिन्छ?',
+    questionEn: '10. How are PostGIS spatial backups and disaster recovery drills executed?',
+    answerNp: '`/backup-dr` पृष्ठमा गई २४ घण्टे स्वचालित PostGIS spatial ब्याकअप, SHA-256 चेकसम प्रमाणीकरण, र प्रत्यक्ष डिजास्टर रिकभरी ड्रिल चलाउन सकिन्छ। प्रणालीले RPO < १५ मिनेट र RTO < ५ मिनेटको गतिमा पुनःस्थापनाको ग्यारेन्टी गर्दछ।',
+    answerEn: 'Visit `/backup-dr` to inspect daily automated PostGIS spatial snapshots, SHA-256 integrity checksums, and execute live disaster recovery drills guaranteeing RPO < 15 minutes and RTO < 5 minutes.',
+    keywords: ['ब्याकअप', 'dr', 'रिकभरी', 'backup', 'postgis', 'recovery', 'drill'],
   },
 ];
 
 export const USER_GUIDES: UserGuideItem[] = [
   {
     id: 'guide-1',
-    title: '१. नयाँ पत्र दर्ता, समय व्यवस्थापन तथा नागरिक पावती रसिद प्रवाह',
-    category: 'दर्ता प्रशासन',
-    readTime: '३ मिनेट',
+    titleNp: '१. विपद् घटना दर्ता, स्थलगत प्रमाणीकरण तथा आपतकालीन साइरन प्रवाह',
+    titleEn: '1. Incident Reporting, Field Inspection & Emergency Siren Broadcast',
+    categoryNp: 'विपद् कमाण्ड तथा प्रतिकार्य',
+    categoryEn: 'Disaster Command & Response',
+    readTimeNp: '३ मिनेट',
+    readTimeEn: '3 min read',
     steps: [
       {
         stepNo: 1,
-        title: 'दर्ता किताब खोल्नुहोस्',
-        description: 'साइडबारबाट "दर्ता तथा चलानी" मा गई नीलो रंगको "+ नयाँ दर्ता प्रविष्टि गर्नुहोस्" बटन थिच्नुहोस्।',
-        tip: 'चालू आर्थिक वर्षको दर्ता नम्बर प्रणालीले स्वतः सिफारिस गर्दछ।',
+        titleNp: 'विपद् कमाण्ड ड्यासबोर्ड खोल्नुहोस्',
+        titleEn: 'Open Disaster Command Dashboard',
+        descNp: 'बायाँ साइडबारबाट "विपद् व्यवस्थापन" मा गई रातो रङ्गको "+ नयाँ विपद् घटना दर्ता" बटनमा क्लिक गर्नुहोस्।',
+        descEn: 'Navigate to "Disaster Management" from sidebar and click the red "+ Report New Incident" button.',
+        tipNp: 'प्रणालीले घटना ID (जस्तै DIS-२०८१-००५) स्वतः सिफारिस गर्दछ।',
+        tipEn: 'The system automatically generates a unique Incident ID (e.g., DIS-2081-005).',
       },
       {
         stepNo: 2,
-        title: 'पत्र तथा पठाउनेको विवरण भर्नुहोस्',
-        description: 'पठाउने कार्यालय वा व्यक्तिको नाम, ठेगाना, प्राप्त पत्रको चलानी नं., र पत्रको मुख्य विषय स्पष्ट रूपमा प्रविष्ट गर्नुहोस्।',
+        titleNp: 'विपद् विवरण तथा GPS स्थान भर्नुहोस्',
+        titleEn: 'Enter Hazard Details & GPS Coordinates',
+        descNp: 'विपद् प्रकार (बाढी/पहिरो), वडा नम्बर, प्रभावित घरधुरी संख्या, र GPS अक्षांश-देशान्तर स्पष्ट रूपमा प्रविष्ट गर्नुहोस्।',
+        descEn: 'Select hazard type (flood/landslide), affected ward, households at risk, and precise GPS lat/lng coordinates.',
       },
       {
         stepNo: 3,
-        title: 'समय तथा मिति जाँच गर्नुहोस्',
-        description: 'दर्ता मिति नेपाली पात्रोबाट छान्नुहोस् र "अहिले" बटन थिची नेपाली ढाँचाको समय (उदा. १०:३० पूर्वाह्न) सेट गर्नुहोस्।',
+        titleNp: 'स्थलगत प्राविधिक प्रमाणीकरण गर्नुहोस्',
+        titleEn: 'Perform On-Site Technical Verification',
+        descNp: 'वडा प्राविधिक टोलीले घटनास्थल पुगेर तस्वीर, क्षति विवरण र वस्तुस्थिति जाँच गरी घटनालाई "प्रमाणित" स्थितिमा राख्नुहोस्।',
+        descEn: 'Ward emergency inspector visits the ground site with mobile GPS, inspects damages, and marks incident "Verified".',
       },
       {
         stepNo: 4,
-        title: 'सुरक्षित गर्नुहोस् र पावती दिनुहोस्',
-        description: 'फाराम सुरक्षित गरेपछि तालिकामा रहेको "पावती" बटन थिची नागरिक दर्ता भरपाई रसिद प्रिन्ट गरी सेवाग्राहीलाई उपलब्ध गराउनुहोस्।',
+        titleNp: 'आवश्यक परेमा IVR तथा साइरन सक्रिय गर्नुहोस्',
+        titleEn: 'Trigger IVR Voice Calls & Sirens if Critical',
+        descNp: 'उच्च जोखिम भएमा "स्वचालित IVR कल र साइरन" ट्याबबाट तटीय बासिन्दालाई एक-क्लिकमा चेतावनी सन्देश पठाउनुहोस्।',
+        descEn: 'For critical escalation, navigate to Broadcast tab to initiate outbound phone calls and 5-10km solar sirens.',
       },
     ],
   },
   {
     id: 'guide-2',
-    title: '२. आधिकारिक तोक आदेश (Tok Aadesh) कार्यान्वयन प्रक्रिया',
-    category: 'प्रशासकीय कारबाही',
-    readTime: '२ मिनेट',
+    titleNp: '२. खोज-उद्धार (SAR) हेभी इक्युपमेन्ट परिचालन तथा स्वयंसेवक समन्वय',
+    titleEn: '2. SAR Heavy Equipment Mobilization & Volunteer Coordination',
+    categoryNp: 'खोज तथा उद्धार अपरेसन',
+    categoryEn: 'Search & Rescue (SAR) Operations',
+    readTimeNp: '२ मिनेट',
+    readTimeEn: '2 min read',
     steps: [
       {
         stepNo: 1,
-        title: 'दर्ता भएको पत्र पहिचान गर्नुहोस्',
-        description: 'दर्ता किताब तालिकामा तोक आदेश लगाउनुपर्ने पत्र खोज्नुहोस् र "तोक आदेश" बटनमा क्लिक गर्नुहोस्।',
+        titleNp: 'SAR हेभी इक्युपमेन्ट डाइरेक्टरी खोल्नुहोस्',
+        titleEn: 'Open SAR Equipment Directory',
+        descNp: 'विपद् हबको ट्याब १५ "खोज-उद्धार (SAR) र डोजर डाइरेक्टरी" मा जानुहोस्।',
+        descEn: 'Open Tab 15 "SAR Directory" inside Disaster Hub to view ready machinery.',
       },
       {
         stepNo: 2,
-        title: 'तोक आदेश निर्देशन चयन वा टाइप गर्नुहोस्',
-        description: 'मानक तोक आदेश (Quick Presets) बाट आवश्यकता अनुसार निर्देशन छान्नुहोस् वा तलको बक्समा विशेष निर्देशन लेख्नुहोस्।',
+        titleNp: 'नजिकको डोजर, एक्साभेटर वा डुङ्गा पहिचान गर्नुहोस्',
+        titleEn: 'Locate Nearest Dozer, Excavator, or Rescue Boat',
+        descNp: 'घटना भएको वडा नजिक स्ट्यान्डबाइ अवस्थामा रहेका मेशिन र अपरेटरको प्रत्यक्ष फोन नम्बर हेर्नुहोस्।',
+        descEn: 'Filter standby machinery near the impacted ward and identify operator contact numbers.',
       },
       {
         stepNo: 3,
-        title: 'शाखा, कर्मचारी र म्याद तोक्नुहोस्',
-        description: 'कारबाही गर्ने सम्बन्धित शाखा (जस्तै योजना, प्रशासन, स्वास्थ्य), जिम्मेवार कर्मचारी र कार्यसम्पादन म्याद (Deadline) सेट गर्नुहोस्।',
-        tip: 'म्याद तोक्दा प्राथमिकता (साधारण, जरुरी, तुरुन्त) अनुसार मिति स्वचालित मिलाउन सकिन्छ।',
-      },
-      {
-        stepNo: 4,
-        title: 'तोक आदेश जारी गर्नुहोस्',
-        description: '"तोक आदेश जारी गर्नुहोस्" बटन थिचेपछि सो पत्र सम्बन्धित शाखाको कार्यसूचीमा स्वतः प्रेषित हुन्छ।',
+        titleNp: 'आधिकारिक SAR परिचालन आदेश जारी गर्नुहोस्',
+        titleEn: 'Transmit Formal SAR Dispatch Order',
+        descNp: '"आदेश पठाउनुहोस्" बटन थिची अपरेटर तथा वडा स्वयंसेवक कार्यदललाई घटनास्थलमा तत्काल खटाउनुहोस्।',
+        descEn: 'Click "Transmit Dispatch" to issue authorized deployment instructions to operators and volunteer teams.',
       },
     ],
   },
   {
     id: 'guide-3',
-    title: '३. चलानी पत्र जारी गर्ने तथा QR कोडसहितको लेटरहेड प्रिन्टिङ',
-    category: 'पत्राचार प्रशासन',
-    readTime: '३ मिनेट',
+    titleNp: '३. गृहमन्त्रालय राहत मापदण्ड २०७७ अनुसार क्षति मूल्याङ्कन तथा राहत वितरण',
+    titleEn: '3. MoHA Standard 2077 Damage Audits & Relief DBT Disbursement',
+    categoryNp: 'राहत तथा पुनःलाभ',
+    categoryEn: 'Relief & Recovery Administration',
+    readTimeNp: '३ मिनेट',
+    readTimeEn: '3 min read',
     steps: [
       {
         stepNo: 1,
-        title: 'चलानी किताबमा जानुहोस्',
-        description: 'दर्ता-चलानी पृष्ठमा "चलानी किताब (Outward)" ट्याब चयन गरी "+ नयाँ चलानी प्रविष्टि गर्नुहोस्" मा क्लिक गर्नुहोस्।',
+        titleNp: 'RDRA डिजिटल फाराम भर्नुहोस्',
+        titleEn: 'Complete Field RDRA Form',
+        descNp: 'विपद् हबको ट्याब १४ मा गई प्रभावित घरधुरीको पूर्ण वा आंशिक क्षति विवरण र नागरिकता नम्बर प्रविष्ट गर्नुहोस्।',
+        descEn: 'Navigate to Tab 14 in Disaster Hub to record structured household damages and citizenship numbers.',
       },
       {
         stepNo: 2,
-        title: 'पाउने कार्यालय तथा पत्र विवरण भर्नुहोस्',
-        description: 'पाउने कार्यालय वा व्यक्तिको नाम, ठेगाना, पत्रको विषय, पठाउने शाखा र हस्ताक्षर गर्ने अधिकारी चयन गर्नुहोस्।',
+        titleNp: 'मापदण्ड अनुसार राहत रकम प्रमाणीकरण',
+        titleEn: 'Verify Relief Entitlement per Standard',
+        descNp: 'प्रणालीले गृहमन्त्रालय २०७७ मापदण्ड बमोजिम तत्काल राहत रकम स्वतः गणना गर्दछ।',
+        descEn: 'The automated rules engine computes statutory cash grants according to MoHA Standard 2077.',
       },
       {
         stepNo: 3,
-        title: 'चलानी सुरक्षित गर्नुहोस्',
-        description: 'फाराम सुरक्षित गरेपछि प्रणालीले सरकारी मानक प्रमाणीकरण कोड स्वतः सिर्जना गर्दछ।',
-      },
-      {
-        stepNo: 4,
-        title: 'आधिकारिक सरकारी लेटरहेड प्रिन्ट गर्नुहोस्',
-        description: 'तालिकामा रहेको "पत्र प्रिन्ट" बटन थिच्नुहोस्। नेपाल सरकारको निशाना छाप, पालिकाको हेडर, पत्र संख्या, चलानी नं. र सत्यता जाँच गर्ने QR कोडसहितको आधिकारिक पत्र छाप्न सकिन्छ।',
+        titleNp: 'बैंक खातामा प्रत्यक्ष भुक्तानी (DBT) निकासा गर्नुहोस्',
+        titleEn: 'Disburse via Direct Bank Transfer (DBT)',
+        descNp: 'ट्याब ३ "पालिका विपद् कोष राहत वितरण" मा बैंक भौचर नम्बर प्रविष्ट गरी भुक्तानी सम्पन्न गर्नुहोस्।',
+        descEn: 'In Tab 3 Relief Funds, disburse grants directly into beneficiary bank accounts with voucher tracking.',
       },
     ],
   },
 ];
 
 export const IT_SUPPORT_INFO = {
-  municipality: 'पाँचपोखरी थाङपाल गाउँपालिका',
-  headquarters: 'थाङपालधाप, सिन्धुपाल्चोक, बागमती प्रदेश',
-  itOfficer: 'इन्जिनियर तथा सूचना प्रविधि शाखा',
-  email: 'info@panchpokharimun.gov.np',
-  phone: '०११-६९०१२३ / ९८५११००१२३',
-  tollFree: '१६६०-०१-९९९९९ (निःशुल्क टोल-फ्री)',
-  emergencyHotline: '११४४ (विपद् तथा सहायता)',
-  officeHours: 'आइतबार देखि बिहीबार: बिहान १०:०० - साँझ ५:०० | शुक्रबार: बिहान १०:०० - दिउँसो ३:००',
+  municipalityNp: 'पाँचपोखरी थाङपाल गाउँपालिका — आपतकालीन कार्यसञ्चालन केन्द्र (LEOC)',
+  municipalityEn: 'Panchpokhari Thangpal Rural Municipality — Local EOC (LEOC)',
+  headquartersNp: 'थाङपालधाप, सिन्धुपाल्चोक, बागमती प्रदेश, नेपाल',
+  headquartersEn: 'Thangpaldhap, Sindhupalchok, Bagmati Province, Nepal',
+  itOfficerNp: 'विपद् व्यवस्थापन तथा सूचना प्रविधि शाखा (EOC कमाण्ड)',
+  itOfficerEn: 'Disaster Management & IT Section (EOC Command)',
+  email: 'disaster@panchpokharimun.gov.np',
+  phone: '०११-४६०१११ / ९८४१२२३३४४',
+  tollFreeNp: '१६६०-०१-४४४४४ (निःशुल्क विपद् टोल-फ्री)',
+  tollFreeEn: '1660-01-44444 (Toll-Free Disaster Helpline)',
+  emergencyHotlineNp: '११४४ (२४/७ आपतकालीन EOC हटलाइन) · VHF Ch. 16',
+  emergencyHotlineEn: '1144 (24/7 Emergency EOC Hotline) · VHF Ch. 16',
+  officeHoursNp: 'आपतकालीन नियन्त्रण कक्ष (EOC): २४ घण्टा ७ दिन खुला (24/7)',
+  officeHoursEn: 'Emergency Operations Centre (LEOC): 24 Hours / 7 Days Live',
 };

@@ -5,14 +5,18 @@ import { useTenant } from '../../context/TenantContext';
 import { useQuery } from '@tanstack/react-query';
 import { municipalityApi } from '../../api/municipality';
 import { representativesApi } from '../../api/representatives';
+import { useLanguage } from '../../context/LanguageContext';
 
 export const Profile: React.FC = () => {
   const { settings } = useTenant();
-  const palikaName = settings?.palika_name || 'हाम्रो गाउँपालिका/नगरपालिका';
-  const district = settings?.district || '';
-  const province = settings?.province || '';
+  const { isNepali } = useLanguage();
+  const palikaName = isNepali
+    ? (settings?.palika_name || 'पाँचपोखरी थाङपाल गाउँपालिका')
+    : 'Panchpokhari Thangpal Rural Municipality';
+  const district = isNepali ? (settings?.district || 'सिन्धुपाल्चोक') : 'Sindhupalchok';
+  const province = isNepali ? (settings?.province || 'बागमती प्रदेश') : 'Bagmati Province';
   const totalWards = settings?.total_wards || 8;
-  const hq = settings?.headquarters || '';
+  const hq = isNepali ? (settings?.headquarters || 'थाङपालधाप') : 'Thangpaldhap';
   const location = useLocation();
   const navigate = useNavigate();
   const isAdmin = location.pathname.startsWith('/app');
@@ -37,10 +41,12 @@ export const Profile: React.FC = () => {
             <Building2 size={40} color="#0284c7" />
           </div>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem' }}>
-            पालिका परिचय
+            {isNepali ? 'पालिका परिचय तथा विवरण' : 'Palika Profile & Administration'}
           </h1>
           <p style={{ color: '#64748b', fontSize: '1.1rem', maxWidth: '600px', margin: '0 auto' }}>
-            {palikaName}को ऐतिहासिक, प्रशासनिक विवरण तथा वडा कार्यालयहरूको सम्पर्क सूची
+            {isNepali
+              ? `${palikaName}को भौगोलिक, प्रशासनिक विवरण तथा वडा कार्यालयहरूको सम्पर्क सूची`
+              : `Geographical, administrative profile, and ward directory of ${palikaName}`}
           </p>
         </div>
 

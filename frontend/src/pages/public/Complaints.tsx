@@ -19,6 +19,7 @@ import {
 import { complaintsApi } from '../../api/complaints';
 import type { Complaint } from '../../types/complaint';
 import { rtiApi, type RtiRequest } from '../../api/rti';
+import { useLanguage } from '../../context/LanguageContext';
 
 const CATEGORIES = [
   { value: 'infrastructure', label: 'सडक तथा पूर्वाधार' },
@@ -42,6 +43,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }
 
 export const Complaints: React.FC = () => {
   const navigate = useNavigate();
+  const { isNepali } = useLanguage();
   const [activeTab, setActiveTab] = useState<'register' | 'rti' | 'track'>('register');
 
   // Form State (Complaints)
@@ -198,12 +200,13 @@ export const Complaints: React.FC = () => {
             <MessageSquare size={28} color="#ffffff" />
           </div>
           <h1 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0 }}>
-            नागरिक गुनासो तथा उजुरी व्यवस्थापन
+            {isNepali ? 'नागरिक गुनासो तथा उजुरी व्यवस्थापन' : 'Citizen Grievance & Disaster Appeals'}
           </h1>
         </div>
         <p style={{ color: '#bfdbfe', margin: '0.25rem 0 0 0', fontSize: '0.95rem', maxWidth: '700px' }}>
-          पाँचपोखरी थाङपाल गाउँपालिकाको सेवा प्रवाह, विकास निर्माण, वा अन्य विषयमा आफ्ना समस्या र सुझावहरू
-          सिधै जनप्रतिनिधि तथा जिम्मेवार अधिकारीसमक्ष पुर्‍याउनुहोस्।
+          {isNepali
+            ? 'पाँचपोखरी थाङपाल गाउँपालिकाको सेवा प्रवाह, विकास निर्माण वा विपद् राहत सम्बन्धी आफ्ना समस्या र सुझावहरू सिधै जिम्मेवार अधिकारीसमक्ष पुर्‍याउनुहोस्।'
+            : 'Submit feedback, emergency appeals, or grievances regarding municipal services and disaster relief directly to designated officers.'}
         </p>
       </div>
 
@@ -243,7 +246,7 @@ export const Complaints: React.FC = () => {
           }}
         >
           <Send size={18} color={activeTab === 'register' ? '#0f4c81' : '#94a3b8'} />
-          <span>गुनासो दर्ता (गुनासो सुन्ने अधिकारी)</span>
+          <span>{isNepali ? 'गुनासो दर्ता (गुनासो सुन्ने अधिकारी)' : 'Register Grievance / Appeal'}</span>
         </button>
 
         <button
@@ -268,7 +271,7 @@ export const Complaints: React.FC = () => {
           }}
         >
           <FileText size={18} color={activeTab === 'rti' ? '#0f4c81' : '#94a3b8'} />
-          <span>सूचना मागको निवेदन (सूचना अधिकारी)</span>
+          <span>{isNepali ? 'सूचना मागको निवेदन (सूचना अधिकारी)' : 'Right to Information (RTI)'}</span>
         </button>
 
         <button
@@ -293,7 +296,7 @@ export const Complaints: React.FC = () => {
           }}
         >
           <Search size={18} color={activeTab === 'track' ? '#0f4c81' : '#94a3b8'} />
-          <span>स्थिति ट्र्याक गर्नुहोस् (Track Status)</span>
+          <span>{isNepali ? 'स्थिति ट्र्याक गर्नुहोस् (Track Status)' : 'Track Application Status'}</span>
         </button>
       </div>
 

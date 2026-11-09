@@ -5,6 +5,7 @@ import {
   Heart, TrendingUp, Globe, Map,
 } from 'lucide-react';
 import { demographicsApi, DemographicSummary } from '../../api/demographics';
+import { useLanguage } from '../../context/LanguageContext';
 
 /* ── helpers ── */
 const Stat: React.FC<{ icon: React.ReactNode; label: string; value: string | number; color: string; sub?: string }> = ({
@@ -102,6 +103,7 @@ const FALLBACK: DemographicSummary = {
 };
 
 export const Demographics: React.FC = () => {
+  const { isNepali } = useLanguage();
   const [data, setData] = useState<DemographicSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -141,8 +143,12 @@ export const Demographics: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, position: 'relative' }}>
           <Users size={36} color="#38bdf8" />
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.9rem', fontWeight: 800 }}>जनसांख्यिक अवस्था</h1>
-            <p style={{ margin: 0, color: '#93c5fd', fontSize: '0.95rem' }}>राष्ट्रिय जनगणना २०७८ — पाँचपोखरी थाङपाल गाउँपालिका</p>
+            <h1 style={{ margin: 0, fontSize: '1.9rem', fontWeight: 800 }}>
+              {isNepali ? 'जनसांख्यिक अवस्था तथा घरधुरी लगत' : 'Demographics & Household Baseline'}
+            </h1>
+            <p style={{ margin: 0, color: '#93c5fd', fontSize: '0.95rem' }}>
+              {isNepali ? 'राष्ट्रिय जनगणना २०७८ — पाँचपोखरी थाङपाल गाउँपालिका' : 'National Census 2078 (2021) — Panchpokhari Thangpal Rural Municipality'}
+            </p>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: '1.25rem', position: 'relative' }}>
@@ -150,9 +156,9 @@ export const Demographics: React.FC = () => {
             background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
             color: '#fff', padding: '0.45rem 1rem', borderRadius: 10, cursor: 'pointer', fontSize: '0.9rem',
           }}>
-            <option value={0} style={{ color: '#0f172a' }}>सम्पूर्ण पालिका</option>
+            <option value={0} style={{ color: '#0f172a' }}>{isNepali ? 'सम्पूर्ण पालिका' : 'All Wards'}</option>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(w => (
-              <option key={w} value={w} style={{ color: '#0f172a' }}>वडा नं. {w}</option>
+              <option key={w} value={w} style={{ color: '#0f172a' }}>{isNepali ? `वडा नं. ${w}` : `Ward No. ${w}`}</option>
             ))}
           </select>
           <button onClick={load} style={{
@@ -160,14 +166,14 @@ export const Demographics: React.FC = () => {
             color: '#fff', padding: '0.45rem 1rem', borderRadius: 10, cursor: 'pointer',
             display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.9rem',
           }}>
-            <RefreshCw size={14} /> पुनःलोड
+            <RefreshCw size={14} /> {isNepali ? 'पुनःलोड' : 'Reload'}
           </button>
           {/* Summary pills */}
           {[
-            { label: `${d.population.total.toLocaleString()} जनसंख्या` },
-            { label: `${d.population.households.toLocaleString()} घरधुरी` },
-            { label: `${d.population.wards} वडा` },
-            { label: `${d.population.areaSqKm} वर्ग कि.मि.` },
+            { label: `${d.population.total.toLocaleString()} ${isNepali ? 'जनसंख्या' : 'Population'}` },
+            { label: `${d.population.households.toLocaleString()} ${isNepali ? 'घरधुरी' : 'Households'}` },
+            { label: `${d.population.wards} ${isNepali ? 'वडा' : 'Wards'}` },
+            { label: `${d.population.areaSqKm} ${isNepali ? 'वर्ग कि.मि.' : 'sq. km'}` },
           ].map(p => (
             <span key={p.label} style={{
               background: 'rgba(255,255,255,0.18)', borderRadius: 20,

@@ -17,7 +17,7 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
   const { tenantId, setTenantId } = useTenant();
   const { isAuthenticated, login } = useAuth();
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -65,23 +65,23 @@ export const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await authApi.login(email, password, tenantId);
-      
+
       // ✅ Use server-resolved tenantSubdomain (from user's actual account)
       // Falls back to the manually selected tenantId from the dropdown
       const effectiveTenant = res.tenantSubdomain || (tenantId && tenantId !== 'all' ? tenantId : null);
       if (effectiveTenant) {
         setTenantId(effectiveTenant); // Updates TenantContext + localStorage immediately
       }
-      
+
       login(res.user, res.accessToken);
-      
+
       const userRole = res.user.role;
       if (userRole === 'super_admin' || userRole === 'it_admin') {
-         window.location.href = '/super-admin.html';
+        window.location.href = '/super-admin.html';
       } else if (userRole.startsWith('public_') && from === '/app') {
-         navigate('/citizen-services', { replace: true });
+        navigate('/citizen-services', { replace: true });
       } else {
-         navigate(from, { replace: true });
+        navigate(from, { replace: true });
       }
     } catch (err: any) {
       if (err?.response?.data?.message && err.response.data.message.includes('प्रमाणीकरणको क्रममा छ')) {
@@ -116,14 +116,14 @@ export const LoginPage: React.FC = () => {
         }}></div>
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
           <h1 style={{ fontSize: '3rem', fontWeight: 800, lineHeight: 1.15, marginBottom: '1.5rem' }}>
-            Disaster Risk<br/>Management System
+            Disaster Risk<br />Management System
           </h1>
           <p style={{ fontSize: '1.05rem', lineHeight: 1.6, opacity: 0.9 }}>
             नेपाल एकीकृत विपद् व्यवस्थापन प्रणाली (NIDRMS) — रियल-टाइम पूर्वसूचना, बहु-क्षेत्रीय जोखिम मूल्याङ्कन, खोज-उद्धार र पुनर्निर्माण।
           </p>
         </div>
       </div>
-      
+
       {/* Right Panel */}
       <div className="login-right" style={{
         width: '100%', maxWidth: '520px', background: 'white',
@@ -138,7 +138,7 @@ export const LoginPage: React.FC = () => {
             fontSize: '20px', fontWeight: 800, color: 'white',
             marginBottom: '2rem', boxShadow: '0 8px 24px rgba(37,99,235,0.3)'
           }}>P5</div>
-          
+
           <h2 style={{ fontWeight: 'bold', marginBottom: '0.25rem', fontSize: '1.5rem', color: '#0f172a' }}>
             प्रशासनिक लगइन
           </h2>
@@ -159,8 +159,8 @@ export const LoginPage: React.FC = () => {
 
           {/* Hidden Demo Credentials */}
           <div style={{ display: 'none' }}>
-             <button type="button" onClick={() => handleFillDemo('cao@panchpokhari.gov.np', 'DemoUser@2024!', 'panchpokhari')}>CAO</button>
-             <button type="button" onClick={() => handleFillDemo('super_admin@p5digital.local', 'Admin@P5Digital2024!', 'all')}>Super Admin</button>
+            <button type="button" onClick={() => handleFillDemo('cao@panchpokhari.gov.np', 'DemoUser@2024!', 'panchpokhari')}>CAO</button>
+            <button type="button" onClick={() => handleFillDemo('super_admin@p5digital.local', 'Admin@P5Digital2024!', 'all')}>Super Admin</button>
           </div>
 
           <form onSubmit={handleLogin}>
@@ -241,7 +241,7 @@ export const LoginPage: React.FC = () => {
             >
               {isLoading ? 'प्रमाणिकरण हुँदैछ...' : 'साइन-इन गर्नुहोस्'}
             </button>
-            
+
             <div style={{ textAlign: 'center' }}>
               <a href="/index.html" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.85rem', fontWeight: 500 }}>
                 ← सार्वजनिक पेजमा फर्कनुहोस्
@@ -250,7 +250,7 @@ export const LoginPage: React.FC = () => {
           </form>
         </div>
       </div>
-      
+
       {/* Mobile override via style tag */}
       <style>{`
         @media (max-width: 900px) {
