@@ -959,10 +959,10 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Layers size={28} color="var(--primary)" />
-            <span>डिजिटल ट्विन GIS नक्सा तथा ३D भू-धरातल</span>
+            <span>विपद् जोखिम GIS नक्सा तथा ३D भू-धरातल</span>
           </h1>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-            सार्वजनिक पूर्वाधार (स्वास्थ्य सेवा, शिक्षा प्रणाली, वडा कार्यालय) को GPS नक्साङ्कन, Shapely बफर विश्लेषण र प्रत्यक्ष IoT सेन्सर टेलिमेट्री
+            ५,८०५ घरधुरी, नदी कटान २०० मिटर बफर, पहिरो जोखिम क्षेत्र र प्रत्यक्ष IoT सेन्सर टेलिमेट्री
           </p>
         </div>
 
@@ -1007,7 +1007,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
               }}
             >
               <Box size={16} />
-              <span>३D डिजिटल ट्विन भू-धरातल</span>
+              <span>३D विपद् जोखिम भू-धरातल</span>
             </button>
           </div>
 
@@ -2688,7 +2688,7 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
                   <span style={{ fontSize: '10px', background: '#0284c7', padding: '1px 7px', borderRadius: '12px', textTransform: 'uppercase', fontWeight: 700 }}>Full Page GIS</span>
                 </div>
                 <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                  डिजिटल ट्विन कमान्ड सेन्टर • २D/३D टोपोग्राफी नक्सा
+                  विपद् जोखिम कमान्ड सेन्टर • २D/३D टोपोग्राफी नक्सा
                 </div>
               </div>
             </div>

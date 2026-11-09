@@ -82,7 +82,7 @@ export const PalikaFactsheetModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 700, marginBottom: '1.25rem', padding: '0.6rem 1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <div>प्रकाशन मिति: <strong>{currentDate}</strong></div>
             <div>तथ्यपत्र सिम्बोल: <strong>P5-MDTS-FACT-2026</strong></div>
-            <div>प्रणाली: <strong>म्युनिसिपल डिजिटल ट्विन्स (Municipal Digital Twins)</strong></div>
+            <div>प्रणाली: <strong>राष्ट्रिय एकीकृत विपद् व्यवस्थापन (NIDRMS)</strong></div>
           </div>
 
           {/* 1. Basic Profile Summary Grid */}

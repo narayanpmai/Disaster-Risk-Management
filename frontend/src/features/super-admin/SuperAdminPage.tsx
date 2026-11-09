@@ -1631,7 +1631,7 @@ export const SuperAdminPage: React.FC = () => {
                     <h4 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>
                       दर्ता भएका पालिकाहरू (Registered Municipalities)
                     </h4>
-                    <small style={{ color: '#64748b' }}>केन्द्रीय डिजिटल ट्विन प्लेटफर्ममा आबद्ध स्थानीय तहहरूको सूची</small>
+                    <small style={{ color: '#64748b' }}>केन्द्रीय एकीकृत विपद् व्यवस्थापन (NIDRMS) प्लेटफर्ममा आबद्ध स्थानीय तहहरूको सूची</small>
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px' }}>

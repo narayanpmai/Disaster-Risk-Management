@@ -96,7 +96,7 @@ export const PalikaProfileMasterPage: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.55rem', flexWrap: 'wrap' }}>
               <span className="palika-telemetry-badge">
                 <span className="palika-pulse-dot"></span>
-                म्युनिसिपल डिजिटल ट्विन्स प्रोफाइल हब
+                गाउँपालिका विपद् जोखिम प्रोफाइल हब (NIDRMS)
               </span>
               <span style={{ fontSize: '0.78rem', color: '#a7f3d0', fontWeight: 600 }}>
                 नेपाल सरकार • {palikaName}

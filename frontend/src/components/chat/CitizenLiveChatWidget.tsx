@@ -1146,7 +1146,7 @@ export const CitizenLiveChatWidget: React.FC = () => {
               alignItems: 'center',
             }}
           >
-            <span>पाँचपोखरी थाङपाल डिजिटल ट्विन</span>
+            <span>पाँचपोखरी थाङपाल विपद् व्यवस्थापन (NIDRMS)</span>
             <span style={{ fontWeight: 600, color: '#059669' }}>सुशासन ऐन, २०६४</span>
           </div>
         </div>

@@ -36,7 +36,7 @@ export const DICTIONARY: Translations = {
   'nav.shelters': { np: 'सुरक्षित आश्रयस्थल र राहत मौज्दात', en: 'Evacuation Shelters & Relief Stock' },
   'nav.cctv': { np: 'CCTV क्यामेरा लाइभ सर्भिलेन्स', en: 'CCTV Live Video Surveillance' },
   'nav.audit_logs': { np: 'प्रणाली अडिट ट्रेल तथा सुरक्षा लग', en: 'Audit Trail & Security Logs' },
-  'nav.gis_3d': { np: '३D/जीआईएस डिजिटल ट्विन', en: '3D/GIS Digital Twin' },
+  'nav.gis_3d': { np: '३D/जीआईएस विपद् नक्सा', en: '3D/GIS Hazard Map' },
   'nav.pwa': { np: 'नागरिक एप (PWA)', en: 'Citizen PWA App' },
   'nav.login': { np: 'कर्मचारी लगइन', en: 'Staff Login' },
   'nav.logout': { np: 'लगआउट', en: 'Logout' },

@@ -155,7 +155,7 @@ export const DigitalSignatureBadge: React.FC<DigitalSignatureBadgeProps> = ({
                 <strong style={{ color: '#166534', fontSize: '0.9rem' }}>प्रमाणित तथा आधिकारिक अभिलेख</strong>
               </div>
               <p style={{ margin: 0, fontSize: '0.8rem', color: '#166534', lineHeight: 1.4 }}>
-                यो कागजात पालिकाको आधिकारिक डिजिटल ट्विन डाटाबेसमा सुरक्षित रूपमा दर्ता रहेको छ र कुनै पनि सम्पादन नगरिएको प्रमाणित हुन्छ।
+                यो कागजात पालिकाको आधिकारिक विपद् व्यवस्थापन (NIDRMS) डाटाबेसमा सुरक्षित रूपमा दर्ता रहेको छ र कुनै पनि सम्पादन नगरिएको प्रमाणित हुन्छ।
               </p>
             </div>
 

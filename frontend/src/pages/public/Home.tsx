@@ -178,19 +178,31 @@ export const Home: React.FC = () => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     const q = searchQuery.toLowerCase();
-    if (q.includes('नक्सा') && !q.includes('gis')) {
-      navigate(isAuthenticated ? '/ebps' : '/register');
+    if (q.includes('gis') || q.includes('नक्सा') || q.includes('map') || q.includes('बफर')) {
+      navigate('/gis-map');
+    } else if (q.includes('पहिरो') || q.includes('landslide') || q.includes('इन्क्लिनोमिटर')) {
+      navigate('/disaster?tab=vulnerable_settlements');
+    } else if (q.includes('बाढी') || q.includes('flood') || q.includes('जलसतह') || q.includes('सेन्सर')) {
+      navigate('/disaster?tab=sensors');
+    } else if (q.includes('आश्रय') || q.includes('shelter')) {
+      navigate('/disaster?tab=shelters');
+    } else if (q.includes('राहत') || q.includes('relief') || q.includes('dbt')) {
+      navigate('/disaster?tab=relief_funds');
+    } else if (q.includes('क्षति') || q.includes('rdra') || q.includes('damage')) {
+      navigate('/disaster?tab=rdra_damage');
+    } else if (q.includes('उद्धार') || q.includes('sar') || q.includes('डोजर')) {
+      navigate('/disaster?tab=heavy_equipment');
+    } else if (q.includes('साइरन') || q.includes('siren') || q.includes('ivr')) {
+      navigate('/disaster?tab=broadcast');
+    } else if (q.includes('योजना') || q.includes('पुनर्निर्माण') || q.includes('project')) {
+      navigate('/projects');
+    } else if (q.includes('गुनासो') || q.includes('उजुरी') || q.includes('appeal')) {
+      navigate('/complaints');
+    } else if (q.includes('घरधुरी') || q.includes('जनसंख्या') || q.includes('demographics')) {
+      navigate('/demographics');
+    } else {
+      navigate('/disaster');
     }
-    else if (q.includes('ठेक्का') || q.includes('बोलपत्र') || q.includes('खरिद')) {
-      navigate(isAuthenticated ? '/procurement?tab=apply' : '/register');
-    }
-    else if (q.includes('gis')) navigate('/gis-map');
-    else if (q.includes('विपद्') || q.includes('बाढी') || q.includes('सेन्सर')) navigate('/disaster');
-    else if (q.includes('योजना') || q.includes('प्रोजेक्ट')) navigate('/projects');
-    else if (q.includes('सिफारिस') || q.includes('सेवा')) navigate('/citizen-services');
-    else if (q.includes('गुनासो')) navigate('/complaints');
-    else if (q.includes('पर्यटन') || q.includes('पाँचपोखरी')) navigate('/tourism');
-    else navigate('/citizen-portal');
   };
 
   const handleProtectedAction = (path: string) => {
@@ -1036,7 +1048,7 @@ export const Home: React.FC = () => {
           <div style={{ padding: '3rem 2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: '#0284c7', fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.75rem' }}>
               <Sparkles size={16} />
-              <span>{isNepali ? 'नेपालकै पहिलो नगरस्तरीय विपद् डिजिटल ट्विन' : 'Nepal First Municipal Disaster Digital Twin'}</span>
+              <span>{isNepali ? 'नेपालकै पहिलो स्थानीय तह एकीकृत विपद् व्यवस्थापन प्रणाली (NIDRMS)' : 'Nepal First Municipal Integrated Disaster Risk Management System (NIDRMS)'}</span>
             </div>
             <h2 style={{ fontSize: '2.2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.25, margin: '0 0 1rem' }}>
               {isNepali ? 'पाँचपोखरीको ३डी जोखिम नक्सा तथा भू-स्थानिक (GIS) इन्टेलिजेन्स' : '3D Multi-Hazard Twin & Geospatial GIS Intelligence'}

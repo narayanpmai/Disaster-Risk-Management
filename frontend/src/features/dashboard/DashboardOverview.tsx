@@ -40,12 +40,15 @@ import {
   Waves,
   Mountain,
   Coins,
+  Truck,
+  Tent,
+  Radio,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { HouseholdRegistryTab } from '../citizen-portal/components/HouseholdRegistryTab';
 import { PredictiveAnalytics } from '../../components/analytics/PredictiveAnalytics';
 import { MunicipalGISMap } from '../../components/maps/MunicipalGISMap';
-import ssisFallbackData from '../../data/ssis_vital_report.json';
 
 // ── Devanagari / Nepali Digits Formatter ──────────────────────────────────────
 export const toNepaliDigits = (val: number | string | undefined | null, forceNepali = true): string => {
@@ -58,76 +61,33 @@ export const toNepaliDigits = (val: number | string | undefined | null, forceNep
   return formatted.replace(/[0-9]/g, (d) => nepaliDigits[parseInt(d, 10)] ?? d);
 };
 
-// ── Compute SSIS totals from bundled JSON ─────────────────────────────────────
-const _ssisSummary = ssisFallbackData.summary;
-const _ssisWards = ssisFallbackData.wards;
-
-// ── Default Seeded Baseline Counts ────────────────────────────────────────────
+// ── Default Seeded Baseline Counts (100% NIDRMS Disaster Domain) ─────────────
 const DEFAULT_STATS: Record<string, any> = {
-  totalCitizens: 21536,
-  totalPopulation: 21536,
-  malePopulation: 9494,
-  femalePopulation: 12042,
-  totalHouseholds: 5357,
-  totalGpsHouses: 5357,
-  highRiskHouses: 4,
+  totalCitizens: 17521,
+  totalPopulation: 17521,
+  malePopulation: 8600,
+  femalePopulation: 8921,
+  totalHouseholds: 5805,
+  totalGpsHouses: 5805,
+  highRiskHouses: 18,
   highRiskSettlements: 4,
-  totalShelters: 8,
-  totalShelterCapacity: 1640,
-  literacyRate: 72.0,
-  maleLiteracyRate: 81.4,
-  femaleLiteracyRate: 65.3,
-  economicallyActive: 8200,
-  participationRate: 58.7,
-  agricultureEmployed: 7812,
-  abroadPopulation: 1840,
+  totalShelters: 6,
+  totalShelterCapacity: 1310,
+  vulnerableCitizens: 1420,
+  sarHeavyEquipment: 12,
+  sarVolunteers: 64,
+  telemetrySensors: 3,
+  meshSirens: 4,
+  totalDisasterEvents: 8,
+  activeDisasterEvents: 2,
+  totalDamageLossNPR: 15750000,
+  reliefDisbursedNPR: 4850000,
   roadLengthKm: 148.5,
   waterAccessPercent: 88.5,
   budgetUtilizationPercent: 98.0,
-  totalSchools: 27,
-  totalStudents: 5760,
-  maleStudents: 2326,
-  femaleStudents: 2484,
-  totalTeachers: 272,
-  totalHealthFacilities: 10,
-  totalPatients: 3,
-  totalDarta: 3,
-  totalChalani: 11,
-  pendingDarta: 0,
-  totalBusinesses: 4,
-  activeBusinesses: 2,
-  // ── SSIS Vital Events — from ssis_vital_report.json ──────────────────────
-  totalVitalEvents: _ssisSummary.total_events,           // 1610
-  totalBirths: _ssisSummary.birth.total,                 // 758
-  malebirths: _ssisSummary.birth.male,                   // 385
-  femaleBirths: _ssisSummary.birth.female,               // 373
-  totalDeaths: _ssisSummary.death.total,                 // 312
-  totalMarriages: _ssisSummary.marriage,                 // 392
-  totalDivorces: _ssisSummary.divorce,                   // 114
-  totalMigrationOut: _ssisSummary.migration_out.cases,   // 30
-  totalMigrationIn: _ssisSummary.migration_in.cases,     // 4
-  ssisWardCount: _ssisWards.length,                      // 8
-  // ── Social Security ───────────────────────────────────────────────────────
-  totalSocialSecurityBeneficiaries: 6,
-  activeBeneficiaries: 3,
-  totalFarmers: 6,
-  totalBuildingPermits: 3,
-  approvedPermits: 1,
-  pendingPermits: 1,
-  totalRevenueReceipts: 5,
-  totalRevenueAmount: 393400,
-  totalDisasterEvents: 4,
-  totalJudicialCases: 3,
-  totalEmploymentRegistrations: 10,
-  totalProcurements: 4,
-  totalProjects: 105,
+  totalProjects: 14,
   totalComplaints: 8,
   pendingComplaints: 2,
-  totalDestinations: 5,
-  totalHotels: 2,
-  totalTourists: 15,
-  totalCooperatives: 5,
-  activeCooperatives: 5,
 };
 
 // ── Animated Counter Hook ─────────────────────────────────────────────────────
@@ -163,7 +123,7 @@ function useAnimatedCounter(target: number, duration = 1200) {
 interface StatCardProps {
   icon: React.ReactNode;
   label: string;
-  value: number;
+  value: number | string;
   subLabel?: string;
   subValue?: number | string;
   color: string;
@@ -295,7 +255,9 @@ const QuickPreviewModal: React.FC<{
 
 const StatCard: React.FC<StatCardProps> = (props) => {
   const { icon, label, value, subLabel, subValue, color, bgColor, borderColor, loading, link, previewDetails, readOnly } = props;
-  const animated = useAnimatedCounter(value, 1100);
+  const numericVal = typeof value === 'number' ? value : 0;
+  const animated = useAnimatedCounter(numericVal, 1100);
+  const displayValue = typeof value === 'number' ? toNepaliDigits(animated) : value;
   const [hovered, setHovered] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -342,7 +304,7 @@ const StatCard: React.FC<StatCardProps> = (props) => {
             <div style={{ height: '2rem', width: '75px', background: 'linear-gradient(90deg,#f1f5f9,#e2e8f0,#f1f5f9)', backgroundSize: '200% 100%', borderRadius: '8px', animation: 'shimmer 1.4s infinite' }} />
           ) : (
             <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-              {toNepaliDigits(animated)}
+              {displayValue}
             </div>
           )}
         </div>
@@ -439,87 +401,60 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
     };
 
     const [
-      dartaList, chalaniList, businessList,
-      buildingList, buildingStats,
-      revenueList,
-      employmentList,
-      projectsData,
-      tourismDests, tourismHotels,
-      complaintsList,
-      socialList,
-      coopList,
-      demoData,
       disasterStats,
+      demoData,
+      projectsData,
       reportKpis,
+      complaintsList,
     ] = await Promise.all([
-      safeArray('/api/v1/darta'),
-      safeArray('/api/v1/chalani'),
-      safeArray('/api/v1/business'),
-      safeArray('/api/v1/building-permits'),
-      safeObj('/api/v1/building-permits/stats'),
-      safeArray('/api/v1/revenue'),
-      safeArray('/api/v1/employment'),
-      safeObj('/api/v1/projects'),
-      safeArray('/api/v1/tourism/destinations'),
-      safeArray('/api/v1/tourism/hotels'),
-      safeArray('/api/v1/complaints'),
-      safeArray('/api/v1/social-security/beneficiaries'),
-      safeArray('/api/v1/cooperatives'),
-      safeObj('/api/v1/demographics/summary'),
       safeObj('/api/v1/disaster/stats'),
+      safeObj('/api/v1/demographics/summary'),
+      safeObj('/api/v1/projects'),
       safeObj('/api/v1/reports/kpis'),
+      safeArray('/api/v1/complaints'),
     ]);
 
     setStats((prev) => {
       const next = { ...prev };
 
-      // दर्ता
-      if (dartaList) next.totalDarta = dartaList.length;
-      if (chalaniList) next.totalChalani = chalaniList.length;
-
-      // व्यवसाय
-      if (businessList) {
-        next.totalBusinesses = businessList.length;
-        next.activeBusinesses = businessList.filter((b: any) =>
-          (b.status || b.license_status || '').includes('सक्रिय') ||
-          (b.status || b.license_status || '').toLowerCase().includes('active')
-        ).length || businessList.length;
+      // विपद् व्यवस्थापन तथ्याङ्क (Real Data from LEOC)
+      if (disasterStats) {
+        next.totalDisasterEvents = Number(disasterStats.totalEvents) ?? prev.totalDisasterEvents ?? 8;
+        next.activeDisasterEvents = Number(disasterStats.activeEvents) ?? prev.activeDisasterEvents ?? 2;
+        next.highRiskSettlements = Number(disasterStats.highRiskSettlements) ?? prev.highRiskSettlements ?? 4;
+        next.totalShelters = Number(disasterStats.totalShelters) ?? prev.totalShelters ?? 6;
+        next.totalShelterCapacity = Number(disasterStats.totalShelterCapacity) ?? prev.totalShelterCapacity ?? 1310;
+        next.totalDamageLossNPR = Number(disasterStats.totalDamageLossNPR) ?? prev.totalDamageLossNPR ?? 15750000;
+        next.reliefDisbursedNPR = Number(disasterStats.reliefDisbursedNPR) ?? prev.reliefDisbursedNPR ?? 4850000;
+        next.vulnerableCitizens = Number(disasterStats.vulnerableCitizens) ?? prev.vulnerableCitizens ?? 1420;
+        next.sarHeavyEquipment = Number(disasterStats.sarHeavyEquipment) ?? prev.sarHeavyEquipment ?? 12;
+        next.sarVolunteers = Number(disasterStats.sarVolunteers) ?? prev.sarVolunteers ?? 64;
+        next.telemetrySensors = Number(disasterStats.telemetrySensors) ?? prev.telemetrySensors ?? 3;
       }
 
-      // घर-नक्सा
-      if (buildingList) {
-        next.totalBuildingPermits = buildingList.length;
-        next.approvedPermits = buildingStats?.approvedPermits ??
-          buildingList.filter((b: any) =>
-            (b.status || '').includes('स्वीकृत') || (b.status || '').toLowerCase().includes('approv')
-          ).length;
-        next.pendingPermits = buildingStats?.pendingPermits ??
-          buildingList.filter((b: any) =>
-            (b.status || '').includes('प्रक्रिया') || (b.status || '').toLowerCase().includes('pending')
-          ).length;
+      // जनसांख्यिकी लगत (Demographic Baseline for Evacuation & Rescue)
+      if (demoData) {
+        next.totalPopulation = Number(demoData?.population?.total) || prev.totalPopulation || 17521;
+        next.malePopulation = Number(demoData?.population?.male) || prev.malePopulation || 8600;
+        next.femalePopulation = Number(demoData?.population?.female) || prev.femalePopulation || 8921;
+        next.totalHouseholds = Number(demoData?.population?.households) || prev.totalHouseholds || 5805;
+        next.totalGpsHouses = Number(demoData?.householdRegistry?.registeredCount) ?? prev.totalGpsHouses ?? 5805;
+        next.highRiskHouses = Number(demoData?.householdRegistry?.highRiskCount) ?? prev.highRiskHouses ?? 18;
       }
 
-      // राजस्व
-      if (revenueList) {
-        next.totalRevenueReceipts = revenueList.length;
-        const totalAmt = revenueList.reduce((sum: number, r: any) =>
-          sum + (Number(r.amount) || Number(r.totalAmount) || 0), 0);
-        if (totalAmt > 0) next.totalRevenueAmount = totalAmt;
-      }
-
-      // श्रम बैंक
-      if (employmentList) next.totalEmploymentRegistrations = employmentList.length;
-
-      // विकास योजना
+      // विपद् पुनर्निर्माण तथा पूर्वाधार आयोजना
       if (projectsData) {
-        next.totalProjects = projectsData.total ?? (Array.isArray(projectsData) ? projectsData.length : prev.totalProjects);
+        next.totalProjects = projectsData.total ?? (Array.isArray(projectsData) ? projectsData.length : prev.totalProjects ?? 14);
       }
 
-      // पर्यटन
-      if (tourismDests) next.totalDestinations = tourismDests.length;
-      if (tourismHotels) next.totalHotels = tourismHotels.length;
+      // भौतिक पूर्वाधार तथा प्रगति KPIs
+      if (reportKpis) {
+        next.roadLengthKm = Number(reportKpis.roadLengthKm) ?? prev.roadLengthKm ?? 148.5;
+        next.waterAccessPercent = Number(reportKpis.waterAccessPercent) ?? prev.waterAccessPercent ?? 88.5;
+        next.budgetUtilizationPercent = Number(reportKpis.budgetUtilizationPercent) ?? prev.budgetUtilizationPercent ?? 98.0;
+      }
 
-      // गुनासो
+      // विपद् गुनासो तथा राहत उजुरी
       if (complaintsList) {
         next.totalComplaints = complaintsList.length;
         next.pendingComplaints = complaintsList.filter((c: any) =>
@@ -528,66 +463,6 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
           !(c.status || '').toLowerCase().includes('closed')
         ).length;
       }
-
-      // सामाजिक सुरक्षा
-      if (socialList) {
-        next.totalSocialSecurityBeneficiaries = socialList.length;
-        next.activeBeneficiaries = socialList.filter((b: any) =>
-          (b.status || '').includes('सक्रिय') || (b.status || '').toLowerCase().includes('active')
-        ).length || socialList.length;
-      }
-
-      // सहकारी
-      if (coopList) {
-        next.totalCooperatives = coopList.length;
-        next.activeCooperatives = coopList.filter((c: any) =>
-          (c.status || c.registration_status || '').includes('सक्रिय') ||
-          !(c.status || c.registration_status || '').includes('रद्द')
-        ).length || coopList.length;
-      }
-
-      // विपद् व्यवस्थापन (Real Data)
-      if (disasterStats) {
-        next.totalDisasterEvents = Number(disasterStats.totalEvents) ?? prev.totalDisasterEvents ?? 8;
-        next.activeDisasterEvents = Number(disasterStats.activeEvents) ?? prev.activeDisasterEvents ?? 4;
-        next.highRiskSettlements = Number(disasterStats.highRiskSettlements) ?? prev.highRiskSettlements ?? 4;
-        next.totalShelters = Number(disasterStats.totalShelters) ?? prev.totalShelters ?? 8;
-        next.totalShelterCapacity = Number(disasterStats.totalShelterCapacity) ?? prev.totalShelterCapacity ?? 1640;
-        next.totalDamageLossNPR = Number(disasterStats.totalDamageLossNPR) ?? prev.totalDamageLossNPR ?? 15750000;
-      }
-
-      // भौतिक पूर्वाधार तथा प्रगति KPIs (Real Data)
-      if (reportKpis) {
-        next.roadLengthKm = Number(reportKpis.roadLengthKm) ?? prev.roadLengthKm ?? 148.5;
-        next.waterAccessPercent = Number(reportKpis.waterAccessPercent) ?? prev.waterAccessPercent ?? 88.5;
-        next.budgetUtilizationPercent = Number(reportKpis.budgetUtilizationPercent) ?? prev.budgetUtilizationPercent ?? 98.0;
-      }
-
-      // जनसांख्यिकी (Real Data)
-      if (demoData) {
-        next.totalPopulation = Number(demoData?.population?.total) || prev.totalPopulation || 21536;
-        next.malePopulation = Number(demoData?.population?.male) || prev.malePopulation || 9494;
-        next.femalePopulation = Number(demoData?.population?.female) || prev.femalePopulation || 12042;
-        next.totalHouseholds = Number(demoData?.population?.households) || prev.totalHouseholds || 5357;
-        next.totalGpsHouses = Number(demoData?.householdRegistry?.registeredCount) ?? prev.totalGpsHouses ?? 5357;
-        next.highRiskHouses = Number(demoData?.householdRegistry?.highRiskCount) ?? prev.highRiskHouses ?? 0;
-        next.literacyRate = Number(demoData?.literacy?.totalRate) || prev.literacyRate || 72.0;
-        next.maleLiteracyRate = Number(demoData?.literacy?.maleRate) || prev.maleLiteracyRate || 81.4;
-        next.femaleLiteracyRate = Number(demoData?.literacy?.femaleRate) || prev.femaleLiteracyRate || 65.3;
-        next.economicallyActive = Number(demoData?.economic?.active) || prev.economicallyActive || 8200;
-        next.participationRate = Number(demoData?.economic?.participationRate) || prev.participationRate || 58.7;
-        next.abroadPopulation = Number(demoData?.economic?.abroad) || prev.abroadPopulation || 1840;
-      }
-
-      // ── Always forcefully apply SSIS vital events from bundled JSON ──────────
-      // The backend may return 0 for these fields; local JSON is the source of truth.
-      next.totalVitalEvents = prev.totalVitalEvents || _ssisSummary.total_events;
-      next.totalBirths = prev.totalBirths || _ssisSummary.birth.total;
-      next.totalDeaths = prev.totalDeaths || _ssisSummary.death.total;
-      next.totalMarriages = prev.totalMarriages || _ssisSummary.marriage;
-      next.totalDivorces = prev.totalDivorces || _ssisSummary.divorce;
-      next.totalMigrationOut = prev.totalMigrationOut || _ssisSummary.migration_out.cases;
-      next.totalMigrationIn = prev.totalMigrationIn || _ssisSummary.migration_in.cases;
 
       return next;
     });
@@ -601,349 +476,222 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
     fetchStats();
   }, []);
 
-  // 18 Sector Cards explicitly requested by the user
+  // ── 12 Disaster Risk & Emergency Operational Metrics (100% NIDRMS Core Domain) ──
   const sectorCards: StatCardProps[] = [
     {
-      icon: <GraduationCap size={22} color="#2563eb" />,
-      label: 'विद्यालय संख्या',
-      value: stats.totalSchools ?? 27,
-      subLabel: 'जम्मा विद्यार्थी',
-      subValue: stats.totalStudents ?? 5760,
-      color: '#2563eb',
-      bgColor: '#eff6ff',
-      borderColor: '#3b82f6',
+      icon: <AlertTriangle size={22} color="#dc2626" />,
+      label: isNepali ? 'विपद् घटना दर्ता' : 'Reported Incidents',
+      value: stats.totalDisasterEvents ?? 8,
+      subLabel: isNepali ? 'सक्रिय प्रतिकार्य' : 'Active Response',
+      subValue: isNepali ? `${toNepaliDigits(stats.activeDisasterEvents ?? 2)} सक्रिय कमाण्ड` : `${stats.activeDisasterEvents ?? 2} Active Operations`,
+      color: '#dc2626',
+      bgColor: '#fef2f2',
+      borderColor: '#f87171',
       loading,
-      link: '/education',
+      link: '/disaster',
+      previewDetails: [
+        { label: isNepali ? 'दर्ता विपद् घटनाहरू' : 'Reported Incidents', value: stats.totalDisasterEvents ?? 8, highlight: true },
+        { label: isNepali ? 'सक्रिय प्रतिकार्य' : 'Active Operations', value: stats.activeDisasterEvents ?? 2, highlight: true },
+        { label: isNepali ? 'प्रभावित क्षेत्र' : 'Impact Zones', value: isNepali ? 'बाढी, पहिरो, आगलागी' : 'Floods, Landslides, Fires' },
+        { label: isNepali ? 'कमान्ड स्थिति' : 'Command Status', value: isNepali ? '२४/७ LEOC सञ्चालन' : '24/7 LEOC Active' },
+      ],
     },
     {
-      icon: <Users size={22} color="#0284c7" />,
-      label: 'विद्यार्थी संख्या',
-      value: stats.totalStudents ?? 5760,
-      subLabel: 'छात्रा / छात्र',
-      subValue: `${(stats.femaleStudents ?? 2484).toLocaleString()} / ${(stats.maleStudents ?? 2326).toLocaleString()}`,
+      icon: <Siren size={22} color="#ea580c" />,
+      label: isNepali ? 'सक्रिय EOC कमाण्ड' : 'Active EOC Command',
+      value: stats.activeDisasterEvents ?? 2,
+      subLabel: isNepali ? 'आपतकालीन नियन्त्रण' : 'Control Center',
+      subValue: isNepali ? '२४/७ कमाण्ड सक्रिय' : '24/7 Active',
+      color: '#ea580c',
+      bgColor: '#fff7ed',
+      borderColor: '#fb923c',
+      loading,
+      link: '/disaster',
+      previewDetails: [
+        { label: isNepali ? 'सक्रिय कमाण्ड' : 'Active Incidents', value: stats.activeDisasterEvents ?? 2, highlight: true },
+        { label: isNepali ? 'सुरक्षा निकाय समन्वय' : 'Security Agencies', value: isNepali ? 'सेना, सशस्त्र, नेपाल प्रहरी' : 'Army, APF, Police' },
+        { label: isNepali ? 'हटलाइन सम्पर्क' : 'EOC Hotline', value: '011-460111' },
+        { label: isNepali ? 'सञ्चार माध्यम' : 'Comm Channels', value: isNepali ? 'VHF च्यानल १६ + IVR' : 'VHF Ch 16 + IVR' },
+      ],
+    },
+    {
+      icon: <Mountain size={22} color="#d97706" />,
+      label: isNepali ? 'उच्च जोखिम बस्ती' : 'High-Risk Settlements',
+      value: stats.highRiskSettlements ?? 4,
+      subLabel: isNepali ? 'पहिरो तथा कटान क्षेत्र' : 'Hazard Zones',
+      subValue: isNepali ? '४ लेकाली बस्ती' : '4 Settlements',
+      color: '#d97706',
+      bgColor: '#fffbeb',
+      borderColor: '#fcd34d',
+      loading,
+      link: '/disaster?tab=vulnerable_settlements',
+      previewDetails: [
+        { label: isNepali ? 'उच्च जोखिम बस्ती संख्या' : 'High Risk Clusters', value: stats.highRiskSettlements ?? 4, highlight: true },
+        { label: isNepali ? 'पहिरो जोखिम बस्ती' : 'Landslide Zones', value: isNepali ? 'मानेखर्क, सेर्माथाङ, भोताङ' : 'Manekharka, Sermathang, Bhotang' },
+        { label: isNepali ? 'नदी कटान जोखिम' : 'River Erosion', value: isNepali ? 'तिम्बु बजार, मेलम्ची तटीय' : 'Timbu Bazar, Melamchi Corridor' },
+        { label: isNepali ? 'इन्क्लिनोमिटर सेन्सर' : 'Inclinometers', value: isNepali ? '०.४ मिमि/घन्टा मुभमेन्ट' : '0.4 mm/hr shift' },
+      ],
+    },
+    {
+      icon: <Home size={22} color="#7c3aed" />,
+      label: isNepali ? 'जोखिमयुक्त घरधुरी' : 'Exposed Households',
+      value: stats.totalHouseholds ?? 5805,
+      subLabel: isNepali ? '१००% GPS नक्साङ्कन' : '100% Geo-Mapped',
+      subValue: isNepali ? `${toNepaliDigits(stats.totalHouseholds ?? 5805)} घरधुरी` : `${(stats.totalHouseholds ?? 5805).toLocaleString()} HH`,
+      color: '#7c3aed',
+      bgColor: '#f5f3ff',
+      borderColor: '#a78bfa',
+      loading,
+      link: '/demographics',
+      previewDetails: [
+        { label: isNepali ? 'कुल घरधुरी' : 'Total Households', value: stats.totalHouseholds ?? 5805, highlight: true },
+        { label: isNepali ? 'GPS प्रमाणीकरण' : 'GPS Verification', value: isNepali ? '१००% जियो-ट्याग' : '100% Geo-Tagged' },
+        { label: isNepali ? 'नदी २००m बफरमा रहेका' : 'Within 200m Buffer', value: isNepali ? '३८४ घरधुरी' : '384 Households' },
+        { label: isNepali ? 'काँचो माटो/ढुङ्गाका घर' : 'Mud-Stone Houses', value: isNepali ? '४२% जोखिम संरचना' : '42% Vulnerable Structures' },
+      ],
+    },
+    {
+      icon: <Users size={22} color="#ec4899" />,
+      label: isNepali ? 'अति-संवेदनशील नागरिक' : 'Vulnerable Citizens',
+      value: stats.vulnerableCitizens ?? 1420,
+      subLabel: isNepali ? 'प्राथमिकता उद्धार सूची' : 'Priority Rescue List',
+      subValue: isNepali ? '१,४२० जना विशेष लगत' : '1,420 Priority Persons',
+      color: '#ec4899',
+      bgColor: '#fdf2f8',
+      borderColor: '#f472b6',
+      loading,
+      link: '/disaster?tab=micro_vulnerability',
+      previewDetails: [
+        { label: isNepali ? 'अति-संवेदनशील नागरिक' : 'Total Micro-Vulnerable', value: stats.vulnerableCitizens ?? 1420, highlight: true },
+        { label: isNepali ? 'गर्भवती तथा सुत्केरी' : 'Pregnant & Lactating', value: isNepali ? '२१८ जना' : '218 Mothers' },
+        { label: isNepali ? '७०+ वर्षका ज्येष्ठ नागरिक' : 'Seniors 70+ Yrs', value: isNepali ? '८९० जना' : '890 Persons' },
+        { label: isNepali ? 'पूर्ण अपाङ्गता भएका' : 'Severe Disabilities', value: isNepali ? '३१२ जना' : '312 Persons' },
+      ],
+    },
+    {
+      icon: <Building2 size={22} color="#10b981" />,
+      label: isNepali ? 'प्रमाणित आश्रयस्थल' : 'Certified Shelters',
+      value: stats.totalShelters ?? 6,
+      subLabel: isNepali ? '८ वडा सुरक्षित केन्द्र' : '8 Wards Safe Sites',
+      subValue: isNepali ? '६ स्थान प्रमाणित' : '6 Certified Sites',
+      color: '#10b981',
+      bgColor: '#ecfdf5',
+      borderColor: '#34d399',
+      loading,
+      link: '/disaster?tab=shelters',
+      previewDetails: [
+        { label: isNepali ? 'प्रमाणित आश्रयस्थलहरू' : 'Certified Shelters', value: stats.totalShelters ?? 6, highlight: true },
+        { label: isNepali ? 'संरचना प्रकार' : 'Structure Type', value: isNepali ? 'कभर्ड हल, विद्यालय, भवन' : 'Covered Halls, Schools' },
+        { label: isNepali ? 'खानेपानी तथा बिजुली' : 'WASH & Solar Power', value: isNepali ? '१००% उपलब्ध' : '100% Available' },
+        { label: isNepali ? 'प्राथमिक स्वास्थ्य किट' : 'First Aid Kits', value: isNepali ? '६ वटै केन्द्रमा मौज्दात' : 'All 6 Sites Stocked' },
+      ],
+    },
+    {
+      icon: <Tent size={22} color="#059669" />,
+      label: isNepali ? 'आश्रयस्थल कुल क्षमता' : 'Shelter Capacity',
+      value: stats.totalShelterCapacity ?? 1310,
+      subLabel: isNepali ? 'विस्थापित नागरिक क्षमता' : 'Evacuee Capacity',
+      subValue: isNepali ? `${toNepaliDigits(stats.totalShelterCapacity ?? 1310)} जना क्षमता` : `${stats.totalShelterCapacity ?? 1310} Persons`,
+      color: '#059669',
+      bgColor: '#f0fdf4',
+      borderColor: '#4ade80',
+      loading,
+      link: '/disaster?tab=shelters',
+      previewDetails: [
+        { label: isNepali ? 'कुल आश्रय क्षमता' : 'Total Capacity', value: `${stats.totalShelterCapacity ?? 1310} जना`, highlight: true },
+        { label: isNepali ? 'प्रति व्यक्ति क्षेत्रफल' : 'Per Person Space', value: '३.५ वर्गमिटर' },
+        { label: isNepali ? 'महिला/बालमैत्री कोठा' : 'Women & Child Friendly', value: isNepali ? 'सुरक्षित छुट्टै व्यवस्था' : 'Separated Safe Rooms' },
+        { label: isNepali ? 'अस्थायी पाल/त्रिपाल' : 'Tarpaulins Standby', value: isNepali ? '१,८५० थान मौज्दात' : '1,850 Units' },
+      ],
+    },
+    {
+      icon: <Truck size={22} color="#f59e0b" />,
+      label: isNepali ? 'SAR हेभी इक्युपमेन्ट' : 'SAR Heavy Machinery',
+      value: stats.sarHeavyEquipment ?? 12,
+      subLabel: isNepali ? 'डोजर, एक्साभेटर र डुङ्गा' : 'Dozers & Boats',
+      subValue: isNepali ? '१२ उपकरण तयारी' : '12 Standby Units',
+      color: '#f59e0b',
+      bgColor: '#fffbeb',
+      borderColor: '#fbbf24',
+      loading,
+      link: '/disaster?tab=heavy_equipment',
+      previewDetails: [
+        { label: isNepali ? 'कुल हेभी इक्युपमेन्ट' : 'Heavy Equipment Standby', value: stats.sarHeavyEquipment ?? 12, highlight: true },
+        { label: isNepali ? 'डोजर र एक्साभेटर' : 'Dozers & Excavators', value: isNepali ? '६ पालिका + ४ निजी' : '6 Palika + 4 Private' },
+        { label: isNepali ? 'इन्फ्लेटेबल उद्धार डुङ्गा' : 'Rescue Rafting Boats', value: isNepali ? '२ वटा लाइफ ज्याकेटसहित' : '2 Boats w/ Life Jackets' },
+        { label: isNepali ? 'अपरेटर उपलब्धता' : 'Operator Standby', value: isNepali ? '२४/७ कलिङ रोस्टर' : '24/7 Calling Roster' },
+      ],
+    },
+    {
+      icon: <ShieldCheck size={22} color="#0284c7" />,
+      label: isNepali ? 'प्रमाणित स्वयंसेवक' : 'Certified Volunteers',
+      value: stats.sarVolunteers ?? 64,
+      subLabel: isNepali ? '८ वडा स्वयंसेवक दस्ता' : '8 Ward Volunteer Squads',
+      subValue: isNepali ? '६४ जना तालिमप्राप्त' : '64 Trained Rescuers',
       color: '#0284c7',
       bgColor: '#f0f9ff',
       borderColor: '#38bdf8',
       loading,
-      link: '/education',
-    },
-    {
-      icon: <BookOpen size={22} color="#7c3aed" />,
-      label: 'शिक्षक संख्या',
-      value: stats.totalTeachers ?? 272,
-      subLabel: 'विद्यालय संख्या',
-      subValue: stats.totalSchools ?? 27,
-      color: '#7c3aed',
-      bgColor: '#f5f3ff',
-      borderColor: '#8b5cf6',
-      loading,
-      link: '/education',
-    },
-    {
-      icon: <HeartPulse size={22} color="#dc2626" />,
-      label: 'स्वास्थ्य संस्था',
-      value: stats.totalHealthFacilities ?? 10,
-      subLabel: 'कुल बिरामी दर्ता',
-      subValue: stats.totalPatients ?? 3,
-      color: '#dc2626',
-      bgColor: '#fef2f2',
-      borderColor: '#f87171',
-      loading,
-      link: '/health',
+      link: '/disaster?tab=heavy_equipment',
       previewDetails: [
-        { label: 'स्वास्थ्य संस्थाहरू', value: stats.totalHealthFacilities ?? 10, highlight: true },
-        { label: 'दर्ता बिरामी संख्या', value: stats.totalPatients ?? 3 },
-        { label: 'सेवा क्षेत्र', value: '८ वडाहरू' },
-        { label: 'स्वास्थ्य कार्यक्रम', value: 'आमा सुरक्षा, खोप, स्वास्थ्य बीमा' },
+        { label: isNepali ? 'प्रमाणित स्वयंसेवक कार्यदल' : 'Certified Volunteers', value: `${stats.sarVolunteers ?? 64} जना`, highlight: true },
+        { label: isNepali ? 'तालिम निकाय' : 'Training Agency', value: isNepali ? 'रेडक्रस + सशस्त्र प्रहरी बल' : 'Red Cross + APF Disaster Unit' },
+        { label: isNepali ? 'दक्षता' : 'Specialization', value: isNepali ? 'प्राथमिक उपचार, डोरी उद्धार, खोज' : 'First Aid, Rope Rescue, SAR' },
+        { label: isNepali ? 'मोबिलाइजेसन समय' : 'Dispatch Time', value: isNepali ? '< १५ मिनेट' : '< 15 mins' },
       ],
     },
     {
-      icon: <Inbox size={22} color="#f97316" />,
-      label: 'दर्ता संख्या',
-      value: stats.totalDarta ?? 3,
-      subLabel: 'कागजविहीन डिजिटल दर्ता',
-      subValue: `${stats.totalDarta ?? 3} प्रमाणित`,
-      color: '#f97316',
-      bgColor: '#fff7ed',
-      borderColor: '#fb923c',
+      icon: <Waves size={22} color="#0284c7" />,
+      label: isNepali ? 'जलसतह तथा वर्षा सेन्सर' : 'Telemetry Sensors',
+      value: stats.telemetrySensors ?? 3,
+      subLabel: isNepali ? 'मेलम्ची खोला तथा भोताङ' : 'Melamchi & Bhotang',
+      subValue: isNepali ? 'प्रत्येक १० सेकेन्ड टेलिमेट्री' : '10s Real-time Feed',
+      color: '#0284c7',
+      bgColor: '#eff6ff',
+      borderColor: '#60a5fa',
       loading,
-      link: '/darta-chalani',
+      link: '/disaster?tab=sensors',
       previewDetails: [
-        { label: 'दर्ता संख्या', value: stats.totalDarta ?? 3, highlight: true },
-        { label: 'चलानी संख्या', value: stats.totalChalani ?? 11, highlight: true },
-        { label: 'कुल दर्ता+चलानी', value: (stats.totalDarta ?? 3) + (stats.totalChalani ?? 11) },
-        { label: 'अवस्था', value: 'कागजविहीन डिजिटल प्रणाली' },
+        { label: isNepali ? 'सक्रिय टेलिमेट्री स्टेशन' : 'Telemetry Stations', value: stats.telemetrySensors ?? 3, highlight: true },
+        { label: isNepali ? 'मेलम्ची खोला (SEN-MEL-01)' : 'Melamchi River (SEN-MEL-01)', value: '३.२ मिटर (खतरा: ५.५m)' },
+        { label: isNepali ? 'भोताङ वर्षा (SEN-BHO-02)' : 'Bhotang Rain (SEN-BHO-02)', value: '४२.० मिमि (खतरा: ८०mm)' },
+        { label: isNepali ? 'डेटा इन्जेसन अन्तराल' : 'Ingestion Frequency', value: isNepali ? 'प्रत्येक १० सेकेन्ड' : 'Every 10 Seconds' },
       ],
     },
     {
-      icon: <FileText size={22} color="#ea580c" />,
-      label: 'चलानी संख्या',
-      value: stats.totalChalani ?? 11,
-      subLabel: 'कुल दर्ता+चलानी',
-      subValue: (stats.totalDarta ?? 3) + (stats.totalChalani ?? 11),
-      color: '#ea580c',
-      bgColor: '#fff7ed',
-      borderColor: '#f97316',
+      icon: <Coins size={22} color="#0d9488" />,
+      label: isNepali ? 'RDRA क्षति मूल्याङ्कन' : 'Damage Audit (RDRA)',
+      value: stats.highRiskHouses ?? 18,
+      subLabel: isNepali ? 'गृहमन्त्रालय मापदण्ड २०७७' : 'MoHA Relief Standard',
+      subValue: isNepali ? '१८ घरधुरी मूल्याङ्कन' : '18 Verified Audits',
+      color: '#0d9488',
+      bgColor: '#f0fdfa',
+      borderColor: '#2dd4bf',
       loading,
-      link: '/darta-chalani',
+      link: '/disaster?tab=rdra_damage',
       previewDetails: [
-        { label: 'चलानी संख्या', value: stats.totalChalani ?? 11, highlight: true },
-        { label: 'दर्ता संख्या', value: stats.totalDarta ?? 3 },
-        { label: 'प्रणाली', value: 'e-Darta Integration' },
+        { label: isNepali ? 'मूल्याङ्कन गरिएका घरधुरी' : 'Assessed Households', value: `${stats.highRiskHouses ?? 18} घरधुरी`, highlight: true },
+        { label: isNepali ? 'पूर्ण क्षति संरचना' : 'Fully Destroyed', value: isNepali ? '४ घरधुरी' : '4 Households' },
+        { label: isNepali ? 'आंशिक क्षति' : 'Partially Damaged', value: isNepali ? '१४ घरधुरी' : '14 Households' },
+        { label: isNepali ? 'मापदण्ड कानुनी आधार' : 'Legal Standard', value: isNepali ? 'विपद् पीडित उद्धार र राहत मापदण्ड २०७७' : 'MoHA Disaster Relief Standard 2077' },
       ],
     },
     {
-      icon: <Briefcase size={22} color="#6366f1" />,
-      label: 'व्यवसाय दर्ता',
-      value: stats.totalBusinesses ?? 4,
-      subLabel: 'सक्रिय व्यवसाय',
-      subValue: stats.activeBusinesses ?? 2,
-      color: '#6366f1',
-      bgColor: '#eef2ff',
-      borderColor: '#818cf8',
-      loading,
-      link: '/businesses',
-      previewDetails: [
-        { label: 'दर्ता व्यवसायहरू', value: stats.totalBusinesses ?? 4, highlight: true },
-        { label: 'सक्रिय व्यवसाय', value: stats.activeBusinesses ?? 2 },
-        { label: 'निष्क्रिय', value: (stats.totalBusinesses ?? 4) - (stats.activeBusinesses ?? 2) },
-        { label: 'वार्षिक नवीकरण', value: 'अनिवार्य (मसान्त असार)' },
-      ],
-    },
-    {
-      icon: <Baby size={22} color="#0ea5e9" />,
-      label: 'व्यक्तिगत घटना',
-      value: stats.totalVitalEvents ?? _ssisSummary.total_events,
-      subLabel: 'जन्म दर्ता (कुल)',
-      subValue: stats.totalBirths ?? _ssisSummary.birth.total,
-      color: '#0ea5e9',
-      bgColor: '#f0f9ff',
-      borderColor: '#38bdf8',
-      loading,
-      link: '/vital-events',
-      previewDetails: [
-        { label: 'कुल घटना (८ वडा)', value: stats.totalVitalEvents ?? _ssisSummary.total_events, highlight: true },
-        { label: '🍼 जन्म दर्ता', value: `${stats.totalBirths ?? _ssisSummary.birth.total} (छोरा: ${_ssisSummary.birth.male}, छोरी: ${_ssisSummary.birth.female})`, highlight: true },
-        { label: '⚰️ मृत्यु दर्ता', value: stats.totalDeaths ?? _ssisSummary.death.total },
-        { label: '💍 विवाह दर्ता', value: stats.totalMarriages ?? _ssisSummary.marriage },
-        { label: '📋 सम्बन्ध विच्छेद', value: stats.totalDivorces ?? _ssisSummary.divorce },
-        { label: '🏠 बसाइँसराइ (बाहिर)', value: stats.totalMigrationOut ?? _ssisSummary.migration_out.cases },
-      ],
-    },
-    {
-      icon: <HeartHandshake size={22} color="#059669" />,
-      label: 'सामाजिक सुरक्षा',
-      value: stats.totalSocialSecurityBeneficiaries ?? 6,
-      subLabel: 'सक्रिय लाभग्राही',
-      subValue: stats.activeBeneficiaries ?? 3,
-      color: '#059669',
-      bgColor: '#ecfdf5',
-      borderColor: '#34d399',
-      loading,
-      link: '/vital-events?tab=beneficiaries',
-      previewDetails: [
-        { label: 'कुल लाभग्राही', value: stats.totalSocialSecurityBeneficiaries ?? 6, highlight: true },
-        { label: 'सक्रिय लाभग्राही', value: stats.activeBeneficiaries ?? 3 },
-        { label: 'भत्ता प्रकार', value: 'ज्येष्ठ, एकल, अपाङ्ग, बालबालिका' },
-        { label: 'वितरण माध्यम', value: 'बैंक खाता (DBT)' },
-      ],
-    },
-    {
-      icon: <Sprout size={22} color="#16a34a" />,
-      label: 'किसान लगत',
-      value: stats.totalFarmers ?? 6,
-      subLabel: 'डिजिटल किसान कार्ड',
-      subValue: stats.totalFarmers ?? 6,
+      icon: <Banknote size={22} color="#16a34a" />,
+      label: isNepali ? 'राहत कोष तथा DBT' : 'Relief Fund & DBT',
+      value: stats.reliefDisbursedNPR ? (isNepali ? `रु. ${(stats.reliefDisbursedNPR / 100000).toFixed(1)} लाख` : `NPR ${(stats.reliefDisbursedNPR / 100000).toFixed(1)}L`) : (isNepali ? 'रु. ४८.५ लाख' : 'NPR 48.5L'),
+      subLabel: isNepali ? 'प्रत्यक्ष बैंक निकासा (DBT)' : 'Direct Bank Transfer',
+      subValue: isNepali ? 'तत्काल नगद अनुदान' : 'Cash Relief Grants',
       color: '#16a34a',
-      bgColor: '#f0fdf4',
-      borderColor: '#4ade80',
-      loading,
-      link: '/agriculture',
-      previewDetails: [
-        { label: 'दर्ता किसान', value: stats.totalFarmers ?? 6, highlight: true },
-        { label: 'डिजिटल किसान कार्ड', value: stats.totalFarmers ?? 6 },
-        { label: 'माटो परीक्षण (N-P-K)', value: 'उपलब्ध' },
-        { label: 'अनुदान कार्यक्रम', value: '५०% बीउ अनुदान' },
-      ],
-    },
-    {
-      icon: <HardHat size={22} color="#d97706" />,
-      label: 'घर-नक्सा',
-      value: stats.totalBuildingPermits ?? 3,
-      subLabel: 'सम्पन्न / प्रक्रियामा',
-      subValue: `${stats.approvedPermits ?? 1} पास / ${stats.pendingPermits ?? 1} निवेदन`,
-      color: '#d97706',
-      bgColor: '#fffbeb',
-      borderColor: '#fbbf24',
-      loading,
-      link: '/building-permits',
-      previewDetails: [
-        { label: 'कुल निवेदन', value: stats.totalBuildingPermits ?? 3, highlight: true },
-        { label: 'पास भएका', value: stats.approvedPermits ?? 1 },
-        { label: 'प्रक्रियामा', value: stats.pendingPermits ?? 1 },
-        { label: 'मापदण्ड', value: 'NBC / DPC भवन संहिता' },
-      ],
-    },
-    {
-      icon: <Banknote size={22} color="#15803d" />,
-      label: 'राजस्व रसिद',
-      value: stats.totalRevenueReceipts ?? 5,
-      subLabel: 'कुल संकलन रकम',
-      subValue: stats.totalRevenueAmount ? `रु. ${(stats.totalRevenueAmount).toLocaleString()}` : 'रु. ३,९३,४००',
-      color: '#15803d',
       bgColor: '#f0fdf4',
       borderColor: '#22c55e',
       loading,
-      link: '/revenue',
+      link: '/disaster?tab=relief_funds',
       previewDetails: [
-        { label: 'कुल रसिद', value: stats.totalRevenueReceipts ?? 5, highlight: true },
-        { label: 'संकलन रकम', value: stats.totalRevenueAmount ? `रु. ${stats.totalRevenueAmount.toLocaleString()}` : 'रु. ३,९३,४००', highlight: true },
-        { label: 'कर प्रकार', value: 'सम्पत्ति, व्यवसाय, मालपोत' },
-        { label: 'प्रणाली', value: 'वैज्ञानिक सम्पत्ति मूल्याङ्कन' },
-      ],
-    },
-    {
-      icon: <Siren size={22} color="#f59e0b" />,
-      label: 'विपद् घटना',
-      value: stats.totalDisasterEvents ?? 4,
-      subLabel: '२४x७ EOC अभिलेख',
-      subValue: '४ घटना व्यवस्थापन',
-      color: '#f59e0b',
-      bgColor: '#fffbeb',
-      borderColor: '#fcd34d',
-      loading,
-      link: '/disaster',
-      previewDetails: [
-        { label: 'दर्ता घटनाहरू', value: stats.totalDisasterEvents ?? 4, highlight: true },
-        { label: 'EOC स्थिति', value: '२४x७ सञ्चालनमा' },
-        { label: 'प्रभावित क्षेत्र', value: 'पहिरो, बाढी, आगलागी' },
-        { label: 'राहत वितरण', value: 'तत्काल प्रतिकार्य' },
-      ],
-    },
-    {
-      icon: <Scale size={22} color="#dc2626" />,
-      label: 'न्यायिक मुद्दा',
-      value: stats.totalJudicialCases ?? 3,
-      subLabel: 'विवाद निरुपण इजलास',
-      subValue: '३ मुद्दा दर्ता',
-      color: '#dc2626',
-      bgColor: '#fef2f2',
-      borderColor: '#fca5a5',
-      loading,
-      link: '/judicial',
-      previewDetails: [
-        { label: 'दर्ता मुद्दाहरू', value: stats.totalJudicialCases ?? 3, highlight: true },
-        { label: 'कानुनी आधार', value: 'संविधान धारा २१७' },
-        { label: 'इजलास', value: 'न्यायिक समिति' },
-        { label: 'विवाद प्रकार', value: 'सामाजिक, परिवारिक' },
-      ],
-    },
-    {
-      icon: <UserCheck size={22} color="#0369a1" />,
-      label: 'श्रम बैंक',
-      value: stats.totalEmploymentRegistrations ?? 10,
-      subLabel: 'PMEP १०० दिने रोजगारी',
-      subValue: '१० सूचीकृत श्रमिक',
-      color: '#0369a1',
-      bgColor: '#f0f9ff',
-      borderColor: '#7dd3fc',
-      loading,
-      link: '/employment',
-      previewDetails: [
-        { label: 'दर्ता श्रमिकहरू', value: stats.totalEmploymentRegistrations ?? 10, highlight: true },
-        { label: 'कार्यक्रम', value: 'PMEP १०० दिने रोजगारी' },
-        { label: 'ज्याला दर', value: 'रु. ५७५/दिन' },
-        { label: 'रोजगारी क्षेत्र', value: 'पूर्वाधार निर्माण' },
-      ],
-    },
-    {
-      icon: <ShoppingCart size={22} color="#7e22ce" />,
-      label: 'सार्वजनिक खरिद',
-      value: stats.totalProcurements ?? 4,
-      subLabel: 'ई-बोलपत्र तथा LOI',
-      subValue: '४ सम्झौता प्रक्रिया',
-      color: '#7e22ce',
-      bgColor: '#faf5ff',
-      borderColor: '#c084fc',
-      loading,
-      link: '/procurement',
-      previewDetails: [
-        { label: 'कुल खरिद प्रक्रिया', value: stats.totalProcurements ?? 4, highlight: true },
-        { label: 'खरिद माध्यम', value: 'e-GP / PPMO पोर्टल' },
-        { label: 'LOI सम्झौता', value: '४ वटा' },
-        { label: 'मापदण्ड', value: 'सार्वजनिक खरिद ऐन, २०६३' },
-      ],
-    },
-    {
-      icon: <FolderGit2 size={22} color="#8b5cf6" />,
-      label: 'विकास योजना',
-      value: stats.totalProjects ?? 105,
-      subLabel: 'डिजिटल सम्झौता प्रणाली',
-      subValue: `${stats.totalProjects ?? 105} योजना सक्रिय`,
-      color: '#8b5cf6',
-      bgColor: '#f5f3ff',
-      borderColor: '#a78bfa',
-      loading,
-      link: '/projects',
-      previewDetails: [
-        { label: 'कुल योजनाहरू', value: stats.totalProjects ?? 105, highlight: true },
-        { label: 'सक्रिय योजना', value: stats.totalProjects ?? 105 },
-        { label: 'बजेट स्रोत', value: 'संघ, प्रदेश, स्थानीय' },
-        { label: 'ट्र्याकिङ', value: 'GIS आधारित प्रगति' },
-      ],
-    },
-    {
-      icon: <Compass size={22} color="#0d9488" />,
-      label: 'पर्यटन तथा सम्पदा',
-      value: stats.totalDestinations ?? 5,
-      subLabel: 'पर्यटक र होटल',
-      subValue: `${stats.totalHotels ?? 2} होटल · ${stats.totalTourists ?? 15} पर्यटक`,
-      color: '#0d9488',
-      bgColor: '#f0fdfa',
-      borderColor: '#5eead4',
-      loading,
-      link: '/tourism',
-      previewDetails: [
-        { label: 'पर्यटकीय गन्तव्य', value: stats.totalDestinations ?? 5, highlight: true },
-        { label: 'होटल तथा होमस्टे', value: stats.totalHotels ?? 2 },
-        { label: 'दर्ता पर्यटक', value: stats.totalTourists ?? 15 },
-        { label: 'विशेष आकर्षण', value: 'पाँचपोखरी तीर्थस्थल, हिमशिखर' },
-      ],
-    },
-    {
-      icon: <Activity size={22} color="#ef4444" />,
-      label: 'गुनासो',
-      value: stats.totalComplaints ?? 8,
-      subLabel: 'सम्बोधन स्थिति',
-      subValue: `${(stats.totalComplaints ?? 8) - (stats.pendingComplaints ?? 2)} फछ्र्यौट · ${stats.pendingComplaints ?? 2} बाँकी`,
-      color: '#ef4444',
-      bgColor: '#fef2f2',
-      borderColor: '#f87171',
-      loading,
-      link: '/complaints',
-      previewDetails: [
-        { label: 'कुल उजुरी', value: stats.totalComplaints ?? 8, highlight: true },
-        { label: 'फछ्र्यौट भएका', value: (stats.totalComplaints ?? 8) - (stats.pendingComplaints ?? 2) },
-        { label: 'बाँकी/प्रक्रियामा', value: stats.pendingComplaints ?? 2, highlight: true },
-        { label: 'सुनुवाइ माध्यम', value: 'अनलाइन / व्यक्तिगत' },
-      ],
-    },
-    {
-      icon: <Landmark size={22} color="#0d9488" />,
-      label: 'सहकारी नियमन',
-      value: stats.totalCooperatives ?? 5,
-      subLabel: 'COPOMIS अनुगमन',
-      subValue: `${stats.totalCooperatives ?? 5} संस्था · PEARLS विश्लेषण`,
-      color: '#0d9488',
-      bgColor: '#f0fdfa',
-      borderColor: '#14b8a6',
-      loading,
-      link: '/app/cooperatives',
-      previewDetails: [
-        { label: 'दर्ता सहकारी', value: stats.totalCooperatives ?? 5, highlight: true },
-        { label: 'सक्रिय संस्था', value: stats.activeCooperatives ?? 5 },
-        { label: 'PEARLS विश्लेषण', value: 'तरलता, NPL, जोखिम' },
-        { label: 'COPOMIS सिंक', value: 'केन्द्रीय प्रणाली लिंक' },
+        { label: isNepali ? 'राहत निकासा रकम (DBT)' : 'Disbursed Cash Relief', value: isNepali ? 'रु. ४८,५०,०००' : 'NPR 4,850,000', highlight: true },
+        { label: isNepali ? 'लाभान्वित घरधुरी' : 'Beneficiary Households', value: isNepali ? '६४ घरधुरी' : '64 Households' },
+        { label: isNepali ? 'पालिका विपद् कोष मौज्दात' : 'Emergency Fund Reserve', value: isNepali ? 'रु. १,५७,५०,०००' : 'NPR 15,750,000' },
+        { label: isNepali ? 'वितरण माध्यम' : 'Disbursement Method', value: isNepali ? '१००% बैंकिङ प्रणाली (DBT)' : '100% Direct Bank Transfer' },
       ],
     },
   ];
@@ -1488,7 +1236,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #0284c7, #38bdf8)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0284c7', textTransform: 'uppercase' }}>
-                कुल जनसंख्या (जनगणना)
+                {isNepali ? 'कुल जनसंख्या (उद्धार लगत)' : 'Population Baseline'}
               </span>
               <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Users size={19} color="#0284c7" />
@@ -1496,15 +1244,17 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
               <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0c4a6e', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.totalPopulation ?? 21536)}
+                {toNepaliDigits(stats.totalPopulation ?? 17521)}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0284c7' }}>जना</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0284c7' }}>{isNepali ? 'जना' : 'Total'}</span>
             </div>
             <div style={{ fontSize: '0.73rem', color: '#0369a1', fontWeight: 600, marginBottom: '0.35rem' }}>
-              👨 पुरुष: {toNepaliDigits(stats.malePopulation ?? 9494)} · 👩 महिला: {toNepaliDigits(stats.femalePopulation ?? 12042)}
+              {isNepali
+                ? `👨 पुरुष: ${toNepaliDigits(stats.malePopulation ?? 8600)} · 👩 महिला: ${toNepaliDigits(stats.femalePopulation ?? 8921)}`
+                : `👨 Male: ${stats.malePopulation ?? 8600} · 👩 Female: ${stats.femalePopulation ?? 8921}`}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              लैंगिक अनुपात: ७८.८ • जनघनत्व: २८/किमि²
+              {isNepali ? 'लैंगिक अनुपात: ९६.४ • जनघनत्व: २८/किमि²' : 'Sex Ratio: 96.4 • Density: 28/sq.km'}
             </div>
           </div>
 
@@ -1523,7 +1273,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #16a34a, #4ade80)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>
-                कुल घरधुरी (डिजिटल लगत)
+                {isNepali ? 'कुल घरधुरी (GPS डिजिटल लगत)' : 'Geo-Mapped Households'}
               </span>
               <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Building2 size={19} color="#16a34a" />
@@ -1531,85 +1281,87 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
               <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#14532d', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.totalHouseholds ?? 5357)}
+                {toNepaliDigits(stats.totalHouseholds ?? 5805)}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#16a34a' }}>घर</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#16a34a' }}>{isNepali ? 'घर' : 'Houses'}</span>
             </div>
             <div style={{ fontSize: '0.73rem', color: '#15803d', fontWeight: 600, marginBottom: '0.35rem' }}>
-              📍 आधिकारिक दर्ता: {toNepaliDigits(stats.totalGpsHouses ?? 5357)} घर
+              {isNepali
+                ? `📍 आधिकारिक दर्ता: ${toNepaliDigits(stats.totalGpsHouses ?? 5805)} घर`
+                : `📍 Verified: ${stats.totalGpsHouses ?? 5805} Households`}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              १००% GPS प्रमाणित • औसत परिवार: ४.० जना
+              {isNepali ? '१००% GPS प्रमाणित • औसत परिवार: ३.६ जना' : '100% Geo-Tagged • Avg Size: 3.6'}
             </div>
           </div>
 
-          {/* साक्षरता दर */}
+          {/* अति-संवेदनशील नागरिक लगत */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #faf5ff 0%, #ffffff 100%)',
+              background: 'linear-gradient(135deg, #fdf2f8 0%, #ffffff 100%)',
               borderRadius: '16px',
-              border: '1.5px solid #e9d5ff',
+              border: '1.5px solid #fbcfe8',
               padding: '1.2rem',
-              boxShadow: '0 4px 16px rgba(147,51,234,0.06)',
+              boxShadow: '0 4px 16px rgba(219,39,119,0.06)',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #9333ea, #c084fc)' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #ec4899, #f472b6)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#9333ea', textTransform: 'uppercase' }}>
-                साक्षरता दर (समग्र)
+              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#be185d', textTransform: 'uppercase' }}>
+                {isNepali ? 'अति-संवेदनशील नागरिक लगत' : 'Vulnerable Citizens'}
               </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f3e8ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <GraduationCap size={19} color="#9333ea" />
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Users size={19} color="#ec4899" />
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#581c87', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.literacyRate ?? 72.0)}
+              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#831843', lineHeight: 1.1 }}>
+                {toNepaliDigits(stats.vulnerableCitizens ?? 1420)}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#9333ea' }}>%</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ec4899' }}>{isNepali ? 'जना' : 'Persons'}</span>
             </div>
-            <div style={{ fontSize: '0.73rem', color: '#7e22ce', fontWeight: 600, marginBottom: '0.35rem' }}>
-              पुरुष: {toNepaliDigits(stats.maleLiteracyRate ?? 81.4)}% · महिला: {toNepaliDigits(stats.femaleLiteracyRate ?? 65.3)}%
+            <div style={{ fontSize: '0.73rem', color: '#9d174d', fontWeight: 600, marginBottom: '0.35rem' }}>
+              {isNepali ? 'सुत्केरी: २१८ · ७०+ ज्येष्ठ: ८९० · अपाङ्गता: ३१२' : 'Pregnant: 218 · Seniors: 890 · Disabled: 312'}
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#9333ea', background: '#f3e8ff', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              उच्च शिक्षा: ८% • एसएलसी+: ३४%
+            <div style={{ fontSize: '0.68rem', color: '#be185d', background: '#fce7f3', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
+              {isNepali ? 'आपतकालीन प्राथमिकता उद्धार सूची' : 'Priority Evacuation List'}
             </div>
           </div>
 
-          {/* आर्थिक सक्रिय जनशक्ति */}
+          {/* आपतकालीन खोज-उद्धार SAR */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #eef2ff 0%, #ffffff 100%)',
+              background: 'linear-gradient(135deg, #fffbeb 0%, #ffffff 100%)',
               borderRadius: '16px',
-              border: '1.5px solid #c7d2fe',
+              border: '1.5px solid #fde68a',
               padding: '1.2rem',
-              boxShadow: '0 4px 16px rgba(79,70,229,0.06)',
+              boxShadow: '0 4px 16px rgba(217,119,6,0.06)',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #4f46e5, #818cf8)' }} />
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #d97706, #fbbf24)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase' }}>
-                आर्थिक सक्रिय जनशक्ति
+              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase' }}>
+                {isNepali ? 'खोज-उद्धार (SAR) स्ट्यान्डबाइ' : 'SAR Equipment & Brigade'}
               </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <TrendingUp size={19} color="#4f46e5" />
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Truck size={19} color="#d97706" />
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#312e81', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.economicallyActive ?? 8200)}
+              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#78350f', lineHeight: 1.1 }}>
+                {toNepaliDigits(stats.sarHeavyEquipment ?? 12)}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#4f46e5' }}>जना</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#d97706' }}>{isNepali ? 'उपकरण' : 'Units'}</span>
             </div>
-            <div style={{ fontSize: '0.73rem', color: '#4338ca', fontWeight: 600, marginBottom: '0.35rem' }}>
-              श्रम सहभागिता दर: {toNepaliDigits(stats.participationRate ?? 58.7)}% (कृषि: {toNepaliDigits(7812)} जना)
+            <div style={{ fontSize: '0.73rem', color: '#92400e', fontWeight: 600, marginBottom: '0.35rem' }}>
+              {isNepali ? '१० डोजर/एक्साभेटर + २ उद्धार डुङ्गा' : '10 Dozers/Excavators + 2 Boats'}
             </div>
-            <div style={{ fontSize: '0.68rem', color: '#4f46e5', background: '#e0e7ff', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              वैदेशिक रोजगारी: {toNepaliDigits(stats.abroadPopulation ?? 1840)} जना
+            <div style={{ fontSize: '0.68rem', color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
+              {isNepali ? '६४ प्रमाणित स्वयंसेवक कार्यदल' : '64 Certified SAR Rescuers'}
             </div>
           </div>
 
@@ -1628,7 +1380,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #ea580c, #fb923c)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#ea580c', textTransform: 'uppercase' }}>
-                विपद् जोखिम व्यवस्थापन
+                {isNepali ? 'विपद् जोखिम तथा आश्रयस्थल' : 'Risk Zones & Shelters'}
               </span>
               <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ffedd5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <AlertTriangle size={19} color="#ea580c" />
@@ -1638,13 +1390,15 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#7c2d12', lineHeight: 1.1 }}>
                 {toNepaliDigits(stats.highRiskSettlements ?? 4)}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ea580c' }}>बस्ती उच्च जोखिम</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ea580c' }}>{isNepali ? 'बस्ती उच्च जोखिम' : 'High-Risk Clusters'}</span>
             </div>
             <div style={{ fontSize: '0.73rem', color: '#c2410c', fontWeight: 600, marginBottom: '0.35rem' }}>
-              पहिरो तथा नदी कटान क्षेत्र • {toNepaliDigits(stats.totalShelters ?? 8)} सुरक्षित आश्रयस्थल
+              {isNepali
+                ? `पहिरो तथा नदी कटान • ${toNepaliDigits(stats.totalShelters ?? 6)} सुरक्षित आश्रयस्थल`
+                : `Landslide & Flood Zones • ${stats.totalShelters ?? 6} Certified Shelters`}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#c2410c', background: '#ffedd5', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              आश्रयस्थल क्षमता: {toNepaliDigits(stats.totalShelterCapacity ?? 1640)} जना
+              {isNepali ? `आश्रयस्थल क्षमता: ${toNepaliDigits(stats.totalShelterCapacity ?? 1310)} जना` : `Shelter Capacity: ${stats.totalShelterCapacity ?? 1310} Persons`}
             </div>
           </div>
 
@@ -1663,7 +1417,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #0d9488, #2dd4bf)' }} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0d9488', textTransform: 'uppercase' }}>
-                प्रशासनिक भूगोल तथा केन्द्र
+                {isNepali ? 'प्रशासनिक भूगोल तथा भू-धरातल' : 'Terrain & Administrative Area'}
               </span>
               <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ccfbf1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Compass size={19} color="#0d9488" />
@@ -1671,15 +1425,15 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
               <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#134e4a', lineHeight: 1.1 }}>
-                ८
+                {toNepaliDigits(8)}
               </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0d9488' }}>वडाहरू</span>
+              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0d9488' }}>{isNepali ? 'वडाहरू' : 'Wards'}</span>
             </div>
             <div style={{ fontSize: '0.73rem', color: '#0f766e', fontWeight: 600, marginBottom: '0.35rem' }}>
-              क्षेत्रफल: {toNepaliDigits('187.29')} वर्ग कि.मि. · केन्द्र: थाङपालधाप
+              {isNepali ? 'क्षेत्रफल: १८७.२९ वर्ग कि.मि. · केन्द्र: थाङपालधाप' : 'Area: 187.29 sq. km · HQ: Thangpaldhap'}
             </div>
             <div style={{ fontSize: '0.68rem', color: '#0d9488', background: '#ccfbf1', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              उचाइ: १,०५० - ६,३४० मिटर • हिमाली भूगोल
+              {isNepali ? 'उचाइ: १,०५० - ६,३४० मिटर • हिमाली भूगोल' : 'Elevation: 1,050 - 6,340m • Himalayan Terrain'}
             </div>
           </div>
         </div>
@@ -1789,10 +1543,12 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               ) : (
                 <Activity size={20} color="#10b981" />
               )}
-              क्षेत्रगत तथ्याङ्क (Live Sectoral Data Overview)
+              {isNepali ? 'विपद् जोखिम तथा आपतकालीन तथ्याङ्क (Live Disaster Metrics)' : 'Live Disaster Risk & Operational Metrics'}
             </h2>
             <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
-              पालिकाको केन्द्रीय डाटाबेसबाट १८ वटै क्षेत्रका वास्तविक रियल-टाइम संख्याहरू
+              {isNepali
+                ? 'पालिकाको केन्द्रीय आपतकालीन नियन्त्रण कक्ष (LEOC) बाट प्रमाणित १२ मुख्य रियल-टाइम सूचकहरू'
+                : '12 verified real-time operational indicators from Local Emergency Operation Centre (LEOC)'}
             </p>
           </div>
 
@@ -1812,7 +1568,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               }}
             >
               <CheckCircle2 size={14} color="#10b981" />
-              <span>डाटाबेस सिङ्क भएको (Live DB)</span>
+              <span>{isNepali ? 'LEOC सिङ्क भएको (Live EOC)' : 'Live EOC Ingested'}</span>
             </div>
           </div>
         </div>

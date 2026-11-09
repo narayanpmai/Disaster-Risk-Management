@@ -623,7 +623,7 @@ export const Terrain3DView: React.FC<Terrain3DViewProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <Layers size={14} color="#38bdf8" />
-          <span>३D डिजिटल ट्विन भू-धरातल</span>
+          <span>३D विपद् जोखिम भू-धरातल</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#94a3b8' }}>
           <Compass size={14} />

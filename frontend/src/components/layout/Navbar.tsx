@@ -201,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
           />
           <input
             type="text"
-            placeholder={isNepali ? "सेवा, संस्था, योजना खोज्नुहोस्..." : "Search services, projects, flood alerts..."}
+            placeholder={isNepali ? "विपद् घटना, जलसतह सेन्सर, राहत खोज्नुहोस्..." : "Search incidents, river sensors, flood alerts..."}
             style={{
               width: '100%',
               padding: '0.45rem 0.75rem 0.45rem 2rem',

@@ -22,16 +22,16 @@ import { rtiApi, type RtiRequest } from '../../api/rti';
 import { useLanguage } from '../../context/LanguageContext';
 
 const CATEGORIES = [
-  { value: 'infrastructure', label: 'सडक तथा पूर्वाधार' },
-  { value: 'drinking_water', label: 'खानेपानी तथा सरसफाइ' },
-  { value: 'electricity', label: 'विद्युत तथा सञ्चार' },
-  { value: 'health', label: 'स्वास्थ्य सेवा' },
-  { value: 'education', label: 'शिक्षा तथा विद्यालय' },
-  { value: 'waste_management', label: 'फोहोरमैला व्यवस्थापन' },
-  { value: 'governance_corruption', label: 'सुशासन तथा अनियमितता' },
-  { value: 'service_delay', label: 'सेवा प्रवाहमा ढिलासुस्ती' },
-  { value: 'environment', label: 'वन, वातावरण तथा विपद्' },
-  { value: 'other', label: 'अन्य विषय' },
+  { value: 'flood_erosion', label: 'बाढी तथा नदी कटान जोखिम' },
+  { value: 'landslide_hazard', label: 'पहिरो तथा भिरालो बस्ती जोखिम' },
+  { value: 'relief_distribution', label: 'राहत वितरण तथा खाद्यान्न सामग्री गुनासो' },
+  { value: 'damage_assessment_rdra', label: 'RDRA क्षति मूल्याङ्कन तथा लगत पुनरावलोकन' },
+  { value: 'shelter_wash', label: 'सुरक्षित आश्रयस्थल, खानेपानी र सरसफाइ' },
+  { value: 'early_warning_siren', label: 'पूर्वसूचना साइरन तथा IVR प्रसारण' },
+  { value: 'sar_equipment', label: 'खोज तथा उद्धार (SAR) हेभी उपकरण माग' },
+  { value: 'reconstruction_grant', label: 'पुनर्निर्माण तथा आवास अनुदान गुनासो' },
+  { value: 'environmental_mining', label: 'अवैध नदीजन्य उत्खनन तथा खानी' },
+  { value: 'other_disaster', label: 'अन्य विपद् व्यवस्थापन विषय' },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -50,7 +50,7 @@ export const Complaints: React.FC = () => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [ward, setWard] = useState<number>(1);
-  const [category, setCategory] = useState('infrastructure');
+  const [category, setCategory] = useState('flood_erosion');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);

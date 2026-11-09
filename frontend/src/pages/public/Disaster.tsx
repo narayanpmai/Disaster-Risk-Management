@@ -218,15 +218,15 @@ export const Disaster: React.FC = () => {
     },
     river_twin: {
       badge: isNepali
-        ? 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित जलसतह टेलिमेट्री तथा बाढी डिजिटल ट्विन'
-        : 'Panchpokhari Thangpal — Automated Water Level Telemetry & Flood Digital Twin',
+        ? 'पाँचपोखरी थाङपाल गाउँपालिका — स्वचालित जलसतह टेलिमेट्री तथा ३D बाढी सिमुलेटर'
+        : 'Panchpokhari Thangpal — Automated Water Level Telemetry & 3D Flood Simulator',
       badgeIcon: <Waves size={16} color="#38bdf8" />,
       title: isNepali
         ? 'मेलम्ची-इन्द्रावती नदी जलसतह तथा बाढी पूर्वसूचना प्रणाली'
-        : 'Melamchi-Indrawati River Water Level & Flood Early Warning Twin',
+        : 'Melamchi-Indrawati River Water Level & Flood Early Warning System',
       desc: isNepali
-        ? 'थाङपालधाप र गुन्सा स्वचालित IoT राडार जलसतह गेज, मेलम्ची खोलाको प्रत्यक्ष जलस्तर अनुगमन तथा सम्भावित बाढीको पूर्वचेतावनी डिजिटल ट्विन।'
-        : 'Automated IoT radar water level telemetry at Thangpaldhap and Gunsa, real-time river monitoring and predictive flood early warning twin.',
+        ? 'थाङपालधाप र गुन्सा स्वचालित IoT राडार जलसतह गेज, मेलम्ची खोलाको प्रत्यक्ष जलस्तर अनुगमन तथा सम्भावित बाढीको ३D पूर्वचेतावनी सिमुलेटर।'
+        : 'Automated IoT radar water level telemetry at Thangpaldhap and Gunsa, real-time river monitoring and predictive 3D flood early warning simulator.',
       bannerGradient: 'linear-gradient(135deg, #0b192c 0%, #1e3e62 50%, #001f3f 100%)',
       iconWatermark: <Waves size={360} color="#38bdf8" />,
     },

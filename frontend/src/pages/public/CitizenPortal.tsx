@@ -305,12 +305,12 @@ export const CitizenPortal: React.FC = () => {
               </button>
 
               <Link
-                to="/ebps?tab=apply"
+                to="/disaster"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  backgroundColor: '#6366f1',
+                  backgroundColor: '#dc2626',
                   color: '#ffffff',
                   border: 'none',
                   padding: '0.75rem 1.3rem',
@@ -319,24 +319,24 @@ export const CitizenPortal: React.FC = () => {
                   fontSize: '0.92rem',
                   cursor: 'pointer',
                   textDecoration: 'none',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.4)',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)',
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
               >
-                <Building2 size={18} />
-                + घर-नक्सा पास अनलाइन आवेदन (e-BPS)
+                <AlertTriangle size={18} />
+                + आपतकालीन विपद् घटना दर्ता (Report Incident)
               </Link>
 
               <Link
-                to="/procurement?tab=apply"
+                to="/disaster?tab=heavy_equipment"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  backgroundColor: '#0284c7',
-                  color: '#ffffff',
+                  backgroundColor: '#f59e0b',
+                  color: '#0f172a',
                   border: 'none',
                   padding: '0.75rem 1.3rem',
                   borderRadius: '10px',
@@ -344,14 +344,14 @@ export const CitizenPortal: React.FC = () => {
                   fontSize: '0.92rem',
                   cursor: 'pointer',
                   textDecoration: 'none',
-                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.4)',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.4)',
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
                 onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
               >
                 <Briefcase size={18} />
-                + ई-बोलपत्र / योजना आवेदन (e-Tender)
+                खोज-उद्धार (SAR) हेभी उपकरण डाइरेक्टरी
               </Link>
             </div>
           </div>

@@ -337,7 +337,7 @@ export const Demographics: React.FC = () => {
           {/* Data source footer */}
           <div style={{ marginTop: '1.5rem', background: '#f8fafc', borderRadius: 12, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', gap: 10, color: '#64748b', fontSize: '0.82rem' }}>
             <Activity size={15} />
-            <span>स्रोत: राष्ट्रिय जनगणना २०७८ — केन्द्रीय तथ्यांक विभाग, नेपाल सरकार। डाटा पाँचपोखरी थाङपाल गाउँपालिकाको डिजिटल ट्विन प्रणालीबाट लिइएको।</span>
+            <span>{isNepali ? 'स्रोत: राष्ट्रिय जनगणना २०७८ तथा पाँचपोखरी थाङपाल एकीकृत विपद् व्यवस्थापन प्रणाली (NIDRMS)।' : 'Source: National Census 2078 & Panchpokhari Integrated Disaster Risk Management System (NIDRMS).'}</span>
           </div>
         </>
       )}
