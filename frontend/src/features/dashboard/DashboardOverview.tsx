@@ -52,13 +52,22 @@ import { MunicipalGISMap } from '../../components/maps/MunicipalGISMap';
 
 // ── Devanagari / Nepali Digits Formatter ──────────────────────────────────────
 export const toNepaliDigits = (val: number | string | undefined | null, forceNepali = true): string => {
-  if (val === undefined || val === null) return forceNepali ? '०' : '0';
+  if (val === undefined || val === null || (typeof val === 'number' && isNaN(val))) {
+    return forceNepali ? '०' : '0';
+  }
   const formatted = typeof val === 'number'
     ? val.toLocaleString('en-IN')
     : String(val);
   if (!forceNepali) return formatted;
   const nepaliDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
   return formatted.replace(/[0-9]/g, (d) => nepaliDigits[parseInt(d, 10)] ?? d);
+};
+
+// ── Safe Number Helper to prevent NaN ─────────────────────────────────────────
+const safeNum = (val: any, fallback: number): number => {
+  if (val === undefined || val === null || val === '') return fallback;
+  const num = Number(val);
+  return Number.isFinite(num) && num > 0 ? num : fallback;
 };
 
 // ── Default Seeded Baseline Counts (100% NIDRMS Disaster Domain) ─────────────
@@ -96,7 +105,7 @@ function useAnimatedCounter(target: number, duration = 1200) {
   const animRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (target === undefined || target === null) return;
+    if (target === undefined || target === null || isNaN(target)) return;
     let start: number | null = null;
     const initial = 0;
     const step = (timestamp: number) => {
@@ -133,6 +142,7 @@ interface StatCardProps {
   link?: string;
   previewDetails?: { label: string; value: string | number; highlight?: boolean }[];
   readOnly?: boolean;
+  isNepali?: boolean;
 }
 
 // ── Quick Preview Modal ────────────────────────────────────────────────────────
@@ -140,7 +150,8 @@ const QuickPreviewModal: React.FC<{
   open: boolean;
   onClose: () => void;
   card: StatCardProps;
-}> = ({ open, onClose, card }) => {
+  isNepali: boolean;
+}> = ({ open, onClose, card, isNepali }) => {
   if (!open) return null;
   return (
     <div
@@ -188,7 +199,7 @@ const QuickPreviewModal: React.FC<{
                 {card.label}
               </div>
               <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-                {toNepaliDigits(card.value)}
+                {toNepaliDigits(card.value, isNepali)}
               </div>
             </div>
           </div>
@@ -204,7 +215,7 @@ const QuickPreviewModal: React.FC<{
           {card.subLabel && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.85rem', background: `${card.bgColor}`, borderRadius: '10px', border: `1px solid ${card.borderColor}33` }}>
               <span style={{ fontSize: '0.82rem', color: '#475569', fontWeight: 600 }}>{card.subLabel}</span>
-              <span style={{ fontSize: '0.88rem', fontWeight: 800, color: card.color }}>{toNepaliDigits(card.subValue)}</span>
+              <span style={{ fontSize: '0.88rem', fontWeight: 800, color: card.color }}>{toNepaliDigits(card.subValue, isNepali)}</span>
             </div>
           )}
 
@@ -219,7 +230,7 @@ const QuickPreviewModal: React.FC<{
             }}>
               <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 500 }}>{d.label}</span>
               <span style={{ fontSize: '0.85rem', fontWeight: 700, color: d.highlight ? card.color : '#0f172a' }}>
-                {toNepaliDigits(d.value)}
+                {toNepaliDigits(d.value, isNepali)}
               </span>
             </div>
           ))}
@@ -244,7 +255,7 @@ const QuickPreviewModal: React.FC<{
               onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
             >
               <ExternalLink size={16} />
-              विस्तृत हेर्नुहोस् →
+              {isNepali ? 'विस्तृत हेर्नुहोस् →' : 'View Details →'}
             </Link>
           </div>
         )}
@@ -254,10 +265,13 @@ const QuickPreviewModal: React.FC<{
 };
 
 const StatCard: React.FC<StatCardProps> = (props) => {
-  const { icon, label, value, subLabel, subValue, color, bgColor, borderColor, loading, link, previewDetails, readOnly } = props;
-  const numericVal = typeof value === 'number' ? value : 0;
+  const { icon, label, value, subLabel, subValue, color, bgColor, borderColor, loading, link, previewDetails, readOnly, isNepali = true } = props;
+  const numericVal = typeof value === 'number' && !isNaN(value) ? value : 0;
   const animated = useAnimatedCounter(numericVal, 1100);
-  const displayValue = typeof value === 'number' ? toNepaliDigits(animated) : value;
+  const displayValue = typeof value === 'number'
+    ? toNepaliDigits(animated, isNepali)
+    : (typeof value === 'string' && /^\d+$/.test(value) ? toNepaliDigits(value, isNepali) : value);
+
   const [hovered, setHovered] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -273,10 +287,12 @@ const StatCard: React.FC<StatCardProps> = (props) => {
         background: hovered ? `linear-gradient(135deg, ${bgColor}, #ffffff)` : '#ffffff',
         borderRadius: '16px',
         border: `1.5px solid ${hovered ? borderColor : '#e8edf5'}`,
-        padding: '1.1rem 1.2rem',
+        padding: '1.15rem 1.2rem',
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem',
+        justifyContent: 'space-between',
+        minHeight: '145px',
+        boxSizing: 'border-box',
         transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         boxShadow: hovered ? `0 10px 24px ${borderColor}33` : '0 2px 8px rgba(0,0,0,0.03)',
         transform: hovered ? 'translateY(-3px)' : 'none',
@@ -295,60 +311,66 @@ const StatCard: React.FC<StatCardProps> = (props) => {
           borderRadius: '16px 16px 0 0',
         }}
       />
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem' }}>
-            {label}
-          </div>
-          {loading ? (
-            <div style={{ height: '2rem', width: '75px', background: 'linear-gradient(90deg,#f1f5f9,#e2e8f0,#f1f5f9)', backgroundSize: '200% 100%', borderRadius: '8px', animation: 'shimmer 1.4s infinite' }} />
-          ) : (
-            <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
-              {displayValue}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.25rem', lineHeight: 1.3 }}>
+              {label}
             </div>
-          )}
-        </div>
-        <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 2px 8px ${borderColor}44` }}>
-          {icon}
+            {loading ? (
+              <div style={{ height: '2rem', width: '75px', background: 'linear-gradient(90deg,#f1f5f9,#e2e8f0,#f1f5f9)', backgroundSize: '200% 100%', borderRadius: '8px', animation: 'shimmer 1.4s infinite' }} />
+            ) : (
+              <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>
+                {displayValue}
+              </div>
+            )}
+          </div>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: bgColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: `0 2px 8px ${borderColor}44` }}>
+            {icon}
+          </div>
         </div>
       </div>
-      {subLabel && (
-        <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
-          {loading ? (
-            <span style={{ display: 'inline-block', width: '90px', height: '0.65rem', background: '#f1f5f9', borderRadius: '4px' }} />
-          ) : (
-            <span>{subLabel}: <strong style={{ color, fontWeight: 700 }}>{toNepaliDigits(subValue)}</strong></span>
-          )}
-        </div>
-      )}
-      {/* Click hint */}
-      {hovered && link && !readOnly && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', color: color, fontWeight: 700, marginTop: '0.25rem' }}>
-          <ExternalLink size={12} /> विस्तृत हेर्नुहोस्
-        </div>
-      )}
+
+      <div style={{ marginTop: '0.4rem' }}>
+        {subLabel && (
+          <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
+            {loading ? (
+              <span style={{ display: 'inline-block', width: '90px', height: '0.65rem', background: '#f1f5f9', borderRadius: '4px' }} />
+            ) : (
+              <span>{subLabel}: <strong style={{ color, fontWeight: 700 }}>{toNepaliDigits(subValue, isNepali)}</strong></span>
+            )}
+          </div>
+        )}
+        {/* Click hint */}
+        {hovered && link && !readOnly && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.7rem', color: color, fontWeight: 700, marginTop: '0.25rem' }}>
+            <ExternalLink size={12} /> {isNepali ? 'विस्तृत हेर्नुहोस्' : 'View Details'}
+          </div>
+        )}
+      </div>
     </div>
   );
 
   return (
     <>
-      <QuickPreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} card={props} />
-      <div style={{ display: 'block', cursor: 'pointer' }}>{inner}</div>
+      <QuickPreviewModal open={previewOpen} onClose={() => setPreviewOpen(false)} card={props} isNepali={isNepali} />
+      <div style={{ display: 'block', cursor: 'pointer', height: '100%' }}>{inner}</div>
     </>
   );
 };
-
 
 // ── Main Component ────────────────────────────────────────────────────────────
 export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const { settings } = useTenant();
   const { isNepali } = useLanguage();
-  const palikaName = settings?.palika_name || (isNepali ? 'पाँचपोखरी थाङपाल गाउँपालिका' : 'Panchpokhari Thangpal Rural Municipality');
+  const palikaName = isNepali
+    ? (settings?.palika_name || 'पाँचपोखरी थाङपाल गाउँपालिका')
+    : 'Panchpokhari Thangpal Rural Municipality';
   const fmt = (v: any) => toNepaliDigits(v, isNepali);
 
   const [stats, setStats] = useState<Record<string, any>>(DEFAULT_STATS);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -369,19 +391,17 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       'http://localhost:3001/api/v1/dashboard/stats',
     ];
 
-    let foundData = false;
     for (const url of candidateUrls) {
       try {
         const res = await fetch(url, { headers });
         if (res.ok) {
           const data = await res.json();
-          setStats((prev) => ({ ...prev, ...data }));
-          foundData = true;
+          if (data && typeof data === 'object') {
+            setStats((prev) => ({ ...prev, ...data }));
+          }
           break;
         }
-      } catch (_) {
-        // try next endpoint candidate
-      }
+      } catch (_) {}
     }
 
     // ── 2. Fetch individual endpoints in parallel ────────────────────────────
@@ -418,28 +438,28 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       const next = { ...prev };
 
       // विपद् व्यवस्थापन तथ्याङ्क (Real Data from LEOC)
-      if (disasterStats) {
-        next.totalDisasterEvents = Number(disasterStats.totalEvents) ?? prev.totalDisasterEvents ?? 8;
-        next.activeDisasterEvents = Number(disasterStats.activeEvents) ?? prev.activeDisasterEvents ?? 2;
-        next.highRiskSettlements = Number(disasterStats.highRiskSettlements) ?? prev.highRiskSettlements ?? 4;
-        next.totalShelters = Number(disasterStats.totalShelters) ?? prev.totalShelters ?? 6;
-        next.totalShelterCapacity = Number(disasterStats.totalShelterCapacity) ?? prev.totalShelterCapacity ?? 1310;
-        next.totalDamageLossNPR = Number(disasterStats.totalDamageLossNPR) ?? prev.totalDamageLossNPR ?? 15750000;
-        next.reliefDisbursedNPR = Number(disasterStats.reliefDisbursedNPR) ?? prev.reliefDisbursedNPR ?? 4850000;
-        next.vulnerableCitizens = Number(disasterStats.vulnerableCitizens) ?? prev.vulnerableCitizens ?? 1420;
-        next.sarHeavyEquipment = Number(disasterStats.sarHeavyEquipment) ?? prev.sarHeavyEquipment ?? 12;
-        next.sarVolunteers = Number(disasterStats.sarVolunteers) ?? prev.sarVolunteers ?? 64;
-        next.telemetrySensors = Number(disasterStats.telemetrySensors) ?? prev.telemetrySensors ?? 3;
+      if (disasterStats && typeof disasterStats === 'object') {
+        next.totalDisasterEvents = safeNum(disasterStats.totalEvents, prev.totalDisasterEvents || 8);
+        next.activeDisasterEvents = safeNum(disasterStats.activeEvents, prev.activeDisasterEvents || 2);
+        next.highRiskSettlements = safeNum(disasterStats.highRiskSettlements, prev.highRiskSettlements || 4);
+        next.totalShelters = safeNum(disasterStats.totalShelters, prev.totalShelters || 6);
+        next.totalShelterCapacity = safeNum(disasterStats.totalShelterCapacity, prev.totalShelterCapacity || 1310);
+        next.totalDamageLossNPR = safeNum(disasterStats.totalDamageLossNPR, prev.totalDamageLossNPR || 15750000);
+        next.reliefDisbursedNPR = safeNum(disasterStats.totalReliefDistributedNPR ?? disasterStats.reliefDisbursedNPR, prev.reliefDisbursedNPR || 4850000);
+        next.vulnerableCitizens = safeNum(disasterStats.vulnerableCitizens, prev.vulnerableCitizens || 1420);
+        next.sarHeavyEquipment = safeNum(disasterStats.sarHeavyEquipment, prev.sarHeavyEquipment || 12);
+        next.sarVolunteers = safeNum(disasterStats.sarVolunteers, prev.sarVolunteers || 64);
+        next.telemetrySensors = safeNum(disasterStats.telemetrySensors, prev.telemetrySensors || 3);
       }
 
       // जनसांख्यिकी लगत (Demographic Baseline for Evacuation & Rescue)
-      if (demoData) {
-        next.totalPopulation = Number(demoData?.population?.total) || prev.totalPopulation || 17521;
-        next.malePopulation = Number(demoData?.population?.male) || prev.malePopulation || 8600;
-        next.femalePopulation = Number(demoData?.population?.female) || prev.femalePopulation || 8921;
-        next.totalHouseholds = Number(demoData?.population?.households) || prev.totalHouseholds || 5805;
-        next.totalGpsHouses = Number(demoData?.householdRegistry?.registeredCount) ?? prev.totalGpsHouses ?? 5805;
-        next.highRiskHouses = Number(demoData?.householdRegistry?.highRiskCount) ?? prev.highRiskHouses ?? 18;
+      if (demoData && typeof demoData === 'object') {
+        next.totalPopulation = safeNum(demoData?.population?.total, prev.totalPopulation || 17521);
+        next.malePopulation = safeNum(demoData?.population?.male, prev.malePopulation || 8600);
+        next.femalePopulation = safeNum(demoData?.population?.female, prev.femalePopulation || 8921);
+        next.totalHouseholds = safeNum(demoData?.population?.households, prev.totalHouseholds || 5805);
+        next.totalGpsHouses = safeNum(demoData?.householdRegistry?.registeredCount, prev.totalGpsHouses || 5805);
+        next.highRiskHouses = safeNum(demoData?.householdRegistry?.highRiskCount, prev.highRiskHouses || 18);
       }
 
       // विपद् पुनर्निर्माण तथा पूर्वाधार आयोजना
@@ -449,13 +469,13 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
 
       // भौतिक पूर्वाधार तथा प्रगति KPIs
       if (reportKpis) {
-        next.roadLengthKm = Number(reportKpis.roadLengthKm) ?? prev.roadLengthKm ?? 148.5;
-        next.waterAccessPercent = Number(reportKpis.waterAccessPercent) ?? prev.waterAccessPercent ?? 88.5;
-        next.budgetUtilizationPercent = Number(reportKpis.budgetUtilizationPercent) ?? prev.budgetUtilizationPercent ?? 98.0;
+        next.roadLengthKm = safeNum(reportKpis.roadLengthKm, prev.roadLengthKm || 148.5);
+        next.waterAccessPercent = safeNum(reportKpis.waterAccessPercent, prev.waterAccessPercent || 88.5);
+        next.budgetUtilizationPercent = safeNum(reportKpis.budgetUtilizationPercent, prev.budgetUtilizationPercent || 98.0);
       }
 
       // विपद् गुनासो तथा राहत उजुरी
-      if (complaintsList) {
+      if (complaintsList && Array.isArray(complaintsList)) {
         next.totalComplaints = complaintsList.length;
         next.pendingComplaints = complaintsList.filter((c: any) =>
           !(c.status || '').includes('फछ्र्यौट') &&
@@ -483,12 +503,13 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       label: isNepali ? 'विपद् घटना दर्ता' : 'Reported Incidents',
       value: stats.totalDisasterEvents ?? 8,
       subLabel: isNepali ? 'सक्रिय प्रतिकार्य' : 'Active Response',
-      subValue: isNepali ? `${toNepaliDigits(stats.activeDisasterEvents ?? 2)} सक्रिय कमाण्ड` : `${stats.activeDisasterEvents ?? 2} Active Operations`,
+      subValue: isNepali ? `${fmt(stats.activeDisasterEvents ?? 2)} सक्रिय कमाण्ड` : `${stats.activeDisasterEvents ?? 2} Active Operations`,
       color: '#dc2626',
       bgColor: '#fef2f2',
       borderColor: '#f87171',
       loading,
       link: '/disaster',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'दर्ता विपद् घटनाहरू' : 'Reported Incidents', value: stats.totalDisasterEvents ?? 8, highlight: true },
         { label: isNepali ? 'सक्रिय प्रतिकार्य' : 'Active Operations', value: stats.activeDisasterEvents ?? 2, highlight: true },
@@ -507,6 +528,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#fb923c',
       loading,
       link: '/disaster',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'सक्रिय कमाण्ड' : 'Active Incidents', value: stats.activeDisasterEvents ?? 2, highlight: true },
         { label: isNepali ? 'सुरक्षा निकाय समन्वय' : 'Security Agencies', value: isNepali ? 'सेना, सशस्त्र, नेपाल प्रहरी' : 'Army, APF, Police' },
@@ -525,6 +547,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#fcd34d',
       loading,
       link: '/disaster?tab=vulnerable_settlements',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'उच्च जोखिम बस्ती संख्या' : 'High Risk Clusters', value: stats.highRiskSettlements ?? 4, highlight: true },
         { label: isNepali ? 'पहिरो जोखिम बस्ती' : 'Landslide Zones', value: isNepali ? 'मानेखर्क, सेर्माथाङ, भोताङ' : 'Manekharka, Sermathang, Bhotang' },
@@ -537,12 +560,13 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       label: isNepali ? 'जोखिमयुक्त घरधुरी' : 'Exposed Households',
       value: stats.totalHouseholds ?? 5805,
       subLabel: isNepali ? '१००% GPS नक्साङ्कन' : '100% Geo-Mapped',
-      subValue: isNepali ? `${toNepaliDigits(stats.totalHouseholds ?? 5805)} घरधुरी` : `${(stats.totalHouseholds ?? 5805).toLocaleString()} HH`,
+      subValue: isNepali ? `${fmt(stats.totalHouseholds ?? 5805)} घरधुरी` : `${(stats.totalHouseholds ?? 5805).toLocaleString()} HH`,
       color: '#7c3aed',
       bgColor: '#f5f3ff',
       borderColor: '#a78bfa',
       loading,
       link: '/demographics',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'कुल घरधुरी' : 'Total Households', value: stats.totalHouseholds ?? 5805, highlight: true },
         { label: isNepali ? 'GPS प्रमाणीकरण' : 'GPS Verification', value: isNepali ? '१००% जियो-ट्याग' : '100% Geo-Tagged' },
@@ -555,12 +579,13 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       label: isNepali ? 'अति-संवेदनशील नागरिक' : 'Vulnerable Citizens',
       value: stats.vulnerableCitizens ?? 1420,
       subLabel: isNepali ? 'प्राथमिकता उद्धार सूची' : 'Priority Rescue List',
-      subValue: isNepali ? '१,४२० जना विशेष लगत' : '1,420 Priority Persons',
+      subValue: isNepali ? `${fmt(stats.vulnerableCitizens ?? 1420)} जना विशेष लगत` : `${(stats.vulnerableCitizens ?? 1420).toLocaleString()} Priority Persons`,
       color: '#ec4899',
       bgColor: '#fdf2f8',
       borderColor: '#f472b6',
       loading,
       link: '/disaster?tab=micro_vulnerability',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'अति-संवेदनशील नागरिक' : 'Total Micro-Vulnerable', value: stats.vulnerableCitizens ?? 1420, highlight: true },
         { label: isNepali ? 'गर्भवती तथा सुत्केरी' : 'Pregnant & Lactating', value: isNepali ? '२१८ जना' : '218 Mothers' },
@@ -579,6 +604,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#34d399',
       loading,
       link: '/disaster?tab=shelters',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'प्रमाणित आश्रयस्थलहरू' : 'Certified Shelters', value: stats.totalShelters ?? 6, highlight: true },
         { label: isNepali ? 'संरचना प्रकार' : 'Structure Type', value: isNepali ? 'कभर्ड हल, विद्यालय, भवन' : 'Covered Halls, Schools' },
@@ -591,15 +617,16 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       label: isNepali ? 'आश्रयस्थल कुल क्षमता' : 'Shelter Capacity',
       value: stats.totalShelterCapacity ?? 1310,
       subLabel: isNepali ? 'विस्थापित नागरिक क्षमता' : 'Evacuee Capacity',
-      subValue: isNepali ? `${toNepaliDigits(stats.totalShelterCapacity ?? 1310)} जना क्षमता` : `${stats.totalShelterCapacity ?? 1310} Persons`,
+      subValue: isNepali ? `${fmt(stats.totalShelterCapacity ?? 1310)} जना क्षमता` : `${(stats.totalShelterCapacity ?? 1310).toLocaleString()} Persons`,
       color: '#059669',
       bgColor: '#f0fdf4',
       borderColor: '#4ade80',
       loading,
       link: '/disaster?tab=shelters',
+      isNepali,
       previewDetails: [
-        { label: isNepali ? 'कुल आश्रय क्षमता' : 'Total Capacity', value: `${stats.totalShelterCapacity ?? 1310} जना`, highlight: true },
-        { label: isNepali ? 'प्रति व्यक्ति क्षेत्रफल' : 'Per Person Space', value: '३.५ वर्गमिटर' },
+        { label: isNepali ? 'कुल आश्रय क्षमता' : 'Total Capacity', value: isNepali ? `${fmt(stats.totalShelterCapacity ?? 1310)} जना` : `${(stats.totalShelterCapacity ?? 1310).toLocaleString()} Persons`, highlight: true },
+        { label: isNepali ? 'प्रति व्यक्ति क्षेत्रफल' : 'Per Person Space', value: isNepali ? '३.५ वर्गमिटर' : '3.5 sq. meters' },
         { label: isNepali ? 'महिला/बालमैत्री कोठा' : 'Women & Child Friendly', value: isNepali ? 'सुरक्षित छुट्टै व्यवस्था' : 'Separated Safe Rooms' },
         { label: isNepali ? 'अस्थायी पाल/त्रिपाल' : 'Tarpaulins Standby', value: isNepali ? '१,८५० थान मौज्दात' : '1,850 Units' },
       ],
@@ -615,6 +642,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#fbbf24',
       loading,
       link: '/disaster?tab=heavy_equipment',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'कुल हेभी इक्युपमेन्ट' : 'Heavy Equipment Standby', value: stats.sarHeavyEquipment ?? 12, highlight: true },
         { label: isNepali ? 'डोजर र एक्साभेटर' : 'Dozers & Excavators', value: isNepali ? '६ पालिका + ४ निजी' : '6 Palika + 4 Private' },
@@ -633,8 +661,9 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#38bdf8',
       loading,
       link: '/disaster?tab=heavy_equipment',
+      isNepali,
       previewDetails: [
-        { label: isNepali ? 'प्रमाणित स्वयंसेवक कार्यदल' : 'Certified Volunteers', value: `${stats.sarVolunteers ?? 64} जना`, highlight: true },
+        { label: isNepali ? 'प्रमाणित स्वयंसेवक कार्यदल' : 'Certified Volunteers', value: isNepali ? `${fmt(stats.sarVolunteers ?? 64)} जना` : `${stats.sarVolunteers ?? 64} Rescuers`, highlight: true },
         { label: isNepali ? 'तालिम निकाय' : 'Training Agency', value: isNepali ? 'रेडक्रस + सशस्त्र प्रहरी बल' : 'Red Cross + APF Disaster Unit' },
         { label: isNepali ? 'दक्षता' : 'Specialization', value: isNepali ? 'प्राथमिक उपचार, डोरी उद्धार, खोज' : 'First Aid, Rope Rescue, SAR' },
         { label: isNepali ? 'मोबिलाइजेसन समय' : 'Dispatch Time', value: isNepali ? '< १५ मिनेट' : '< 15 mins' },
@@ -651,10 +680,11 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#60a5fa',
       loading,
       link: '/disaster?tab=sensors',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'सक्रिय टेलिमेट्री स्टेशन' : 'Telemetry Stations', value: stats.telemetrySensors ?? 3, highlight: true },
-        { label: isNepali ? 'मेलम्ची खोला (SEN-MEL-01)' : 'Melamchi River (SEN-MEL-01)', value: '३.२ मिटर (खतरा: ५.५m)' },
-        { label: isNepali ? 'भोताङ वर्षा (SEN-BHO-02)' : 'Bhotang Rain (SEN-BHO-02)', value: '४२.० मिमि (खतरा: ८०mm)' },
+        { label: isNepali ? 'मेलम्ची खोला (SEN-MEL-01)' : 'Melamchi River (SEN-MEL-01)', value: isNepali ? '३.२ मिटर (खतरा: ५.५m)' : '3.2m (Danger: 5.5m)' },
+        { label: isNepali ? 'भोताङ वर्षा (SEN-BHO-02)' : 'Bhotang Rain (SEN-BHO-02)', value: isNepali ? '४२.० मिमि (खतरा: ८०mm)' : '42.0mm (Danger: 80mm)' },
         { label: isNepali ? 'डेटा इन्जेसन अन्तराल' : 'Ingestion Frequency', value: isNepali ? 'प्रत्येक १० सेकेन्ड' : 'Every 10 Seconds' },
       ],
     },
@@ -669,8 +699,9 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#2dd4bf',
       loading,
       link: '/disaster?tab=rdra_damage',
+      isNepali,
       previewDetails: [
-        { label: isNepali ? 'मूल्याङ्कन गरिएका घरधुरी' : 'Assessed Households', value: `${stats.highRiskHouses ?? 18} घरधुरी`, highlight: true },
+        { label: isNepali ? 'मूल्याङ्कन गरिएका घरधुरी' : 'Assessed Households', value: isNepali ? `${fmt(stats.highRiskHouses ?? 18)} घरधुरी` : `${stats.highRiskHouses ?? 18} Households`, highlight: true },
         { label: isNepali ? 'पूर्ण क्षति संरचना' : 'Fully Destroyed', value: isNepali ? '४ घरधुरी' : '4 Households' },
         { label: isNepali ? 'आंशिक क्षति' : 'Partially Damaged', value: isNepali ? '१४ घरधुरी' : '14 Households' },
         { label: isNepali ? 'मापदण्ड कानुनी आधार' : 'Legal Standard', value: isNepali ? 'विपद् पीडित उद्धार र राहत मापदण्ड २०७७' : 'MoHA Disaster Relief Standard 2077' },
@@ -687,6 +718,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       borderColor: '#22c55e',
       loading,
       link: '/disaster?tab=relief_funds',
+      isNepali,
       previewDetails: [
         { label: isNepali ? 'राहत निकासा रकम (DBT)' : 'Disbursed Cash Relief', value: isNepali ? 'रु. ४८,५०,०००' : 'NPR 4,850,000', highlight: true },
         { label: isNepali ? 'लाभान्वित घरधुरी' : 'Beneficiary Households', value: isNepali ? '६४ घरधुरी' : '64 Households' },
@@ -837,7 +869,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
         @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.35)} }
       `}</style>
 
-      {/* ── Hero Banner (Hide in readOnly mode) ───────────────────────────────────────────── */}
+      {/* ── 1. Hero Banner (Hide in readOnly mode) ───────────────────────────────────────────── */}
       {!readOnly && (
         <div
           style={{
@@ -870,7 +902,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1fr) auto',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
                 gap: '2rem',
                 alignItems: 'center',
               }}
@@ -933,7 +965,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 </p>
               </div>
 
-              {/* Right Mini Live HUD Card (fills the empty space) */}
+              {/* Right Mini Live HUD Card */}
               <div
                 style={{
                   display: 'flex',
@@ -944,7 +976,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                   border: '1px solid rgba(255, 255, 255, 0.16)',
                   borderRadius: '18px',
                   padding: '1.1rem 1.35rem',
-                  minWidth: '290px',
+                  maxWidth: '380px',
                   boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
                 }}
               >
@@ -959,11 +991,11 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.55rem' }}>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
                     <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'कुल घरधुरी' : 'Total Households'}</div>
-                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{fmt(stats.totalHouseholds ?? 5357)}</div>
+                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{fmt(stats.totalHouseholds ?? 5805)}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
                     <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'कुल जनसंख्या' : 'Total Population'}</div>
-                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{fmt(stats.totalPopulation ?? 21536)}</div>
+                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#ffffff' }}>{fmt(stats.totalPopulation ?? 17521)}</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
                     <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'विपद् मोड्युल' : 'DRM Modules'}</div>
@@ -971,22 +1003,20 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '10px', padding: '0.45rem 0.65rem' }}>
                     <div style={{ fontSize: '0.68rem', color: '#cbd5e1' }}>{isNepali ? 'GPS प्रमाणीकरण' : 'GPS Verified'}</div>
-                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#34d399' }}>१००%</div>
+                    <div style={{ fontSize: '1.18rem', fontWeight: 800, color: '#34d399' }}>{isNepali ? '१००%' : '100%'}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Single-Line Unified Action Bar (एउटै आकर्षक लाईनमा) ── */}
+            {/* ── Single-Line Unified Action Bar ── */}
             <div
               style={{
                 marginTop: '1.65rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.65rem',
-                flexWrap: 'nowrap',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
+                flexWrap: 'wrap',
                 padding: '0.5rem 0.65rem',
                 background: 'rgba(15, 23, 42, 0.45)',
                 borderRadius: '16px',
@@ -1082,7 +1112,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 }}
               >
                 <Home size={16} />
-                <span>{isNepali ? `घरधुरी लगत (${fmt(stats.totalHouseholds ?? 5357)} घर)` : `Vulnerable HH (${fmt(stats.totalHouseholds ?? 5357)})`}</span>
+                <span>{isNepali ? `घरधुरी लगत (${fmt(stats.totalHouseholds ?? 5805)} घर)` : `Vulnerable HH (${fmt(stats.totalHouseholds ?? 5805)})`}</span>
               </a>
               <Link
                 to="/demographics"
@@ -1134,7 +1164,79 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
         </div>
       )}
 
-      {/* ── DEMOGRAPHICS HIGHLIGHTS SECTION ──────────────────────── */}
+      {/* ── 2. 12 DISASTER OPERATIONAL METRICS (Immediate Command Visibility) ── */}
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.25rem',
+            flexWrap: 'wrap',
+            gap: '0.75rem',
+          }}
+        >
+          <div>
+            <h2
+              style={{
+                fontSize: '1.35rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                margin: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.6rem',
+              }}
+            >
+              {loading ? (
+                <Loader2 size={20} color="#2563eb" style={{ animation: 'spin 1s linear infinite' }} />
+              ) : (
+                <Activity size={20} color="#10b981" />
+              )}
+              {isNepali ? 'विपद् जोखिम तथा आपतकालीन तथ्याङ्क' : 'Live Disaster Risk & Operational Metrics'}
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
+              {isNepali
+                ? 'पालिकाको केन्द्रीय आपतकालीन नियन्त्रण कक्ष (LEOC) बाट प्रमाणित १२ मुख्य रियल-टाइम सूचकहरू'
+                : '12 verified real-time operational indicators from Local Emergency Operation Centre (LEOC)'}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                background: '#ecfdf5',
+                color: '#059669',
+                padding: '0.35rem 0.85rem',
+                borderRadius: '9999px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                border: '1px solid #a7f3d0',
+              }}
+            >
+              <CheckCircle2 size={14} color="#10b981" />
+              <span>{isNepali ? 'LEOC सिङ्क भएको' : 'Live EOC Ingested'}</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))',
+            gap: '1rem',
+          }}
+        >
+          {sectorCards.map((card) => (
+            <StatCard key={card.label} {...card} readOnly={readOnly} isNepali={isNepali} />
+          ))}
+        </div>
+      </div>
+
+      {/* ── 3. DEMOGRAPHICS & EXPOSURE HIGHLIGHTS SECTION ─────────────────── */}
       <div
         style={{
           backgroundColor: '#ffffff',
@@ -1166,11 +1268,13 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 }}
               />
               <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                जनसांख्यिकी तथा घरधुरी प्रोफाइल (Demographic & Household Profile)
+                {isNepali ? 'जनसांख्यिकी तथा घरधुरी प्रोफाइल' : 'Demographic & Household Exposure Profile'}
               </h2>
             </div>
             <p style={{ color: '#64748b', fontSize: '0.82rem', margin: '0.25rem 0 0 0' }}>
-              राष्ट्रिय जनगणना २०७८ तथा डिजिटल GPS घरधुरी सर्भेको आधिकारिक प्रमाणित तथ्याङ्क
+              {isNepali
+                ? 'राष्ट्रिय जनगणना २०७८ तथा डिजिटल GPS घरधुरी सर्भेको आधिकारिक प्रमाणित तथ्याङ्क'
+                : 'National Census 2021 & Certified GPS Household Survey Baseline'}
             </p>
           </div>
 
@@ -1193,7 +1297,7 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               }}
             >
               <Home size={15} color="#059669" />
-              <span>घरधुरी म्याट्रिक्स तालिका तथा आयात ({toNepaliDigits(stats.totalHouseholds ?? 5357)} घर)</span>
+              <span>{isNepali ? `घरधुरी म्याट्रिक्स तालिका (${fmt(stats.totalHouseholds ?? 5805)} घर)` : `Household Matrix (${fmt(stats.totalHouseholds ?? 5805)} HH)`}</span>
               <ChevronRight size={14} />
             </Link>
 
@@ -1214,13 +1318,13 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
                 transition: 'background 0.2s',
               }}
             >
-              <span>विस्तृत जनसांख्यिकी</span>
+              <span>{isNepali ? 'विस्तृत जनसांख्यिकी' : 'Demographics 360'}</span>
               <ChevronRight size={14} />
             </Link>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
           {/* कुल जनसंख्या */}
           <div
             style={{
@@ -1231,30 +1335,36 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               boxShadow: '0 4px 16px rgba(2,132,199,0.06)',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '165px',
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #0284c7, #38bdf8)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0284c7', textTransform: 'uppercase' }}>
-                {isNepali ? 'कुल जनसंख्या (उद्धार लगत)' : 'Population Baseline'}
-              </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Users size={19} color="#0284c7" />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0284c7', textTransform: 'uppercase' }}>
+                  {isNepali ? 'कुल जनसंख्या (उद्धार लगत)' : 'Population Baseline'}
+                </span>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={19} color="#0284c7" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0c4a6e', lineHeight: 1.1 }}>
+                  {fmt(stats.totalPopulation ?? 17521)}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0284c7' }}>{isNepali ? 'जना' : 'Total'}</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#0369a1', fontWeight: 600, marginBottom: '0.35rem' }}>
+                {isNepali
+                  ? `👨 पुरुष: ${fmt(stats.malePopulation ?? 8600)} · 👩 महिला: ${fmt(stats.femalePopulation ?? 8921)}`
+                  : `👨 Male: ${fmt(stats.malePopulation ?? 8600)} · 👩 Female: ${fmt(stats.femalePopulation ?? 8921)}`}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#0c4a6e', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.totalPopulation ?? 17521)}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0284c7' }}>{isNepali ? 'जना' : 'Total'}</span>
-            </div>
-            <div style={{ fontSize: '0.73rem', color: '#0369a1', fontWeight: 600, marginBottom: '0.35rem' }}>
-              {isNepali
-                ? `👨 पुरुष: ${toNepaliDigits(stats.malePopulation ?? 8600)} · 👩 महिला: ${toNepaliDigits(stats.femalePopulation ?? 8921)}`
-                : `👨 Male: ${stats.malePopulation ?? 8600} · 👩 Female: ${stats.femalePopulation ?? 8921}`}
-            </div>
             <div style={{ fontSize: '0.68rem', color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              {isNepali ? 'लैंगिक अनुपात: ९६.४ • जनघनत्व: २८/किमि²' : 'Sex Ratio: 96.4 • Density: 28/sq.km'}
+              {isNepali ? `लैंगिक अनुपात: ${fmt('96.4')} • जनघनत्व: ${fmt(28)}/किमि²` : 'Sex Ratio: 96.4 • Density: 28/sq.km'}
             </div>
           </div>
 
@@ -1268,30 +1378,36 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               boxShadow: '0 4px 16px rgba(22,163,74,0.06)',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '165px',
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #16a34a, #4ade80)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>
-                {isNepali ? 'कुल घरधुरी (GPS डिजिटल लगत)' : 'Geo-Mapped Households'}
-              </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Building2 size={19} color="#16a34a" />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#16a34a', textTransform: 'uppercase' }}>
+                  {isNepali ? 'कुल घरधुरी (GPS डिजिटल लगत)' : 'Geo-Mapped Households'}
+                </span>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Building2 size={19} color="#16a34a" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#14532d', lineHeight: 1.1 }}>
+                  {fmt(stats.totalHouseholds ?? 5805)}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#16a34a' }}>{isNepali ? 'घर' : 'Houses'}</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#15803d', fontWeight: 600, marginBottom: '0.35rem' }}>
+                {isNepali
+                  ? `📍 आधिकारिक दर्ता: ${fmt(stats.totalGpsHouses ?? 5805)} घर`
+                  : `📍 Verified: ${fmt(stats.totalGpsHouses ?? 5805)} Households`}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#14532d', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.totalHouseholds ?? 5805)}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#16a34a' }}>{isNepali ? 'घर' : 'Houses'}</span>
-            </div>
-            <div style={{ fontSize: '0.73rem', color: '#15803d', fontWeight: 600, marginBottom: '0.35rem' }}>
-              {isNepali
-                ? `📍 आधिकारिक दर्ता: ${toNepaliDigits(stats.totalGpsHouses ?? 5805)} घर`
-                : `📍 Verified: ${stats.totalGpsHouses ?? 5805} Households`}
-            </div>
             <div style={{ fontSize: '0.68rem', color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              {isNepali ? '१००% GPS प्रमाणित • औसत परिवार: ३.६ जना' : '100% Geo-Tagged • Avg Size: 3.6'}
+              {isNepali ? `१००% GPS प्रमाणित • औसत परिवार: ${fmt('3.6')} जना` : '100% Geo-Tagged • Avg Size: 3.6'}
             </div>
           </div>
 
@@ -1305,25 +1421,33 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               boxShadow: '0 4px 16px rgba(219,39,119,0.06)',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '165px',
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #ec4899, #f472b6)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#be185d', textTransform: 'uppercase' }}>
-                {isNepali ? 'अति-संवेदनशील नागरिक लगत' : 'Vulnerable Citizens'}
-              </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Users size={19} color="#ec4899" />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#be185d', textTransform: 'uppercase' }}>
+                  {isNepali ? 'अति-संवेदनशील नागरिक लगत' : 'Vulnerable Citizens'}
+                </span>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fce7f3', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={19} color="#ec4899" />
+                </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#831843', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.vulnerableCitizens ?? 1420)}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ec4899' }}>{isNepali ? 'जना' : 'Persons'}</span>
-            </div>
-            <div style={{ fontSize: '0.73rem', color: '#9d174d', fontWeight: 600, marginBottom: '0.35rem' }}>
-              {isNepali ? 'सुत्केरी: २१८ · ७०+ ज्येष्ठ: ८९० · अपाङ्गता: ३१२' : 'Pregnant: 218 · Seniors: 890 · Disabled: 312'}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#831843', lineHeight: 1.1 }}>
+                  {fmt(stats.vulnerableCitizens ?? 1420)}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ec4899' }}>{isNepali ? 'जना' : 'Persons'}</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#9d174d', fontWeight: 600, marginBottom: '0.35rem' }}>
+                {isNepali
+                  ? `सुत्केरी: ${fmt(218)} · ७०+ ज्येष्ठ: ${fmt(890)} · अपाङ्गता: ${fmt(312)}`
+                  : 'Pregnant: 218 · Seniors: 890 · Disabled: 312'}
+              </div>
             </div>
             <div style={{ fontSize: '0.68rem', color: '#be185d', background: '#fce7f3', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
               {isNepali ? 'आपतकालीन प्राथमिकता उद्धार सूची' : 'Priority Evacuation List'}
@@ -1340,28 +1464,34 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               boxShadow: '0 4px 16px rgba(217,119,6,0.06)',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '165px',
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #d97706, #fbbf24)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase' }}>
-                {isNepali ? 'खोज-उद्धार (SAR) स्ट्यान्डबाइ' : 'SAR Equipment & Brigade'}
-              </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Truck size={19} color="#d97706" />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#b45309', textTransform: 'uppercase' }}>
+                  {isNepali ? 'खोज-उद्धार (SAR) स्ट्यान्डबाइ' : 'SAR Equipment & Brigade'}
+                </span>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Truck size={19} color="#d97706" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#78350f', lineHeight: 1.1 }}>
+                  {fmt(stats.sarHeavyEquipment ?? 12)}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#d97706' }}>{isNepali ? 'उपकरण' : 'Units'}</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#92400e', fontWeight: 600, marginBottom: '0.35rem' }}>
+                {isNepali ? `${fmt(10)} डोजर/एक्साभेटर + ${fmt(2)} उद्धार डुङ्गा` : '10 Dozers/Excavators + 2 Boats'}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#78350f', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.sarHeavyEquipment ?? 12)}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#d97706' }}>{isNepali ? 'उपकरण' : 'Units'}</span>
-            </div>
-            <div style={{ fontSize: '0.73rem', color: '#92400e', fontWeight: 600, marginBottom: '0.35rem' }}>
-              {isNepali ? '१० डोजर/एक्साभेटर + २ उद्धार डुङ्गा' : '10 Dozers/Excavators + 2 Boats'}
-            </div>
             <div style={{ fontSize: '0.68rem', color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              {isNepali ? '६४ प्रमाणित स्वयंसेवक कार्यदल' : '64 Certified SAR Rescuers'}
+              {isNepali ? `${fmt(64)} प्रमाणित स्वयंसेवक कार्यदल` : '64 Certified SAR Rescuers'}
             </div>
           </div>
 
@@ -1375,30 +1505,36 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               boxShadow: '0 4px 16px rgba(234,88,12,0.06)',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '165px',
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #ea580c, #fb923c)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#ea580c', textTransform: 'uppercase' }}>
-                {isNepali ? 'विपद् जोखिम तथा आश्रयस्थल' : 'Risk Zones & Shelters'}
-              </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ffedd5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AlertTriangle size={19} color="#ea580c" />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#ea580c', textTransform: 'uppercase' }}>
+                  {isNepali ? 'विपद् जोखिम तथा आश्रयस्थल' : 'Risk Zones & Shelters'}
+                </span>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ffedd5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertTriangle size={19} color="#ea580c" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#7c2d12', lineHeight: 1.1 }}>
+                  {fmt(stats.highRiskSettlements ?? 4)}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ea580c' }}>{isNepali ? 'बस्ती उच्च जोखिम' : 'High-Risk Clusters'}</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#c2410c', fontWeight: 600, marginBottom: '0.35rem' }}>
+                {isNepali
+                  ? `पहिरो तथा नदी कटान • ${fmt(stats.totalShelters ?? 6)} सुरक्षित आश्रयस्थल`
+                  : `Landslide & Flood Zones • ${stats.totalShelters ?? 6} Certified Shelters`}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#7c2d12', lineHeight: 1.1 }}>
-                {toNepaliDigits(stats.highRiskSettlements ?? 4)}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ea580c' }}>{isNepali ? 'बस्ती उच्च जोखिम' : 'High-Risk Clusters'}</span>
-            </div>
-            <div style={{ fontSize: '0.73rem', color: '#c2410c', fontWeight: 600, marginBottom: '0.35rem' }}>
-              {isNepali
-                ? `पहिरो तथा नदी कटान • ${toNepaliDigits(stats.totalShelters ?? 6)} सुरक्षित आश्रयस्थल`
-                : `Landslide & Flood Zones • ${stats.totalShelters ?? 6} Certified Shelters`}
-            </div>
             <div style={{ fontSize: '0.68rem', color: '#c2410c', background: '#ffedd5', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              {isNepali ? `आश्रयस्थल क्षमता: ${toNepaliDigits(stats.totalShelterCapacity ?? 1310)} जना` : `Shelter Capacity: ${stats.totalShelterCapacity ?? 1310} Persons`}
+              {isNepali ? `आश्रयस्थल क्षमता: ${fmt(stats.totalShelterCapacity ?? 1310)} जना` : `Shelter Capacity: ${(stats.totalShelterCapacity ?? 1310).toLocaleString()} Persons`}
             </div>
           </div>
 
@@ -1412,181 +1548,40 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
               boxShadow: '0 4px 16px rgba(13,148,136,0.06)',
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: '165px',
             }}
           >
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #0d9488, #2dd4bf)' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0d9488', textTransform: 'uppercase' }}>
-                {isNepali ? 'प्रशासनिक भूगोल तथा भू-धरातल' : 'Terrain & Administrative Area'}
-              </span>
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ccfbf1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Compass size={19} color="#0d9488" />
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#0d9488', textTransform: 'uppercase' }}>
+                  {isNepali ? 'प्रशासनिक भूगोल तथा भू-धरातल' : 'Terrain & Administrative Area'}
+                </span>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ccfbf1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Compass size={19} color="#0d9488" />
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#134e4a', lineHeight: 1.1 }}>
+                  {fmt(8)}
+                </span>
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0d9488' }}>{isNepali ? 'वडाहरू' : 'Wards'}</span>
+              </div>
+              <div style={{ fontSize: '0.73rem', color: '#0f766e', fontWeight: 600, marginBottom: '0.35rem' }}>
+                {isNepali ? `क्षेत्रफल: ${fmt('187.29')} वर्ग कि.मि. · केन्द्र: थाङपालधाप` : 'Area: 187.29 sq. km · HQ: Thangpaldhap'}
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem', margin: '0.35rem 0' }}>
-              <span style={{ fontSize: '1.95rem', fontWeight: 800, color: '#134e4a', lineHeight: 1.1 }}>
-                {toNepaliDigits(8)}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0d9488' }}>{isNepali ? 'वडाहरू' : 'Wards'}</span>
-            </div>
-            <div style={{ fontSize: '0.73rem', color: '#0f766e', fontWeight: 600, marginBottom: '0.35rem' }}>
-              {isNepali ? 'क्षेत्रफल: १८७.२९ वर्ग कि.मि. · केन्द्र: थाङपालधाप' : 'Area: 187.29 sq. km · HQ: Thangpaldhap'}
-            </div>
             <div style={{ fontSize: '0.68rem', color: '#0d9488', background: '#ccfbf1', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 700 }}>
-              {isNepali ? 'उचाइ: १,०५० - ६,३४० मिटर • हिमाली भूगोल' : 'Elevation: 1,050 - 6,340m • Himalayan Terrain'}
+              {isNepali ? `उचाइ: ${fmt('1,050')} - ${fmt('6,340')} मिटर • हिमाली भूगोल` : 'Elevation: 1,050 - 6,340m • Himalayan Terrain'}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── DIGITAL HOUSEHOLD MATRIX REGISTRY & GOOGLE SHEET / EXCEL IMPORT ── */}
-      <div
-        id="household-matrix-registry"
-        style={{
-          backgroundColor: '#ffffff',
-          borderRadius: '20px',
-          border: '1.5px solid #cbd5e1',
-          padding: '1.5rem 1.75rem',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.25rem',
-            paddingBottom: '1rem',
-            borderBottom: '1.5px solid #f1f5f9',
-            flexWrap: 'wrap',
-            gap: '1rem',
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <span style={{ fontSize: '1.5rem' }}>🏡</span>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                डिजिटल घरधुरी म्याट्रिक्स लगत तथा गुगल शिट / एक्सेल आयात
-              </h2>
-              <span
-                style={{
-                  backgroundColor: '#ecfdf5',
-                  color: '#059669',
-                  border: '1px solid #a7f3d0',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  padding: '2px 10px',
-                  borderRadius: '6px',
-                }}
-              >
-                {toNepaliDigits(stats.totalHouseholds ?? 5357)} घरधुरी प्रमाणित (Live Registry)
-              </span>
-            </div>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.35rem 0 0 0' }}>
-              प्रत्येक घरधुरीको आधिकारिक नम्बर, GPS अक्षांश/देशान्तर, परिवार विवरण, घरको प्रकार, जोखिम अवस्था तथा गुगल स्प्रिडशिट / CSV फाइल सिधै आयात गर्ने प्रशासनिक केन्द्र
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-            <Link
-              to="/app/households"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                color: '#1d4ed8',
-                fontWeight: 700,
-                fontSize: '0.82rem',
-                textDecoration: 'none',
-                padding: '0.5rem 1rem',
-                background: '#eff6ff',
-                borderRadius: '8px',
-                border: '1px solid #bfdbfe',
-              }}
-            >
-              <ExternalLink size={14} />
-              <span>पूरा स्क्रिनमा हेर्नुहोस् (Full Page View)</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Embedded Interactive Household Registry Table, Map, and Importer */}
-        <HouseholdRegistryTab />
-      </div>
-
-      {/* ── 18 SECTORAL DATA CARDS ────────────────────────────────── */}
-      <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '1.25rem',
-            flexWrap: 'wrap',
-            gap: '0.75rem',
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                fontSize: '1.35rem',
-                fontWeight: 800,
-                color: '#0f172a',
-                margin: 0,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.6rem',
-              }}
-            >
-              {loading ? (
-                <Loader2 size={20} color="#2563eb" style={{ animation: 'spin 1s linear infinite' }} />
-              ) : (
-                <Activity size={20} color="#10b981" />
-              )}
-              {isNepali ? 'विपद् जोखिम तथा आपतकालीन तथ्याङ्क (Live Disaster Metrics)' : 'Live Disaster Risk & Operational Metrics'}
-            </h2>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
-              {isNepali
-                ? 'पालिकाको केन्द्रीय आपतकालीन नियन्त्रण कक्ष (LEOC) बाट प्रमाणित १२ मुख्य रियल-टाइम सूचकहरू'
-                : '12 verified real-time operational indicators from Local Emergency Operation Centre (LEOC)'}
-            </p>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                background: '#ecfdf5',
-                color: '#059669',
-                padding: '0.35rem 0.85rem',
-                borderRadius: '9999px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                border: '1px solid #a7f3d0',
-              }}
-            >
-              <CheckCircle2 size={14} color="#10b981" />
-              <span>{isNepali ? 'LEOC सिङ्क भएको (Live EOC)' : 'Live EOC Ingested'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(215px, 1fr))',
-            gap: '1rem',
-          }}
-        >
-          {sectorCards.map((card) => (
-            <StatCard key={card.label} {...card} readOnly={readOnly} />
-          ))}
-        </div>
-      </div>
-
-      {/* ── THEMATIC SECTORS DIRECT ACCESS GRID (Hide in readOnly) ───────────────────── */}
+      {/* ── 4. THEMATIC SECTORS DIRECT ACCESS GRID (Hide in readOnly) ───────────────────── */}
       {!readOnly && (
       <div>
         <div style={{ marginBottom: '1.25rem' }}>
@@ -1687,23 +1682,23 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
       </div>
       )}
 
-      {/* ── DIGITAL TWIN AI & ANALYTICS MODULES ─────────────────────────────── */}
+      {/* ── 5. AI DISASTER PREDICTIVE ANALYTICS & GIS MODULES ─────────────────────── */}
       {!readOnly && (
-        <div style={{ marginTop: '2rem' }}>
+        <div style={{ marginTop: '0.5rem' }}>
+          <div style={{ border: '1.5px solid #e2e8f0', borderRadius: '20px', overflow: 'hidden', marginBottom: '2rem', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+            <PredictiveAnalytics />
+          </div>
+
           <div style={{ marginBottom: '1.25rem' }}>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity size={24} color="#3b82f6" /> 
-              {isNepali ? 'विपद् जोखिम स्मार्ट ड्यासबोर्ड (Predictive AI & GIS)' : 'Disaster Risk Smart Dashboard (Predictive AI & GIS)'}
+              <Layers size={22} color="#0284c7" /> 
+              {isNepali ? '३D/जीआईएस बहु-जोखिम नक्साङ्कन (Multi-Hazard GIS)' : '3D/GIS Multi-Hazard Mapping & Terrain'}
             </h2>
             <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.25rem 0 0 0' }}>
               {isNepali
-                ? 'आर्टिफिसियल इन्टेलिजेन्समा आधारित डुबान प्रक्षेपण र भौगोलिक नक्साङ्कन प्रणाली'
-                : 'AI-powered flood inundation forecasting & geospatial hazard mapping'}
+                ? 'नदी कटान बफर, पहिरो जोखिम क्षेत्र र ५,८०५ घरधुरीको आधिकारिक भौगोलिक डिजिटल नक्सा'
+                : 'River erosion buffers, landslide hazard zones, and 5,805 verified household coordinates'}
             </p>
-          </div>
-          
-          <div style={{ border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', marginBottom: '2rem' }}>
-            <PredictiveAnalytics />
           </div>
 
           <div style={{ border: '1px solid #e2e8f0', borderRadius: '16px', overflow: 'hidden', height: '600px' }}>
@@ -1711,6 +1706,83 @@ export const DashboardOverview: React.FC<{ readOnly?: boolean }> = ({ readOnly =
           </div>
         </div>
       )}
+
+      {/* ── 6. DIGITAL HOUSEHOLD MATRIX REGISTRY & SPREADSHEET IMPORTER ── */}
+      <div
+        id="household-matrix-registry"
+        style={{
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          border: '1.5px solid #cbd5e1',
+          padding: '1.5rem 1.75rem',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.05)',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.25rem',
+            paddingBottom: '1rem',
+            borderBottom: '1.5px solid #f1f5f9',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>🏡</span>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                {isNepali ? 'डिजिटल घरधुरी म्याट्रिक्स लगत तथा गुगल शिट / एक्सेल आयात' : 'Digital Household Matrix Registry & Spreadsheet Importer'}
+              </h2>
+              <span
+                style={{
+                  backgroundColor: '#ecfdf5',
+                  color: '#059669',
+                  border: '1px solid #a7f3d0',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  padding: '2px 10px',
+                  borderRadius: '6px',
+                }}
+              >
+                {isNepali ? `${fmt(stats.totalHouseholds ?? 5805)} घरधुरी प्रमाणित (Live Registry)` : `${fmt(stats.totalHouseholds ?? 5805)} Verified Households (Live Registry)`}
+              </span>
+            </div>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0.35rem 0 0 0' }}>
+              {isNepali
+                ? 'प्रत्येक घरधुरीको आधिकारिक नम्बर, GPS अक्षांश/देशान्तर, परिवार विवरण, घरको प्रकार, जोखिम अवस्था तथा गुगल स्प्रिडशिट / CSV फाइल सिधै आयात गर्ने प्रशासनिक केन्द्र'
+                : 'Official household code, GPS coordinates, family demographics, structural risk, and direct Google Spreadsheet / Excel CSV importer.'}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <Link
+              to="/app/households"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                color: '#1d4ed8',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                textDecoration: 'none',
+                padding: '0.5rem 1rem',
+                background: '#eff6ff',
+                borderRadius: '8px',
+                border: '1px solid #bfdbfe',
+              }}
+            >
+              <ExternalLink size={14} />
+              <span>{isNepali ? 'पूरा स्क्रिनमा हेर्नुहोस्' : 'Full Page View'}</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Embedded Interactive Household Registry Table, Map, and Importer */}
+        <HouseholdRegistryTab />
+      </div>
     </div>
   );
 };

@@ -1142,7 +1142,7 @@ export const HouseholdRegistryTab: React.FC<HouseholdRegistryTabProps> = ({ isPu
   };
 
   // 1. Fetch full households – public mode only shows 'approved' records
-  const { data: households = [], isLoading } = useQuery<HouseholdRecord[]>({
+  const { data: rawHouseholdsData, isLoading } = useQuery<any>({
     queryKey: ['demographics-households', adminStatusFilter],
     queryFn: () => demographicsApi.getHouseholds(
       undefined,
@@ -1150,6 +1150,13 @@ export const HouseholdRegistryTab: React.FC<HouseholdRegistryTabProps> = ({ isPu
       isPublicMode ? 'approved' : (adminStatusFilter !== 'all' ? adminStatusFilter : undefined)
     ),
   });
+  const households: HouseholdRecord[] = useMemo(() => {
+    if (!rawHouseholdsData) return [];
+    if (Array.isArray(rawHouseholdsData)) return rawHouseholdsData;
+    if (rawHouseholdsData && Array.isArray((rawHouseholdsData as any).data)) return (rawHouseholdsData as any).data;
+    if (rawHouseholdsData && Array.isArray((rawHouseholdsData as any).items)) return (rawHouseholdsData as any).items;
+    return [];
+  }, [rawHouseholdsData]);
 
   // Agriculture Profile Query & Mutations
   const activeHouseId = editingHouse?.id || viewingHouse?.id;
@@ -1361,7 +1368,7 @@ export const HouseholdRegistryTab: React.FC<HouseholdRegistryTabProps> = ({ isPu
   };
 
   // 2. Fetch lightweight GPS points for map – public mode only shows 'approved' points
-  const { data: mapPoints = [] } = useQuery<any[]>({
+  const { data: rawMapPointsData } = useQuery<any>({
     queryKey: ['demographics-households-map-points', selectedWard, selectedRisk, adminStatusFilter],
     queryFn: () => demographicsApi.getHouseholdMapPoints(
       selectedWard !== 'all' ? Number(selectedWard) : undefined,
@@ -1369,6 +1376,13 @@ export const HouseholdRegistryTab: React.FC<HouseholdRegistryTabProps> = ({ isPu
       isPublicMode ? 'approved' : (adminStatusFilter !== 'all' ? adminStatusFilter : undefined)
     ),
   });
+  const mapPoints: any[] = useMemo(() => {
+    if (!rawMapPointsData) return [];
+    if (Array.isArray(rawMapPointsData)) return rawMapPointsData;
+    if (rawMapPointsData && Array.isArray((rawMapPointsData as any).data)) return (rawMapPointsData as any).data;
+    if (rawMapPointsData && Array.isArray((rawMapPointsData as any).items)) return (rawMapPointsData as any).items;
+    return [];
+  }, [rawMapPointsData]);
 
   // Verify / Approve / Reject mutation (Admin only)
   const verifyMutation = useMutation({

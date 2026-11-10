@@ -196,13 +196,20 @@ export const demographicsApi = {
   },
 
   async getHouseholds(ward?: number, search?: string, status?: string): Promise<HouseholdRecord[]> {
-    const client = createApiClient();
-    const params: Record<string, any> = {};
-    if (ward && ward > 0) params.ward = ward;
-    if (search && search.trim()) params.search = search.trim();
-    if (status && status !== 'all') params.status = status;
-    const res = await client.get<HouseholdRecord[]>('/demographics/households', { params });
-    return res.data;
+    try {
+      const client = createApiClient();
+      const params: Record<string, any> = {};
+      if (ward && ward > 0) params.ward = ward;
+      if (search && search.trim()) params.search = search.trim();
+      if (status && status !== 'all') params.status = status;
+      const res = await client.get<any>('/demographics/households', { params });
+      if (Array.isArray(res.data)) return res.data;
+      if (res.data && Array.isArray(res.data.data)) return res.data.data;
+      if (res.data && Array.isArray(res.data.items)) return res.data.items;
+      return [];
+    } catch (_) {
+      return [];
+    }
   },
 
   async getAllHouseholds(): Promise<{ data: HouseholdRecord[] }> {
@@ -223,13 +230,20 @@ export const demographicsApi = {
   },
 
   async getHouseholdMapPoints(ward?: number, risk?: string, status?: string): Promise<any[]> {
-    const client = createApiClient();
-    const params: Record<string, any> = {};
-    if (ward && ward > 0) params.ward = ward;
-    if (risk && risk !== 'all') params.risk = risk;
-    if (status && status !== 'all') params.status = status;
-    const res = await client.get<any[]>('/demographics/households/map-points', { params });
-    return res.data;
+    try {
+      const client = createApiClient();
+      const params: Record<string, any> = {};
+      if (ward && ward > 0) params.ward = ward;
+      if (risk && risk !== 'all') params.risk = risk;
+      if (status && status !== 'all') params.status = status;
+      const res = await client.get<any>('/demographics/households/map-points', { params });
+      if (Array.isArray(res.data)) return res.data;
+      if (res.data && Array.isArray(res.data.data)) return res.data.data;
+      if (res.data && Array.isArray(res.data.items)) return res.data.items;
+      return [];
+    } catch (_) {
+      return [];
+    }
   },
 
   async syncGpsHouseholds(): Promise<{ message: string; count: number }> {
