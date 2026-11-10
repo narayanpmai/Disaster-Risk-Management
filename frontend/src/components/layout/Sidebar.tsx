@@ -62,6 +62,7 @@ import {
   Truck,
   PhoneCall,
   WifiOff,
+  Package,
 } from 'lucide-react';
 
 // ── Dark Sidebar Design Tokens ──────────────────────────────────────
@@ -131,6 +132,13 @@ export const adminNavSections: NavSection[] = [
         badgeColor: '#ef4444',
         children: [
           {
+            label: 'विपद् घटना तथा पूर्वसूचना',
+            path: '/app/disaster',
+            icon: <AlertTriangle size={14} style={{ color: '#ef4444' }} />,
+            badge: 'लाइभ',
+            badgeColor: '#ef4444',
+          },
+          {
             label: 'नदी जलसतह तथा बाढी',
             path: '/app/disaster?tab=sensors',
             icon: <Waves size={14} style={{ color: '#0284c7' }} />,
@@ -173,13 +181,6 @@ export const adminNavSections: NavSection[] = [
             badgeColor: '#f59e0b',
           },
           {
-            label: 'अफलाइन र VHF रेडियो',
-            path: '/app/disaster?tab=offline_mesh',
-            icon: <WifiOff size={14} style={{ color: '#6366f1' }} />,
-            badge: 'PWA',
-            badgeColor: '#6366f1',
-          },
-          {
             label: 'आश्रयस्थल तथा राहत',
             path: '/app/disaster?tab=shelters',
             icon: <Tent size={14} style={{ color: '#10b981' }} />,
@@ -187,11 +188,53 @@ export const adminNavSections: NavSection[] = [
             badgeColor: '#10b981',
           },
           {
+            label: 'राहत सामग्री जिन्सी',
+            path: '/app/disaster?tab=relief_inventory',
+            icon: <Package size={14} style={{ color: '#0284c7' }} />,
+            badge: 'जिन्सी',
+            badgeColor: '#0284c7',
+          },
+          {
+            label: 'राहत कोष तथा DBT',
+            path: '/app/disaster?tab=relief_funds',
+            icon: <Coins size={14} style={{ color: '#059669' }} />,
+            badge: 'DBT',
+            badgeColor: '#059669',
+          },
+          {
+            label: 'पुनर्निर्माण BBB',
+            path: '/app/disaster?tab=reconstruction',
+            icon: <HardHat size={14} style={{ color: '#059669' }} />,
+            badge: 'BBB',
+            badgeColor: '#059669',
+          },
+          {
+            label: 'बहु-क्षेत्रीय जोखिम विश्लेषण',
+            path: '/app/disaster?tab=risk_assessment',
+            icon: <Activity size={14} style={{ color: '#6366f1' }} />,
+            badge: 'जोखिम',
+            badgeColor: '#6366f1',
+          },
+          {
             label: 'CCTV सर्भिलेन्स',
             path: '/app/disaster?tab=cameras',
             icon: <Video size={14} style={{ color: '#8b5cf6' }} />,
             badge: 'लाइभ',
             badgeColor: '#8b5cf6',
+          },
+          {
+            label: 'अफलाइन र VHF रेडियो',
+            path: '/app/disaster?tab=offline_mesh',
+            icon: <WifiOff size={14} style={{ color: '#6366f1' }} />,
+            badge: 'PWA',
+            badgeColor: '#6366f1',
+          },
+          {
+            label: 'DHM र BIPAD गेटवे',
+            path: '/app/disaster?tab=bipad_sync',
+            icon: <Globe size={14} style={{ color: '#0284c7' }} />,
+            badge: 'BIPAD',
+            badgeColor: '#0284c7',
           },
         ],
       },
@@ -344,6 +387,13 @@ export const publicNavSections: NavSection[] = [
         badge: 'EOC',
         badgeColor: '#ef4444',
         children: [
+          {
+            label: 'विपद् घटना तथा पूर्वसूचना',
+            path: '/disaster',
+            icon: <AlertTriangle size={14} style={{ color: '#ef4444' }} />,
+            badge: 'लाइभ',
+            badgeColor: '#ef4444',
+          },
           {
             label: 'नदी जलसतह तथा बाढी',
             path: '/disaster?tab=river_twin',
@@ -522,8 +572,9 @@ const EN_LABELS: Record<string, { label: string; badge?: string; title?: string 
   'विपद् AI सहायक': { label: 'Disaster AI Copilot', badge: 'AI' },
   'घटना क्यालेन्डर': { label: 'Disaster Calendar' },
   'प्रतिकार्य हब': { label: 'Response Hub', badge: 'EOC' },
+  'विपद् घटना तथा पूर्वसूचना': { label: 'Disaster Incidents', badge: 'Live' },
   'नदी जलसतह तथा बाढी': { label: 'River Level & Flood', badge: '3D' },
-  'DHM र BIPAD गेटवे': { label: 'DHM & BIPAD Gateway', badge: 'DHM' },
+  'DHM र BIPAD गेटवे': { label: 'DHM & BIPAD Gateway', badge: 'BIPAD' },
   'पहिरो जोखिम सेन्सर': { label: 'Landslide Sensors', badge: 'Sensor' },
   'IVR कल र साइरन': { label: 'Alert Calls & Sirens', badge: 'Siren' },
   'जोखिमयुक्त नागरिक': { label: 'Vulnerable Citizens', badge: '5,805' },
@@ -531,6 +582,10 @@ const EN_LABELS: Record<string, { label: string; badge?: string; title?: string 
   'खोज-उद्धार (SAR)': { label: 'SAR & Medevac', badge: 'SAR' },
   'अफलाइन र VHF रेडियो': { label: 'Offline PWA & VHF', badge: 'PWA' },
   'आश्रयस्थल तथा राहत': { label: 'Shelters & Relief', badge: 'Shelter' },
+  'राहत सामग्री जिन्सी': { label: 'Relief Inventory Stocks', badge: 'Stock' },
+  'राहत कोष तथा DBT': { label: 'Relief Funds & DBT', badge: 'DBT' },
+  'पुनर्निर्माण BBB': { label: 'Build Back Better (BBB)', badge: 'BBB' },
+  'बहु-क्षेत्रीय जोखिम विश्लेषण': { label: 'Multi-Sector Risk', badge: 'Risk' },
   'CCTV सर्भिलेन्स': { label: 'CCTV Surveillance', badge: 'Live' },
   'खानी तथा वातावरण': { label: 'River Mining & Env', badge: 'IEE' },
   'विपद् उजुरी/गुनासो': { label: 'Disaster Grievances', badge: 'Appeals' },
@@ -919,7 +974,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isPublic = false }) => {
                             >
                               {item.children.map((child) => {
                                 const currentFull = `${location.pathname}${location.search}`;
-                                const isChildActive = currentFull === child.path || (location.pathname === child.path.split('?')[0] && !location.search && (child.path.includes('tab=river_twin') || child.path.includes('tab=sensors')));
+                                const isChildActive = currentFull === child.path || (location.pathname === child.path && !location.search);
 
                                 return (
                                   <NavLink

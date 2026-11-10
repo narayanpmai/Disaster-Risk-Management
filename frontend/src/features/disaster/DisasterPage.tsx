@@ -586,388 +586,343 @@ export const DisasterPage: React.FC = () => {
     return matchWard && matchQuery;
   });
 
+  // Module-specific header configurations for Single-Page Mode
+  const MODULE_HEADERS: Record<
+    AdminTabType,
+    {
+      titleNp: string;
+      titleEn: string;
+      descNp: string;
+      descEn: string;
+      icon: React.ReactNode;
+      badgeNp: string;
+      badgeEn: string;
+      badgeBg: string;
+      badgeColor: string;
+    }
+  > = {
+    events: {
+      titleNp: 'विपद् घटना तथा पूर्वसूचना प्रणाली',
+      titleEn: 'Disaster Incidents & Early Warning',
+      descNp: 'बाढी, पहिरो तथा प्राकृतिक विपद् प्रत्यक्ष अनुगमन, वडा प्रमाणीकरण र आपतकालीन हटलाइन व्यवस्थापन',
+      descEn: 'Real-time disaster incident reporting, ward verification, and emergency hotlines directory',
+      icon: <AlertTriangle size={26} color="#dc2626" />,
+      badgeNp: 'लाइभ घटना',
+      badgeEn: 'Live Incidents',
+      badgeBg: '#fee2e2',
+      badgeColor: '#dc2626',
+    },
+    hydromet: {
+      titleNp: 'वर्षा तथा नदी जलसतह सेन्सर (IoT)',
+      titleEn: 'Hydromet Telemetry & River Gauges',
+      descNp: 'मेलम्ची, याङ्ग्री तथा लार्के खोलाका स्वचालित सेन्सर, १०-सेकेन्ड टेलिमेट्री स्ट्रिम र बाढी अलर्ट',
+      descEn: 'Automated river water level sensors, rain gauges, 10s telemetry stream & flood alert thresholds',
+      icon: <Waves size={26} color="#0284c7" />,
+      badgeNp: '३D टेलिमेट्री',
+      badgeEn: '3D Telemetry',
+      badgeBg: '#e0f2fe',
+      badgeColor: '#0284c7',
+    },
+    vulnerable_settlements: {
+      titleNp: 'पहिरो जोखिम बस्ती तथा सेन्सर अनुगमन',
+      titleEn: 'Landslide Sensors & Vulnerable Settlements',
+      descNp: 'मानेखर्क, सेर्माथाङ र भोताङका लेकाली भिरालो चाल, इन्क्लिनोमिटर सेन्सर र स्थानान्तरण योजना',
+      descEn: 'Steep slope inclinometer monitoring, ground displacement tracking, and vulnerable settlement evacuation',
+      icon: <Mountain size={26} color="#ca8a04" />,
+      badgeNp: 'पहिरो सेन्सर',
+      badgeEn: 'Slope Sensor',
+      badgeBg: '#fef9c3',
+      badgeColor: '#ca8a04',
+    },
+    broadcast: {
+      titleNp: 'आपतकालीन साइरन, SMS तथा IVR प्रसारण',
+      titleEn: 'Emergency Sirens & Mass Broadcast Gateway',
+      descNp: 'तटीय बस्तीहरूमा ५-१० किमी सौर्य साइरन, स्वचालित भ्वाइस कल र आपतकालीन SMS प्रसारण गेटवे',
+      descEn: 'Outbound mass IVR voice calls, automated solar sirens, and high-priority SMS broadcast gateway',
+      icon: <Radio size={26} color="#dc2626" />,
+      badgeNp: 'साइरन गेटवे',
+      badgeEn: 'Siren Gateway',
+      badgeBg: '#fee2e2',
+      badgeColor: '#dc2626',
+    },
+    micro_vulnerability: {
+      titleNp: 'सूक्ष्म जोखिमयुक्त नागरिक प्रोफाइल (५,८०५ घरधुरी)',
+      titleEn: 'Micro-Vulnerable Citizens Matrix (5,805 HH)',
+      descNp: 'जेष्ठ नागरिक, गर्भवती, अपाङ्गता भएका व्यक्ति तथा बालबालिकाको प्राथमिक उद्धार सूची',
+      descEn: 'High-priority rescue directory for elderly, disabled, pregnant, and children across 5,805 households',
+      icon: <Users size={26} color="#be123c" />,
+      badgeNp: '५,८०५ नागरिक',
+      badgeEn: '5,805 Citizens',
+      badgeBg: '#ffe4e6',
+      badgeColor: '#be123c',
+    },
+    rdra_damage: {
+      titleNp: 'RDRA डिजिटल क्षति मूल्याङ्कन (मापदण्ड २०७७)',
+      titleEn: 'RDRA Damage Assessment (MoHA 2077)',
+      descNp: 'गृहमन्त्रालय राहत मापदण्ड २०७७ अनुसार निजी आवास, पशुपन्छी, बालीनाली क्षति र तत्काल राहत गणना',
+      descEn: 'Rapid Disaster Damage Assessment, statutory cash relief calculation per MoHA Standard 2077',
+      icon: <Coins size={26} color="#059669" />,
+      badgeNp: 'RDRA मापदण्ड',
+      badgeEn: 'MoHA 2077',
+      badgeBg: '#dcfce7',
+      badgeColor: '#059669',
+    },
+    heavy_equipment: {
+      titleNp: 'खोज तथा उद्धार (SAR) हेभी मेसिनरी तथा स्वयंसेवक',
+      titleEn: 'SAR Directory & Heavy Equipment Brigade',
+      descNp: 'पालिका तथा निजी क्षेत्रका डोजर, एक्साभेटर, लाइफ ज्याकेट, डुङ्गा र प्रमाणित ६४ उद्धार स्वयंसेवक',
+      descEn: 'Excavator & dozer positioning, rescue boats, life jackets, and 64 certified local SAR volunteers',
+      icon: <Truck size={26} color="#d97706" />,
+      badgeNp: 'SAR कार्यदल',
+      badgeEn: 'SAR Brigade',
+      badgeBg: '#fef3c7',
+      badgeColor: '#d97706',
+    },
+    shelters: {
+      titleNp: 'प्रमाणित सुरक्षित आश्रयस्थल व्यवस्थापन',
+      titleEn: 'Certified Safe Evacuation Shelters',
+      descNp: '८ वटै वडामा १,३१० जना क्षमताका ६ सुरक्षित आश्रयस्थल, खानेपानी, सौर्य ऊर्जा र शौचालय व्यवस्थापन',
+      descEn: '6 certified evacuation shelters (1,310 person capacity) with water, solar power, and sanitation',
+      icon: <Tent size={26} color="#0284c7" />,
+      badgeNp: '६ आश्रयस्थल',
+      badgeEn: '6 Shelters',
+      badgeBg: '#e0f2fe',
+      badgeColor: '#0284c7',
+    },
+    relief_inventory: {
+      titleNp: 'राहत सामग्री जिन्सी भण्डार व्यवस्थापन',
+      titleEn: 'Emergency Relief Stock & Warehouse Inventory',
+      descNp: 'त्रिपाल, कम्बल, औषधि किट तथा खाद्यान्न आपतकालीन मौज्दात व्यवस्थापन',
+      descEn: 'Emergency warehouse stocks for tarpaulins, blankets, family kits, and non-food relief items',
+      icon: <Boxes size={26} color="#d97706" />,
+      badgeNp: `${reliefItems.length} जिन्सी सामग्री`,
+      badgeEn: `${reliefItems.length} Stock Items`,
+      badgeBg: '#fef3c7',
+      badgeColor: '#d97706',
+    },
+    relief_funds: {
+      titleNp: 'पालिका विपद् कोष तथा प्रत्यक्ष बैंक भुक्तानी (DBT)',
+      titleEn: 'Palika Relief Fund & Direct Bank Transfer (DBT)',
+      descNp: 'विपद् कोष विनियोजन, बैंक भाउचर प्रमाणीकरण र प्रभावित लाभग्राहीको खातामा सिधै रकम निकासा',
+      descEn: 'Municipal disaster management fund, statutory cash vouchers, and direct beneficiary bank transfers',
+      icon: <Coins size={26} color="#059669" />,
+      badgeNp: 'DBT भुक्तानी',
+      badgeEn: 'Direct Bank Transfer',
+      badgeBg: '#dcfce7',
+      badgeColor: '#059669',
+    },
+    cameras: {
+      titleNp: 'CCTV प्रत्यक्ष विपद् निगरानी प्रणाली',
+      titleEn: 'Live CCTV Multi-Hazard Surveillance',
+      descNp: 'मेलम्ची पुल, बजार क्षेत्र तथा मुख्य जोखिम विन्दुहरूमा जडान गरिएका RTSP/WebRTC क्यामराहरू',
+      descEn: 'Live RTSP/WebRTC feeds from Melamchi Bridge, bazaars, and critical river flood corridors',
+      icon: <Video size={26} color="#7c3aed" />,
+      badgeNp: `${cameras.length} लाइभ क्यामेरा`,
+      badgeEn: `${cameras.length} Live Cameras`,
+      badgeBg: '#ede9fe',
+      badgeColor: '#7c3aed',
+    },
+    offline_mesh: {
+      titleNp: 'अफलाइन PWA तथा आपतकालीन VHF रेडियो सञ्चार',
+      titleEn: 'Offline Field PWA & Emergency VHF Mesh',
+      descNp: 'इन्टरनेट नहुँदा स्थानीय IndexedDB भण्डार, VHF च्यानल १६ मेश सञ्चार र अटो-सिङ्क प्रोटोकल',
+      descEn: 'IndexedDB offline field reporting, VHF channel 16 emergency radio protocols, and auto-sync',
+      icon: <WifiOff size={26} color="#4f46e5" />,
+      badgeNp: 'PWA अफलाइन',
+      badgeEn: 'PWA Offline',
+      badgeBg: '#e0e7ff',
+      badgeColor: '#4f46e5',
+    },
+    bipad_sync: {
+      titleNp: 'राष्ट्रिय विपद् पोर्टल गेटवे (BIPAD Sync)',
+      titleEn: 'National BIPAD Portal Synchronization Gateway',
+      descNp: 'राष्ट्रिय आपतकालीन कार्यसञ्चालन केन्द्र (NEOC) र BIPAD पोर्टलसँग द्वि-दिशात्मक डाटा आदानप्रदान',
+      descEn: 'Bi-directional API synchronization with National Emergency Operation Centre (NEOC) BIPAD Portal',
+      icon: <Globe size={26} color="#0284c7" />,
+      badgeNp: 'BIPAD Gateway',
+      badgeEn: 'BIPAD Gateway',
+      badgeBg: '#e0f2fe',
+      badgeColor: '#0284c7',
+    },
+    environmental_risks: {
+      titleNp: 'वातावरणीय तथा भू-क्षय जोखिम क्षेत्र',
+      titleEn: 'Environmental & Landslide Risk Zones',
+      descNp: 'नदी कटान, भू-क्षय र संवेदनशील प्राकृतिक क्षेत्रहरूको पहिचान तथा अनुगमन',
+      descEn: 'Environmental degradation, river erosion, and high-risk natural hazard zones mapping',
+      icon: <AlertTriangle size={26} color="#dc2626" />,
+      badgeNp: 'जोखिम म्यापिङ',
+      badgeEn: 'Hazard Mapping',
+      badgeBg: '#fee2e2',
+      badgeColor: '#dc2626',
+    },
+    recovery_projects: {
+      titleNp: 'विपद् पुनःलाभ तथा पुनर्निर्माण आयोजना',
+      titleEn: 'Build Back Better Reconstruction Projects',
+      descNp: 'विपद् प्रभावित क्षेत्रहरूको पूर्वाधार पुनर्निर्माण, सुरक्षित आवास र दीर्घकालीन पुनःलाभ आयोजनाहरू',
+      descEn: 'Post-disaster reconstruction, resilient housing, and Build Back Better recovery projects',
+      icon: <HardHat size={26} color="#b45309" />,
+      badgeNp: 'पुनर्निर्माण',
+      badgeEn: 'Reconstruction',
+      badgeBg: '#ffedd5',
+      badgeColor: '#b45309',
+    },
+    msra_matrix: {
+      titleNp: 'बहु-क्षेत्रीय जोखिम मूल्याङ्कन (MSRA Matrix)',
+      titleEn: 'Multi-Sector Risk Assessment Matrix',
+      descNp: '८ वटै वडाका मानवीय, भौतिक, वातावरणीय र आर्थिक जोखिम सूचकहरूको समग्र विश्लेषण',
+      descEn: 'Composite ward vulnerability scoring across human, physical, and environmental dimensions',
+      icon: <Activity size={26} color="#4338ca" />,
+      badgeNp: 'MSRA Matrix',
+      badgeEn: 'MSRA Matrix',
+      badgeBg: '#e0e7ff',
+      badgeColor: '#4338ca',
+    },
+  };
+
+  const currentHeader = MODULE_HEADERS[activeTab] || MODULE_HEADERS.events;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AlertTriangle size={28} color="#e11d48" />
-            <span>{isNepali ? 'विपद् व्यवस्थापन तथा नागरिक पूर्वसूचना प्रणाली' : 'Disaster Management & Emergency Operations System'}</span>
-          </h1>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-            {isNepali
-              ? 'बाढी, पहिरो तथा प्राकृतिक विपद् प्रत्यक्ष अनुगमन, राहत व्यवस्थापन र नागरिक आपतकालीन SMS/WhatsApp प्रसारण गेटवे'
-              : 'Real-time flood, landslide & multi-hazard monitoring, relief distribution & SMS/IVR alert gateway'}
-          </p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* ── BREADCRUMB & SINGLE-PAGE CONTEXT BAR ── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8rem', color: '#64748b' }}>
+          <a href="/app" style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+            {isNepali ? 'कमान्ड ड्यासबोर्ड' : 'Command Dashboard'}
+          </a>
+          <span>›</span>
+          <span style={{ color: '#475569', fontWeight: 600 }}>
+            {isNepali ? 'विपद् व्यवस्थापन (LEOC)' : 'Disaster Operations (LEOC)'}
+          </span>
+          <span>›</span>
+          <span style={{ color: '#0f172a', fontWeight: 700 }}>
+            {isNepali ? currentHeader.titleNp : currentHeader.titleEn}
+          </span>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => {
-              setSelectedEvent(null);
-              setIsEventModalOpen(true);
-            }}
-            className="dt-btn dt-btn-primary"
-            style={{ backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            <Plus size={16} /> {isNepali ? 'नयाँ विपद् घटना दर्ता' : 'Report New Incident'}
-          </button>
-          <button
-            onClick={handleExportCsv}
-            className="dt-btn"
-            style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            <Download size={16} /> {isNepali ? 'CSV निर्यात' : 'Export CSV'}
-          </button>
+        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+          {isNepali ? 'पाँचपोखरी थाङपाल गाउँपालिका • आपतकालीन कार्यसञ्चालन' : 'Panchpokhari Thangpal LEOC • Live System'}
         </div>
       </div>
 
-      {/* Navigation Tabs (16 Municipal Disaster Subsystems) */}
-      <div className="dt-card" style={{ padding: '0.75rem 1rem' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setActiveTab('events')}
+      {/* ── SINGLE PAGE DEDICATED HEADER (No Tab Bar Clutter) ── */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          backgroundColor: '#ffffff',
+          padding: '1.25rem 1.5rem',
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div
             style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'events' ? '#dc2626' : '#f1f5f9',
-              color: activeTab === 'events' ? '#ffffff' : 'var(--text-muted)',
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              backgroundColor: currentHeader.badgeBg,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
-            <AlertTriangle size={15} />
-            <span>{isNepali ? '१. विपद् घटना तथा पूर्वसूचना' : '1. Incidents & Early Warning'}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('relief_inventory')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'relief_inventory' ? '#d97706' : '#f1f5f9',
-              color: activeTab === 'relief_inventory' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Boxes size={15} />
-            <span>{isNepali ? '२. राहत सामग्री जिन्सी भण्डार' : '2. Relief Stock & Inventory'}</span>
-            <span style={{ backgroundColor: activeTab === 'relief_inventory' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'relief_inventory' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              {reliefItems.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('relief_funds')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'relief_funds' ? '#059669' : '#f1f5f9',
-              color: activeTab === 'relief_funds' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Coins size={15} />
-            <span>{isNepali ? '३. पालिका विपद् कोष राहत वितरण' : '3. Palika Relief Funds & DBT'}</span>
-            <span style={{ backgroundColor: activeTab === 'relief_funds' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'relief_funds' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              {isNepali ? `रु. ${(reliefFunds.reduce((a, b) => a + b.amountNPR, 0) / 1000).toFixed(0)}K` : `NPR ${(reliefFunds.reduce((a, b) => a + b.amountNPR, 0) / 1000).toFixed(0)}K`}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('vulnerable_settlements')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'vulnerable_settlements' ? '#4f46e5' : '#f1f5f9',
-              color: activeTab === 'vulnerable_settlements' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <ShieldCheck size={15} />
-            <span>{isNepali ? '४. जोखिमयुक्त बस्ती तथा स्थानान्तरण' : '4. Vulnerable Settlements'}</span>
-            <span style={{ backgroundColor: activeTab === 'vulnerable_settlements' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'vulnerable_settlements' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              {vulnerableSettlements.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('environmental_risks')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'environmental_risks' ? '#dc2626' : '#f1f5f9',
-              color: activeTab === 'environmental_risks' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <AlertTriangle size={15} />
-            <span>{isNepali ? '५. वातावरणीय तथा पहिरो/बाढी जोखिम क्षेत्र' : '5. Environmental & Landslide Risks'}</span>
-            <span style={{ backgroundColor: activeTab === 'environmental_risks' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'environmental_risks' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              {environmentalRisks.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('shelters')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'shelters' ? 'var(--primary)' : '#f1f5f9',
-              color: activeTab === 'shelters' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Building size={15} />
-            <span>{isNepali ? '६. सुरक्षित आश्रयस्थल' : '6. Certified Safe Shelters'}</span>
-            <span style={{ backgroundColor: activeTab === 'shelters' ? 'rgba(255,255,255,0.3)' : '#e2e8f0', color: activeTab === 'shelters' ? '#fff' : '#475569', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              {shelters.length}
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('hydromet')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'hydromet' ? '#0284c7' : '#f1f5f9',
-              color: activeTab === 'hydromet' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Waves size={15} />
-            <span>{isNepali ? '७. वर्षा तथा जलसतह (IoT)' : '7. Hydromet Telemetry (IoT)'}</span>
-            {activeSensorAlerts.length > 0 && (
-              <span style={{ backgroundColor: '#ef4444', color: '#fff', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-                {activeSensorAlerts.length} {isNepali ? 'अलर्ट' : 'Alert'}
+            {currentHeader.icon}
+          </div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+              <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                {isNepali ? currentHeader.titleNp : currentHeader.titleEn}
+              </h1>
+              <span
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: '12px',
+                  backgroundColor: currentHeader.badgeBg,
+                  color: currentHeader.badgeColor,
+                }}
+              >
+                {isNepali ? currentHeader.badgeNp : currentHeader.badgeEn}
               </span>
-            )}
-          </button>
+            </div>
+            <p style={{ fontSize: '0.84rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+              {isNepali ? currentHeader.descNp : currentHeader.descEn}
+            </p>
+          </div>
+        </div>
 
-          <button
-            onClick={() => setActiveTab('cameras')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'cameras' ? '#7c3aed' : '#f1f5f9',
-              color: activeTab === 'cameras' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Video size={15} />
-            <span>{isNepali ? '८. CCTV क्यामेरा' : '8. CCTV Live Surveillance'}</span>
-            <span style={{ backgroundColor: '#10b981', color: '#fff', fontSize: '0.7rem', padding: '0.1rem 0.4rem', borderRadius: '10px', fontWeight: 700 }}>
-              {cameras.length} Live
-            </span>
-          </button>
+        {/* Action Buttons tailored to the active single-page module */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          {activeTab === 'events' && (
+            <>
+              <button
+                onClick={() => {
+                  setSelectedEvent(null);
+                  setIsEventModalOpen(true);
+                }}
+                className="dt-btn dt-btn-primary"
+                style={{ backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
+              >
+                <Plus size={16} /> {isNepali ? 'नयाँ विपद् घटना दर्ता' : 'Report New Incident'}
+              </button>
+              <button
+                onClick={handleExportCsv}
+                className="dt-btn"
+                style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#334155', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600 }}
+              >
+                <Download size={16} /> {isNepali ? 'CSV निर्यात' : 'Export CSV'}
+              </button>
+            </>
+          )}
 
-          <button
-            onClick={() => setActiveTab('broadcast')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'broadcast' ? '#e11d48' : '#f1f5f9',
-              color: activeTab === 'broadcast' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <MessageSquare size={15} />
-            <span>{isNepali ? '९. आपतकालीन SMS/WhatsApp प्रसारण' : '9. Emergency SMS & Broadcast'}</span>
-          </button>
+          {activeTab === 'shelters' && (
+            <button
+              onClick={() => {
+                setSelectedShelter(null);
+                setIsShelterModalOpen(true);
+              }}
+              className="dt-btn dt-btn-primary"
+              style={{ backgroundColor: '#0284c7', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
+            >
+              <Plus size={16} /> {isNepali ? 'नयाँ सुरक्षित आश्रयस्थल दर्ता' : 'Register New Shelter'}
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('recovery_projects')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'recovery_projects' ? '#b45309' : '#f1f5f9',
-              color: activeTab === 'recovery_projects' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <HardHat size={15} />
-            <span>{isNepali ? '१०. विपद् पुनःलाभ तथा पुनर्निर्माण' : '10. Build Back Better'}</span>
-          </button>
+          {activeTab === 'relief_inventory' && (
+            <button
+              onClick={() => setIsReliefModalOpen(true)}
+              className="dt-btn dt-btn-primary"
+              style={{ backgroundColor: '#d97706', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
+            >
+              <Plus size={16} /> {isNepali ? 'राहत सामग्री प्रविष्टि' : 'Add Relief Stock'}
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('msra_matrix')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 600,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'msra_matrix' ? '#4338ca' : '#f1f5f9',
-              color: activeTab === 'msra_matrix' ? '#ffffff' : 'var(--text-muted)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Activity size={15} />
-            <span>{isNepali ? '११. बहुक्षेत्रीय जोखिम मूल्याङ्कन (MSRA Matrix)' : '11. Multi-Sector Risk Assessment'}</span>
-          </button>
+          {activeTab === 'relief_funds' && (
+            <button
+              onClick={() => setIsFundModalOpen(true)}
+              className="dt-btn dt-btn-primary"
+              style={{ backgroundColor: '#059669', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
+            >
+              <Plus size={16} /> {isNepali ? 'नयाँ DBT राहत निकासा' : 'Disburse Relief (DBT)'}
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('bipad_sync')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'bipad_sync' ? '#0369a1' : '#f0f9ff',
-              color: activeTab === 'bipad_sync' ? '#ffffff' : '#0369a1',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              borderLeft: '2px solid #0284c7',
-            }}
-          >
-            <Globe size={15} />
-            <span>{isNepali ? '१२. राष्ट्रिय विपद् पोर्टल (BIPAD Sync)' : '12. BIPAD National Gateway'}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('micro_vulnerability')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'micro_vulnerability' ? '#be123c' : '#fff1f2',
-              color: activeTab === 'micro_vulnerability' ? '#ffffff' : '#be123c',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Users size={15} />
-            <span>{isNepali ? '१३. अति-संवेदनशील नागरिक (५,८०५ घरधुरी)' : '13. Micro-Vulnerable Citizens (5,805 HH)'}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('rdra_damage')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'rdra_damage' ? '#047857' : '#ecfdf5',
-              color: activeTab === 'rdra_damage' ? '#ffffff' : '#047857',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Coins size={15} />
-            <span>{isNepali ? '१४. क्षति मूल्याङ्कन (RDRA मापदण्ड २०७७)' : '14. Damage Assessment (RDRA 2077)'}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('heavy_equipment')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'heavy_equipment' ? '#d97706' : '#fffbeb',
-              color: activeTab === 'heavy_equipment' ? '#ffffff' : '#b45309',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <Truck size={15} />
-            <span>{isNepali ? '१५. खोज-उद्धार (SAR) र डोजर डाइरेक्टरी' : '15. SAR Equipment & Volunteers'}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('offline_mesh')}
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              backgroundColor: activeTab === 'offline_mesh' ? '#4338ca' : '#eef2ff',
-              color: activeTab === 'offline_mesh' ? '#ffffff' : '#4338ca',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
-          >
-            <WifiOff size={15} />
-            <span>{isNepali ? '१६. अफलाइन सञ्चालन र VHF रेडियो' : '16. Offline PWA & VHF Radio'}</span>
-          </button>
+          {activeTab === 'vulnerable_settlements' && (
+            <button
+              onClick={() => setIsSettlementModalOpen(true)}
+              className="dt-btn dt-btn-primary"
+              style={{ backgroundColor: '#ca8a04', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700 }}
+            >
+              <Plus size={16} /> {isNepali ? 'नयाँ जोखिम बस्ती दर्ता' : 'Add Vulnerable Settlement'}
+            </button>
+          )}
         </div>
       </div>
 

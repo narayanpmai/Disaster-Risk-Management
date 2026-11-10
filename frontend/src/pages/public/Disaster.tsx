@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ShieldAlert,
@@ -176,6 +176,7 @@ export const Disaster: React.FC = () => {
   };
 
   const [activePublicTab, setActivePublicTab] = useState<TabType>(getTabFromLocation);
+  const navigate = useNavigate();
   const { isNepali, t } = useLanguage();
   const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== 'undefined' ? navigator.onLine : true);
 
@@ -812,62 +813,63 @@ export const Disaster: React.FC = () => {
         </div>
       </div>
 
-      {/* ── 11 Disaster Modules Interactive Top Tab Bar ── */}
-      <div
-        className="dt-disaster-tabbar"
-        style={{
-          display: 'flex',
-          gap: '0.5rem',
-          overflowX: 'auto',
-          padding: '0.4rem 0.2rem 1.25rem',
-          marginBottom: '1rem',
-          scrollbarWidth: 'thin',
-        }}
-      >
-        {DISASTER_TABS.map((tab) => {
-          const isActive = activePublicTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => changeTab(tab.id)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                padding: '0.65rem 1rem',
-                borderRadius: '10px',
-                border: isActive ? `2px solid ${tab.color}` : '1.5px solid #cbd5e1',
-                backgroundColor: isActive ? '#ffffff' : '#f8fafc',
-                color: isActive ? tab.color : '#334155',
-                fontWeight: isActive ? 800 : 600,
-                fontSize: '0.82rem',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                boxShadow: isActive ? `0 4px 12px ${tab.color}25` : 'none',
-                transition: 'all 0.15s ease',
-                flexShrink: 0,
-              }}
-            >
-              {tab.icon}
-              <span>{isNepali ? tab.labelNp : tab.labelEn}</span>
-              {tab.badgeNp && (
-                <span
-                  style={{
-                    fontSize: '0.65rem',
-                    padding: '1px 6px',
-                    borderRadius: '6px',
-                    backgroundColor: isActive ? `${tab.color}15` : '#e2e8f0',
-                    color: isActive ? tab.color : '#64748b',
-                    fontWeight: 700,
-                  }}
-                >
-                  {isNepali ? tab.badgeNp : tab.badgeEn}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* ── Breadcrumb Bar for Clean Single-Page Navigation ── */}
+      {(() => {
+        const curTab = DISASTER_TABS.find(t => t.id === activePublicTab) || DISASTER_TABS[0];
+        return (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              padding: '0.75rem 1.25rem',
+              backgroundColor: '#f8fafc',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              marginBottom: '1.5rem',
+              fontSize: '0.88rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b', fontWeight: 600 }}>
+              <span
+                style={{ color: '#0284c7', cursor: 'pointer' }}
+                onClick={() => navigate('/')}
+              >
+                {isNepali ? 'गृहपृष्ठ' : 'Home'}
+              </span>
+              <span>›</span>
+              <span
+                style={{ color: '#0284c7', cursor: 'pointer' }}
+                onClick={() => changeTab('river_twin')}
+              >
+                {isNepali ? 'विपद् प्रतिकार्य हब' : 'Disaster Operations'}
+              </span>
+              <span>›</span>
+              <span style={{ color: '#0f172a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                {curTab.icon}
+                {isNepali ? curTab.labelNp : curTab.labelEn}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  padding: '3px 10px',
+                  borderRadius: '6px',
+                  backgroundColor: `${curTab.color}15`,
+                  color: curTab.color,
+                  fontWeight: 700,
+                  border: `1px solid ${curTab.color}30`,
+                }}
+              >
+                {isNepali ? (curTab.badgeNp || 'एकल पृष्ठ') : (curTab.badgeEn || 'Single Page')}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* SECTION 0: NATIONAL CENTRALIZED DATA STANDARD & DHM/SECURITY API GATEWAY */}
