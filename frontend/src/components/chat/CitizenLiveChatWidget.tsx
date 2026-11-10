@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { aiApi } from '../../api/ai';
 import { complaintsApi } from '../../api/complaints';
+import { useLanguage } from '../../context/LanguageContext';
 import type { Complaint } from '../../types/complaint';
 
 interface ChatMessage {
@@ -27,6 +28,7 @@ interface ChatMessage {
 }
 
 export const CitizenLiveChatWidget: React.FC = () => {
+  const { isNepali } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'chat' | 'register' | 'track' | 'whatsapp'>('chat');
   const [inputQuery, setInputQuery] = useState('');
@@ -54,14 +56,23 @@ export const CitizenLiveChatWidget: React.FC = () => {
     {
       id: 'welcome',
       sender: 'ai',
-      text: 'नमस्ते! 🙏 म पाँचपोखरी थाङपाल गाउँपालिकाको २४/७ नागरिक डिजिटल सहायक हुँ। म तपाईंलाई नागरिक बडापत्र, दस्तुर, आकस्मिक सेवा वा गुनासो दर्ता तथा सुनुवाइमा तत्काल सहयोग गर्न तयार छु।',
+      text: isNepali
+        ? 'नमस्ते! 🙏 म पाँचपोखरी थाङपाल गाउँपालिकाको २४/७ आपतकालीन विपद् तथा नागरिक सहायता डिजिटल सहायक हुँ। म तपाईंलाई विपद् पूर्वसूचना, बाढी/पहिरो सतर्कता, खोज-उद्धार (SAR), राहत वितरण वा विपद् क्षति उजुरी दर्तामा तत्काल सहयोग गर्न तयार छु।'
+        : 'Welcome! 🙏 I am the 24/7 Disaster Response & Citizen Copilot for Panchpokhari Thangpal. I assist with flood/landslide early warnings, SAR rescue dispatch, relief tracking, and incident reporting.',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      options: [
-        'सूचना अधिकारी (कुमार बस्नेत) वा विपद् फोकल (नारायण क्षेत्री) सम्पर्क',
-        'नागरिकता सिफारिस दस्तुर र कागजात के के चाहिन्छ?',
-        'खानेपानी वा सडक बिग्रेको गुनासो दर्ता गर्न चाहन्छु',
-        'दर्ता भएको गुनासोको स्थिति कसरी ट्र्याक गर्ने?',
-      ],
+      options: isNepali
+        ? [
+            'आपतकालीन EOC कमाण्ड तथा विपद् फोकल सम्पर्क',
+            'मेलम्ची नदी जलसतह तथा पहिरो पूर्वसूचना',
+            'सडक अवरोध, बाढी वा पहिरो विपद् उजुरी दर्ता',
+            'दर्ता भएको विपद् राहत/उजुरीको स्थिति ट्र्याक गर्नुहोस्',
+          ]
+        : [
+            'Emergency EOC Command & Disaster Focal Contact',
+            'Melamchi River Level & Landslide Early Warning',
+            'Report Road Block, Flood or Landslide Incident',
+            'Track Incident & Relief Disbursement Status',
+          ],
     },
   ]);
 
@@ -228,7 +239,7 @@ export const CitizenLiveChatWidget: React.FC = () => {
             cursor: 'pointer',
             transition: 'all 0.2s ease',
           }}
-          aria-label="नागरिक सहायता तथा Live Chat खोल्नुहोस्"
+          aria-label={isNepali ? "विपद् सहायता तथा Live Chat खोल्नुहोस्" : "Open Disaster Support & Live Chat"}
         >
           <span
             style={{
@@ -242,7 +253,7 @@ export const CitizenLiveChatWidget: React.FC = () => {
           <MessageCircle size={22} color="#ffffff" />
           <div style={{ textAlign: 'left', lineHeight: '1.2' }}>
             <div style={{ fontSize: '0.68rem', fontWeight: 600, textTransform: 'uppercase', color: '#a7f3d0', letterSpacing: '0.5px' }}>
-              २४/७ नागरिक सहायता
+              {isNepali ? '२४/७ विपद् सहायता' : '24/7 Disaster Help'}
             </div>
             <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>Live Chat & WhatsApp</div>
           </div>
@@ -293,10 +304,12 @@ export const CitizenLiveChatWidget: React.FC = () => {
               </div>
               <div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span>पाँचपोखरी नागरिक सहायता</span>
+                  <span>{isNepali ? 'पाँचपोखरी विपद् सहायता' : 'Panchpokhari Disaster Help'}</span>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4ade80' }} />
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#d1fae5' }}>एआई डिजिटल सहायक • Live Chat • WhatsApp</div>
+                <div style={{ fontSize: '0.7rem', color: '#d1fae5' }}>
+                  {isNepali ? 'एआई डिजिटल सहायक • Live Chat • WhatsApp' : 'AI Copilot • Live Chat • WhatsApp'}
+                </div>
               </div>
             </div>
 
@@ -312,7 +325,7 @@ export const CitizenLiveChatWidget: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
-              title="बन्द गर्नुहोस्"
+              title={isNepali ? "बन्द गर्नुहोस्" : "Close"}
             >
               <X size={20} />
             </button>
@@ -329,9 +342,9 @@ export const CitizenLiveChatWidget: React.FC = () => {
             }}
           >
             {[
-              { id: 'chat', label: 'एआई च्याट', icon: <Bot size={14} /> },
-              { id: 'register', label: 'गुनासो दर्ता', icon: <FileText size={14} /> },
-              { id: 'track', label: 'ट्र्याकिङ', icon: <Search size={14} /> },
+              { id: 'chat', label: isNepali ? 'एआई च्याट' : 'AI Chat', icon: <Bot size={14} /> },
+              { id: 'register', label: isNepali ? 'विपद् उजुरी' : 'Report', icon: <FileText size={14} /> },
+              { id: 'track', label: isNepali ? 'ट्र्याकिङ' : 'Track', icon: <Search size={14} /> },
               { id: 'whatsapp', label: 'WhatsApp', icon: <span style={{ color: '#16a34a', fontWeight: 800 }}>WA</span> },
             ].map((tab) => (
               <button
@@ -490,7 +503,7 @@ export const CitizenLiveChatWidget: React.FC = () => {
                   type="text"
                   value={inputQuery}
                   onChange={(e) => setInputQuery(e.target.value)}
-                  placeholder="नागरिक बडापत्र वा गुनासोबारे सोध्नुहोस्..."
+                  placeholder={isNepali ? "विपद् पूर्वसूचना वा घटनाबारे सोध्नुहोस्..." : "Ask about flood alerts, landslides, SAR..."}
                   style={{
                     flex: 1,
                     fontSize: '0.78rem',
@@ -1088,7 +1101,9 @@ export const CitizenLiveChatWidget: React.FC = () => {
                 </div>
 
                 <div style={{ fontSize: '0.7rem', color: '#64748b', lineHeight: 1.35 }}>
-                  ⚠️ बाढी, पहिरो, सडक अवरोध, विपद् पूर्वतयारी, Digital Twin र प्राविधिक समस्या।
+                  {isNepali
+                    ? '⚠️ बाढी, पहिरो, सडक अवरोध, विपद् पूर्वतयारी, NIDRMS र प्राविधिक समस्या।'
+                    : '⚠️ Flood, landslide, road blockage, early warning, NIDRMS & technical issues.'}
                 </div>
 
                 <a
@@ -1146,8 +1161,8 @@ export const CitizenLiveChatWidget: React.FC = () => {
               alignItems: 'center',
             }}
           >
-            <span>पाँचपोखरी थाङपाल विपद् व्यवस्थापन (NIDRMS)</span>
-            <span style={{ fontWeight: 600, color: '#059669' }}>सुशासन ऐन, २०६४</span>
+            <span>{isNepali ? 'पाँचपोखरी थाङपाल विपद् व्यवस्थापन (NIDRMS)' : 'Panchpokhari NIDRMS EOC Command'}</span>
+            <span style={{ fontWeight: 600, color: '#059669' }}>{isNepali ? 'सुशासन ऐन, २०६४' : 'Good Governance Act 2064'}</span>
           </div>
         </div>
       )}

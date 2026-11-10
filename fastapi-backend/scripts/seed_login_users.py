@@ -52,3 +52,4 @@ def seed_accounts():
 
 if __name__ == "__main__":
     seed_accounts()
+

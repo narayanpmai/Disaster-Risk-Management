@@ -341,7 +341,7 @@ export const DemographicsPage: React.FC<DemographicsPageProps> = ({ isPublicMode
         <div style={{ marginTop: '0.25rem' }}>
           <div className="dt-card" style={{ padding: '1rem', marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ flex: 1 }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.25rem' }}>Smart Survey Engine (Municipal Digital Twins)</h3>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.25rem' }}>Smart Disaster Survey Engine (NIDRMS)</h3>
               <p style={{ fontSize: '0.85rem', color: '#6b7280', margin: 0 }}>
                 यो सर्भे फारम XML (XForm) बाट डाइनामिक रुपमा बनेको हो। यहाँ भरिएको डाटा सीधै घरधुरी लगतमा अपडेट हुन्छ।
               </p>

@@ -369,7 +369,7 @@ export const Navbar: React.FC<NavbarProps> = ({ isPublic = false }) => {
               transition: 'all 0.15s ease',
               backgroundColor: '#f0f9ff',
             }}
-            title={isNepali ? "नागरिक मोबाइल एप (PWA: अफलाइन बडापत्र र SOS साइरन)" : "Citizen Mobile App (Offline PWA & SOS Siren)"}
+            title={isNepali ? "नागरिक मोबाइल एप (PWA: अफलाइन विपद् रिपोर्टिङ र SOS साइरन)" : "Citizen Mobile App (Offline Disaster Reporting & SOS Siren)"}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLElement).style.backgroundColor = '#e0f2fe';
             }}

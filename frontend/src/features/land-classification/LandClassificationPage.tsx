@@ -210,7 +210,7 @@ export const LandClassificationPage: React.FC = () => {
       L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         maxNativeZoom: 20,
         maxZoom: 22,
-        attribution: '&copy; Google Satellite Hybrid | Municipal Digital Twins',
+        attribution: '&copy; Google Satellite Hybrid | Nepal Integrated DRRMS',
       }).addTo(map);
     } else if (baseMap === 'topo') {
       L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', {

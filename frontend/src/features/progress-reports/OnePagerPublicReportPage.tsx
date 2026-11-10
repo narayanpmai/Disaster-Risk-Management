@@ -894,15 +894,15 @@ export const OnePagerPublicReportPage: React.FC = () => {
               </div>
             </div>
 
-            {/* 10. डिजिटल सुशासन */}
+            {/* 10. आपतकालीन पूर्वतयारी तथा प्रतिकार्य */}
             <div style={{ border: '1px solid #CBD5E1', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#ffffff' }}>
-              <div style={{ backgroundColor: '#0F4C81', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem', textAlign: 'center' }}>डिजिटल सुशासन (Gov SaaS)</div>
-              <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400" alt="डिजिटल सुशासन" style={{ width: '100%', height: '70px', objectFit: 'cover' }} />
+              <div style={{ backgroundColor: '#0F4C81', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem', textAlign: 'center' }}>विपद् प्रतिकार्य (LEOC Response)</div>
+              <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=400" alt="विपद् पूर्वतयारी" style={{ width: '100%', height: '70px', objectFit: 'cover' }} />
               <div style={{ padding: '0.4rem 0.5rem', fontSize: '0.68rem', lineHeight: '1.4', color: '#1E293B' }}>
-                <div>• e-BPS / PAMS / e-Tax: <strong>सञ्चालन</strong></div>
-                <div>• दर्ता चलानी / इजलास: <strong>डिजिटल</strong></div>
-                <div>• किसान लगत / माटो कार्ड: <strong>जारी</strong></div>
-                <div>• अनलाइन नागरिक सेवा: <strong>32+</strong></div>
+                <div>• बाढी / पहिरो सेन्सर: <strong>लाइभ</strong></div>
+                <div>• आपतकालीन साइरन / VHF: <strong>सक्रिय</strong></div>
+                <div>• खोज-उद्धार (SAR) मेसिनरी: <strong>तयारी</strong></div>
+                <div>• प्रमाणित आश्रयस्थल: <strong>६ वटा</strong></div>
               </div>
             </div>
           </div>

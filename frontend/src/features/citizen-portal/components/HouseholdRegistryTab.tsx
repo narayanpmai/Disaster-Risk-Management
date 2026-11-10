@@ -1785,7 +1785,7 @@ export const HouseholdRegistryTab: React.FC<HouseholdRegistryTabProps> = ({ isPu
       const hybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
         maxNativeZoom: 19, // Lowered to prevent missing tiles at max zoom in rural areas
         maxZoom: 22,
-        attribution: '&copy; Google Satellite Hybrid | Municipal Digital Twins',
+        attribution: '&copy; Google Satellite Hybrid | Nepal Integrated DRRMS',
       });
 
       // 2. Esri World Imagery (उच्च-परिशुद्धता फोटो स्याटेलाइट)
@@ -1799,7 +1799,7 @@ export const HouseholdRegistryTab: React.FC<HouseholdRegistryTabProps> = ({ isPu
       const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxNativeZoom: 19,
         maxZoom: 22,
-        attribution: '&copy; OpenStreetMap contributors | Municipal Digital Twins',
+        attribution: '&copy; OpenStreetMap contributors | Nepal Integrated DRRMS',
       });
 
       // 4. OpenTopoMap (टोपो धरातल तथा उचाइ कन्टूर नक्सा)

@@ -92,7 +92,7 @@ export const HouseholdDetailModal: React.FC<HouseholdDetailModalProps> = ({
                 घरधुरी ३६०° विस्तृत प्रोफाइल ({detail?.householdNumber || householdId})
               </h2>
               <p className="text-xs text-slate-400">
-                Panchpokhari Thangpal Municipal Household Digital Twin
+                Panchpokhari Thangpal Disaster Risk Matrix & Household Registry
               </p>
             </div>
           </div>

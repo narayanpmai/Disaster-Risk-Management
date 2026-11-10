@@ -147,7 +147,7 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
       {
         maxNativeZoom: 20,
         maxZoom: 22,
-        attribution: '&copy; Google Satellite Hybrid | Municipal Digital Twins',
+        attribution: '&copy; Google Satellite Hybrid | Nepal Integrated DRRMS',
       }
     );
 
@@ -164,7 +164,7 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxNativeZoom: 19,
       maxZoom: 22,
-      attribution: '&copy; OpenStreetMap contributors | Municipal Digital Twins (पाँचपोखरी थाङपाल)',
+      attribution: '&copy; OpenStreetMap contributors | Nepal Integrated DRRMS (पाँचपोखरी थाङपाल)',
     });
 
     const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {

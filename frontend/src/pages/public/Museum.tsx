@@ -614,7 +614,7 @@ export const Museum: React.FC = () => {
               </div>
 
               <div style={{ borderTop: '1.5px dashed #d97706', marginTop: '1rem', paddingTop: '0.5rem', textAlign: 'center', fontSize: '0.68rem', color: '#94a3b8' }}>
-                Municipal Digital Twin Platform • संवत् २०८१ • आधिकारिक डिजिटल क्याटलग
+                Nepal Integrated DRRMS Platform • संवत् २०८१ • आधिकारिक डिजिटल क्याटलग
               </div>
             </div>
 

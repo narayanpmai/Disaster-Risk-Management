@@ -1984,7 +1984,7 @@ export const MuseumPage: React.FC = () => {
               </div>
 
               <div style={{ borderTop: '1px dashed #cbd5e1', marginTop: '0.85rem', paddingTop: '0.5rem', textAlign: 'center', fontSize: '0.68rem', color: '#94a3b8' }}>
-                Municipal Digital Twin Platform • संवत् २०८१
+                Nepal Integrated DRRMS Platform • संवत् २०८१
               </div>
             </div>
 

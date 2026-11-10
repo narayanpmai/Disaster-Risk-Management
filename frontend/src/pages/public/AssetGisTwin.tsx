@@ -112,7 +112,7 @@ export default function AssetGisTwin() {
     return (
         <div className="twin-container">
             <div className="twin-header">
-                <h1>Asset & GIS Digital Twin</h1>
+                <h1>Asset & GIS Disaster Twin</h1>
                 <p>सार्वजनिक सम्पत्ति तथा भौगोलिक सूचना प्रणाली (Phase 5 & 7)</p>
             </div>
 

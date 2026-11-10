@@ -1079,7 +1079,7 @@ export const Tourism: React.FC = () => {
             border: '1px solid rgba(255, 255, 255, 0.25)',
             letterSpacing: '0.3px'
           }}>
-            <Compass size={16} color="#38bdf8" /> पाँचपोखरी थाङपाल पदमार्ग तथा पर्यटन ३D डिजिटल जुम्ल्याहा (Digital Twin)
+            <Compass size={16} color="#38bdf8" /> पाँचपोखरी थाङपाल पदमार्ग तथा विपद् उद्धार ३D नक्सा (Trek & Rescue Map)
           </div>
 
           <h1 style={{ fontSize: '2.4rem', fontWeight: 800, lineHeight: 1.25, margin: '0 0 0.85rem 0', letterSpacing: '-0.5px' }}>
