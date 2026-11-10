@@ -127,9 +127,26 @@ const fixMojibake = (data: any): any => {
       return response;
     },
     (error) => {
+      const originalRequest = error.config;
+      const requestUrl = (originalRequest?.url || '').toLowerCase();
+      const isLoginOrAuth =
+        requestUrl.includes('/auth/login') ||
+        requestUrl.includes('/login') ||
+        (typeof window !== 'undefined' && window.location.pathname === '/login');
+
       if (error.response?.status === 401) {
-        console.warn('Unauthorized request - session may have expired.');
-        toast.error('सेसन समाप्त भयो। कृपया फेरि लगइन गर्नुहोस्।', { id: 'session-expired' });
+        // Do NOT trigger "session expired" toast on the login endpoint itself
+        if (!isLoginOrAuth) {
+          console.warn('Unauthorized request - session may have expired.');
+          toast.error('सेसन समाप्त भयो। कृपया फेरि लगइन गर्नुहोस्।', { id: 'session-expired' });
+          // Clear stale tokens to prevent cascading 401 loops
+          localStorage.removeItem('p5_token');
+          localStorage.removeItem('p5_user');
+          localStorage.removeItem('p5_role');
+          if (typeof window !== 'undefined' && (window.location.pathname.startsWith('/app') || window.location.pathname.startsWith('/super-admin'))) {
+            window.location.href = '/login';
+          }
+        }
       } else if (error.response?.status === 403) {
         toast.error('तपाईंलाई यो कार्य गर्न अनुमति छैन।', { id: 'forbidden' });
       } else if (error.response?.status >= 500) {

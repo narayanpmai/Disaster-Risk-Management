@@ -3,18 +3,24 @@ import type { AuthResponse, User } from '../types/auth';
 
 export const authApi = {
   login: async (email: string, password: string, tenantId?: string): Promise<AuthResponse> => {
-    const res = await api.post<AuthResponse>('/auth/login', { email, password, tenantId });
+    const res = await api.post<AuthResponse>('/auth/login', {
+      email,
+      password,
+      tenant_subdomain: tenantId || 'panchpokhari',
+      tenantId: tenantId || 'panchpokhari',
+    });
     if (res.accessToken) {
       localStorage.setItem('p5_token', res.accessToken);
       localStorage.setItem('p5_user', JSON.stringify(res.user));
+      localStorage.setItem('p5_role', res.user.role || 'admin');
+      localStorage.setItem('p5_email', res.user.email || '');
+      localStorage.setItem('p5_name', res.user.fullName || '');
       
-      // ✅ Automatically set tenant from user's actual account tenant
-      // Priority: server-resolved tenantSubdomain > user-selected tenantId param
-      const effectiveTenant = res.tenantSubdomain || (tenantId && tenantId !== 'all' ? tenantId : null);
+      // Automatically set tenant from user's actual account tenant
+      const effectiveTenant = res.tenantSubdomain || (tenantId && tenantId !== 'all' ? tenantId : 'panchpokhari');
       if (effectiveTenant) {
         localStorage.setItem('tenant_id', effectiveTenant);
       } else {
-        // super_admin / central: clear tenant_id so they can see all
         localStorage.removeItem('tenant_id');
       }
     }

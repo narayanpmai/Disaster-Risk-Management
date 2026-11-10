@@ -18,13 +18,19 @@ export const LoginPage: React.FC = () => {
   const { tenantId, setTenantId } = useTenant();
   const { isAuthenticated, login } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@p5digital.local');
+  const [password, setPassword] = useState('Admin@P5Digital2024!');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [tenantList, setTenantList] = useState<any[]>(DEFAULT_TENANTS);
 
   const from = (location.state as any)?.from?.pathname || '/app';
+
+  useEffect(() => {
+    if (!tenantId || tenantId === 'all') {
+      setTenantId('panchpokhari');
+    }
+  }, [tenantId, setTenantId]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -157,10 +163,69 @@ export const LoginPage: React.FC = () => {
             </div>
           )}
 
-          {/* Hidden Demo Credentials */}
-          <div style={{ display: 'none' }}>
-            <button type="button" onClick={() => handleFillDemo('cao@panchpokhari.gov.np', 'DemoUser@2024!', 'panchpokhari')}>CAO</button>
-            <button type="button" onClick={() => handleFillDemo('super_admin@p5digital.local', 'Admin@P5Digital2024!', 'all')}>Super Admin</button>
+          {/* Quick Demo Credentials Bar */}
+          <div style={{
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '10px 14px',
+            marginBottom: '1.25rem',
+            textAlign: 'left'
+          }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#475569', marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span>🚀 द्रुत लगइन (१-क्लिक छनोट):</span>
+              <span style={{ fontSize: '0.7rem', color: '#0284c7', fontWeight: 600 }}>पासवर्ड: Admin@P5Digital2024!</span>
+            </div>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => handleFillDemo('admin@p5digital.local', 'Admin@P5Digital2024!', 'panchpokhari')}
+                style={{
+                  background: email === 'admin@p5digital.local' ? '#0284c7' : '#ffffff',
+                  color: email === 'admin@p5digital.local' ? '#ffffff' : '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🛡️ सुपर एडमिन
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFillDemo('disaster_officer@p5digital.local', 'Admin@P5Digital2024!', 'panchpokhari')}
+                style={{
+                  background: email === 'disaster_officer@p5digital.local' ? '#059669' : '#ffffff',
+                  color: email === 'disaster_officer@p5digital.local' ? '#ffffff' : '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🚨 विपद् अधिकृत
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFillDemo('cao@panchpokhari.gov.np', 'Admin@P5Digital2024!', 'panchpokhari')}
+                style={{
+                  background: email === 'cao@panchpokhari.gov.np' ? '#7c3aed' : '#ffffff',
+                  color: email === 'cao@panchpokhari.gov.np' ? '#ffffff' : '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                🏛️ प्रमुख प्रशासकीय अधिकृत
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleLogin}>
@@ -178,7 +243,6 @@ export const LoginPage: React.FC = () => {
                   outline: 'none', transition: 'border-color 0.2s'
                 }}
               >
-                <option value="">-- छान्नुहोस् --</option>
                 {tenantList.map(t => (
                   <option key={t.subdomain || t.id} value={(t.subdomain || t.id || '').toLowerCase()}>
                     {t.nameNp || t.nameEn || t.subdomain}
@@ -189,12 +253,12 @@ export const LoginPage: React.FC = () => {
 
             <div style={{ marginBottom: '1rem', textAlign: 'left' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#475569', marginBottom: '6px', display: 'block' }}>
-                इमेल ठेगाना
+                इमेल ठेगाना वा युजरनेम
               </label>
               <input
-                type="email"
+                type="text"
                 required
-                placeholder="user@example.gov.np"
+                placeholder="admin@p5digital.local वा admin"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{
