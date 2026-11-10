@@ -248,20 +248,22 @@ export const adminNavSections: NavSection[] = [
     ],
   },
   {
-    title: '४. पालिका तथा नागरिक लगत',
+    title: '४. विपद् समिति तथा जनशक्ति',
     items: [
       {
-        label: 'पालिका प्रोफाइल',
+        label: 'विपद् व्यवस्थापन समिति (LDMC)',
         path: '/app/profile',
         icon: <Building2 size={16} />,
+        badge: 'LDMC',
+        badgeColor: '#0284c7',
       },
       {
-        label: 'जनप्रतिनिधि',
+        label: 'उद्धार फोकल पर्सन',
         path: '/app/representatives',
         icon: <Users size={16} />,
       },
       {
-        label: 'घरधुरी लगत ३६०',
+        label: 'जोखिमयुक्त घरधुरी',
         path: '/app/demographics',
         icon: <Home size={16} style={{ color: '#0ea5e9' }} />,
         badge: '५,८०५',
@@ -270,17 +272,17 @@ export const adminNavSections: NavSection[] = [
     ],
   },
   {
-    title: '५. खुला तथ्याङ्क र मद्दत',
+    title: '५. खुला तथ्याङ्क र कार्यविधि',
     items: [
       {
-        label: 'खुला तथ्याङ्क',
+        label: 'विपद् खुला तथ्याङ्क',
         path: '/app/open-data',
         icon: <Database size={16} style={{ color: '#0284c7' }} />,
         badge: 'खुला',
         badgeColor: '#0284c7',
       },
       {
-        label: 'मद्दत तथा SOP',
+        label: 'प्रयोगकर्ता SOP र FAQ',
         path: '/app/faq-help',
         icon: <HelpCircle size={16} />,
       },
@@ -464,20 +466,22 @@ export const publicNavSections: NavSection[] = [
     ],
   },
   {
-    title: '४. पालिका तथा नागरिक लगत',
+    title: '४. विपद् समिति तथा जनशक्ति',
     items: [
       {
-        label: 'पालिका प्रोफाइल',
+        label: 'विपद् व्यवस्थापन समिति (LDMC)',
         path: '/profile',
         icon: <Building2 size={16} />,
+        badge: 'LDMC',
+        badgeColor: '#0284c7',
       },
       {
-        label: 'जनप्रतिनिधि',
+        label: 'उद्धार फोकल पर्सन',
         path: '/representatives',
         icon: <Users size={16} />,
       },
       {
-        label: 'घरधुरी लगत ३६०',
+        label: 'जोखिमयुक्त घरधुरी',
         path: '/demographics',
         icon: <Home size={16} style={{ color: '#0ea5e9' }} />,
         badge: '५,८०५',
@@ -486,17 +490,17 @@ export const publicNavSections: NavSection[] = [
     ],
   },
   {
-    title: '५. खुला तथ्याङ्क र मद्दत',
+    title: '५. खुला तथ्याङ्क र कार्यविधि',
     items: [
       {
-        label: 'खुला तथ्याङ्क',
+        label: 'विपद् खुला तथ्याङ्क',
         path: '/open-data',
         icon: <Database size={16} style={{ color: '#0284c7' }} />,
         badge: 'खुला',
         badgeColor: '#0284c7',
       },
       {
-        label: 'मद्दत तथा SOP',
+        label: 'प्रयोगकर्ता SOP र FAQ',
         path: '/faq-help',
         icon: <HelpCircle size={16} />,
       },
@@ -507,25 +511,25 @@ export const publicNavSections: NavSection[] = [
 const EN_LABELS: Record<string, { label: string; badge?: string; title?: string }> = {
   // Titles
   '१. कमान्ड तथा विश्लेषण': { label: '', title: '1. Command & Analytics' },
-  '२. विपद् व्यवस्थापन': { label: '', title: '2. Disaster Management' },
+  '२. विपद् व्यवस्थापन': { label: '', title: '2. Disaster Operations' },
   '३. नक्सा तथा पूर्वाधार': { label: '', title: '3. GIS & Infrastructure' },
-  '४. पालिका तथा नागरिक लगत': { label: '', title: '4. Profile & Demographics' },
-  '५. खुला तथ्याङ्क र मद्दत': { label: '', title: '5. Open Data & Help' },
+  '४. विपद् समिति तथा जनशक्ति': { label: '', title: '4. DRRM Committee & Teams' },
+  '५. खुला तथ्याङ्क र कार्यविधि': { label: '', title: '5. Open Data & SOP' },
   '६. प्रणाली प्रशासन': { label: '', title: '6. System Admin' },
 
   // Items
   'कमान्ड ड्यासबोर्ड': { label: 'Command Dashboard', badge: 'Live' },
-  'विपद् AI सहायक': { label: 'AI Copilot', badge: 'AI' },
-  'घटना क्यालेन्डर': { label: 'Event Calendar' },
+  'विपद् AI सहायक': { label: 'Disaster AI Copilot', badge: 'AI' },
+  'घटना क्यालेन्डर': { label: 'Disaster Calendar' },
   'प्रतिकार्य हब': { label: 'Response Hub', badge: 'EOC' },
   'नदी जलसतह तथा बाढी': { label: 'River Level & Flood', badge: '3D' },
   'DHM र BIPAD गेटवे': { label: 'DHM & BIPAD Gateway', badge: 'DHM' },
   'पहिरो जोखिम सेन्सर': { label: 'Landslide Sensors', badge: 'Sensor' },
-  'IVR कल र साइरन': { label: 'IVR & Sirens', badge: 'Siren' },
+  'IVR कल र साइरन': { label: 'Alert Calls & Sirens', badge: 'Siren' },
   'जोखिमयुक्त नागरिक': { label: 'Vulnerable Citizens', badge: '5,805' },
   'RDRA क्षति मूल्याङ्कन': { label: 'Damage Assessment', badge: 'RDRA' },
-  'खोज-उद्धार (SAR)': { label: 'SAR Directory', badge: 'SAR' },
-  'अफलाइन र VHF रेडियो': { label: 'Offline & VHF Mesh', badge: 'PWA' },
+  'खोज-उद्धार (SAR)': { label: 'SAR & Medevac', badge: 'SAR' },
+  'अफलाइन र VHF रेडियो': { label: 'Offline PWA & VHF', badge: 'PWA' },
   'आश्रयस्थल तथा राहत': { label: 'Shelters & Relief', badge: 'Shelter' },
   'CCTV सर्भिलेन्स': { label: 'CCTV Surveillance', badge: 'Live' },
   'खानी तथा वातावरण': { label: 'River Mining & Env', badge: 'IEE' },
@@ -534,11 +538,11 @@ const EN_LABELS: Record<string, { label: string; badge?: string; title?: string 
   'डाटा ब्याकअप र DR': { label: 'Data Backup & DR', badge: 'DR' },
   '३D जोखिम नक्सा': { label: '3D Hazard Map', badge: 'GIS' },
   'पुनर्निर्माण आयोजना': { label: 'Recovery Projects', badge: 'Projects' },
-  'पालिका प्रोफाइल': { label: 'Palika Profile' },
-  'जनप्रतिनिधि': { label: 'Representatives' },
-  'घरधुरी लगत ३६०': { label: 'Households 360', badge: '5,805' },
-  'खुला तथ्याङ्क': { label: 'Open Data', badge: 'Open' },
-  'मद्दत तथा SOP': { label: 'Help & SOP' },
+  'विपद् व्यवस्थापन समिति (LDMC)': { label: 'Disaster Committee (LDMC)', badge: 'LDMC' },
+  'उद्धार फोकल पर्सन': { label: 'Rescue Focal Persons' },
+  'जोखिमयुक्त घरधुरी': { label: 'Vulnerable Households', badge: '5,805' },
+  'विपद् खुला तथ्याङ्क': { label: 'Disaster Open Data', badge: 'Open' },
+  'प्रयोगकर्ता SOP र FAQ': { label: 'User SOP & FAQ' },
   'प्रणाली सेटिङ': { label: 'System Settings' },
   'सुपर एडमिन': { label: 'Super Admin', badge: 'Core' },
 };

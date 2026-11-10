@@ -47,6 +47,7 @@ import { HeavyEquipmentSarTab } from '../../features/disaster/components/HeavyEq
 import { OfflineMeshRadioTab } from '../../features/disaster/components/OfflineMeshRadioTab';
 import { OfflineVaultSyncManager } from '../../features/disaster/components/OfflineVaultSyncManager';
 import { NationalDataStandardGatewayTab } from '../../features/disaster/components/NationalDataStandardGatewayTab';
+import { FamilyReliefCardDeduplication } from '../../features/disaster/components/FamilyReliefCardDeduplication';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -1540,6 +1541,11 @@ export const Disaster: React.FC = () => {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Family Digital Relief Card & Anti-Duplication Engine */}
+          <div style={{ marginTop: '1.75rem' }}>
+            <FamilyReliefCardDeduplication />
           </div>
         </div>
       )}
