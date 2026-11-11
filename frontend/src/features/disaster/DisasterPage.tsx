@@ -137,22 +137,24 @@ export const DisasterPage: React.FC = () => {
 
   const mapParamToTab = (param: string | null): AdminTabType | null => {
     if (!param) return null;
-    if (param === 'sensors' || param === 'hydromet' || param === 'river_twin') return 'hydromet';
-    if (param === 'landslide' || param === 'settlements' || param === 'vulnerable_settlements') return 'vulnerable_settlements';
-    if (param === 'siren' || param === 'broadcast' || param === 'sms') return 'broadcast';
-    if (param === 'micro_vulnerability' || param === 'vulnerability') return 'micro_vulnerability';
-    if (param === 'rdra_damage' || param === 'rdra' || param === 'damage') return 'rdra_damage';
-    if (param === 'heavy_equipment' || param === 'sar') return 'heavy_equipment';
-    if (param === 'offline_mesh' || param === 'offline' || param === 'radio') return 'offline_mesh';
-    if (param === 'ambulance_fleet' || param === 'ambulance' || param === 'ems') return 'ambulance_fleet';
-    if (param === 'shelters') return 'shelters';
-    if (param === 'cameras' || param === 'cctv') return 'cameras';
-    if (param === 'bipad_sync' || param === 'bipad') return 'bipad_sync';
-    if (param === 'msra_matrix' || param === 'msra') return 'msra_matrix';
-    if (param === 'relief_inventory') return 'relief_inventory';
-    if (param === 'relief_funds') return 'relief_funds';
-    if (param === 'environmental_risks') return 'environmental_risks';
-    if (param === 'recovery_projects') return 'recovery_projects';
+    const p = param.toLowerCase().trim();
+    if (p === 'sensors' || p === 'hydromet' || p === 'river_twin' || p === 'river') return 'hydromet';
+    if (p === 'landslide' || p === 'settlements' || p === 'vulnerable_settlements') return 'vulnerable_settlements';
+    if (p === 'siren' || p === 'broadcast' || p === 'sms' || p === 'ivr') return 'broadcast';
+    if (p === 'micro_vulnerability' || p === 'vulnerability' || p === 'citizens') return 'micro_vulnerability';
+    if (p === 'rdra_damage' || p === 'rdra' || p === 'damage') return 'rdra_damage';
+    if (p === 'heavy_equipment' || p === 'sar' || p === 'equipment' || p === 'machinery') return 'heavy_equipment';
+    if (p === 'offline_mesh' || p === 'offline' || p === 'radio' || p === 'mesh' || p === 'pwa') return 'offline_mesh';
+    if (p === 'ambulance_fleet' || p === 'ambulance' || p === 'ems') return 'ambulance_fleet';
+    if (p === 'shelters' || p === 'shelter') return 'shelters';
+    if (p === 'cameras' || p === 'cctv' || p === 'surveillance') return 'cameras';
+    if (p === 'bipad_sync' || p === 'bipad' || p === 'dhm' || p === 'national_gateway') return 'bipad_sync';
+    if (p === 'msra_matrix' || p === 'msra' || p === 'risk_assessment' || p === 'risk') return 'msra_matrix';
+    if (p === 'relief_inventory' || p === 'inventory' || p === 'stock') return 'relief_inventory';
+    if (p === 'relief_funds' || p === 'funds' || p === 'dbt') return 'relief_funds';
+    if (p === 'environmental_risks' || p === 'environment') return 'environmental_risks';
+    if (p === 'recovery_projects' || p === 'reconstruction' || p === 'bbb' || p === 'recovery') return 'recovery_projects';
+    if (p === 'events' || p === 'incidents') return 'events';
     return null;
   };
 

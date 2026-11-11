@@ -176,7 +176,10 @@ export const Disaster: React.FC = () => {
     if (p.includes('/river-twin')) return 'river_twin';
     const queryTab = searchParams.get('tab') as TabType | null;
     if (queryTab && (validTabs as readonly string[]).includes(queryTab)) return queryTab;
-    if (queryTab === 'ambulance') return 'ambulance_fleet';
+    if (queryTab === 'ambulance' || queryTab === 'ems') return 'ambulance_fleet';
+    if (queryTab === 'sensors' || queryTab === 'hydromet' || queryTab === 'river') return 'river_twin';
+    if (queryTab === 'bipad_sync' || queryTab === 'bipad' || queryTab === 'dhm') return 'national_gateway';
+    if (queryTab === 'broadcast' || queryTab === 'sms') return 'siren';
     return 'river_twin';
   };
 
