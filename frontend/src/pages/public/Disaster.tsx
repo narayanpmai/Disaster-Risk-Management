@@ -48,6 +48,7 @@ import { OfflineMeshRadioTab } from '../../features/disaster/components/OfflineM
 import { OfflineVaultSyncManager } from '../../features/disaster/components/OfflineVaultSyncManager';
 import { NationalDataStandardGatewayTab } from '../../features/disaster/components/NationalDataStandardGatewayTab';
 import { FamilyReliefCardDeduplication } from '../../features/disaster/components/FamilyReliefCardDeduplication';
+import { AmbulanceTrackingCctvPage } from '../../features/ambulance/AmbulanceTrackingCctvPage';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -136,6 +137,7 @@ export const Disaster: React.FC = () => {
     'micro_vulnerability',
     'rdra_damage',
     'heavy_equipment',
+    'ambulance_fleet',
     'offline_mesh',
     'cameras',
     'shelters',
@@ -151,6 +153,7 @@ export const Disaster: React.FC = () => {
     { id: 'micro_vulnerability', icon: <Users size={16} />, labelNp: 'अति-संवेदनशील नागरिक (५,८०५)', labelEn: 'Vulnerable Citizens (5,805 HH)', badgeNp: 'उद्धार', badgeEn: 'Evacuation', color: '#db2777' },
     { id: 'rdra_damage', icon: <Coins size={16} />, labelNp: 'डिजिटल क्षति मूल्याङ्कन (RDRA)', labelEn: 'Rapid Damage Assessment (RDRA)', badgeNp: 'राहत', badgeEn: 'Relief', color: '#059669' },
     { id: 'heavy_equipment', icon: <Truck size={16} />, labelNp: 'खोज-उद्धार (SAR) र हेभी इक्युपमेन्ट', labelEn: 'SAR Heavy Equipment Directory', badgeNp: 'स्ट्यान्डबाइ', badgeEn: 'Standby', color: '#f59e0b' },
+    { id: 'ambulance_fleet', icon: <Truck size={16} />, labelNp: 'एम्बुलेन्स ट्र्याकिङ र CCTV', labelEn: 'Ambulance GPS & CCTV Fleet', badgeNp: 'GPS', badgeEn: 'GPS', color: '#ef4444' },
     { id: 'offline_mesh', icon: <WifiOff size={16} />, labelNp: 'अफलाइन PWA तथा VHF रेडियो', labelEn: 'Offline PWA & VHF Radio', badgeNp: 'PWA/VHF', badgeEn: 'PWA/VHF', color: '#4f46e5' },
     { id: 'shelters', icon: <Tent size={16} />, labelNp: 'सुरक्षित आश्रयस्थल र राहत मौज्दात', labelEn: 'Evacuation Shelters & Stock', badgeNp: '६ वटा', badgeEn: '6 Shelters', color: '#16a34a' },
     { id: 'cameras', icon: <Video size={16} />, labelNp: 'CCTV प्रत्यक्ष क्यामेरा सर्भिलेन्स', labelEn: 'CCTV Live Video Surveillance', badgeNp: 'लाइभ', badgeEn: 'Live', color: '#7c3aed' },
@@ -164,6 +167,7 @@ export const Disaster: React.FC = () => {
     if (p.includes('/siren')) return 'siren';
     if (p.includes('/micro-vulnerability') || p.includes('/vulnerability')) return 'micro_vulnerability';
     if (p.includes('/rdra') || p.includes('/damage')) return 'rdra_damage';
+    if (p.includes('/ambulance') || p.includes('/ems')) return 'ambulance_fleet';
     if (p.includes('/heavy-equipment') || p.includes('/sar')) return 'heavy_equipment';
     if (p.includes('/offline-mesh') || p.includes('/radio')) return 'offline_mesh';
     if (p.includes('/shelters')) return 'shelters';
@@ -171,7 +175,8 @@ export const Disaster: React.FC = () => {
     if (p.includes('/hotlines') || p.includes('/eoc')) return 'hotlines';
     if (p.includes('/river-twin')) return 'river_twin';
     const queryTab = searchParams.get('tab') as TabType | null;
-    if (queryTab && validTabs.includes(queryTab)) return queryTab;
+    if (queryTab && (validTabs as readonly string[]).includes(queryTab)) return queryTab;
+    if (queryTab === 'ambulance') return 'ambulance_fleet';
     return 'river_twin';
   };
 
@@ -357,6 +362,16 @@ export const Disaster: React.FC = () => {
         : 'Round-the-clock emergency contacts for Nepal Police, Armed Police Force, ambulance operators, local health posts, and ward disaster focal officers.',
       bannerGradient: 'linear-gradient(135deg, #431407 0%, #7c2d12 50%, #270d05 100%)',
       iconWatermark: <PhoneCall size={360} color="#f97316" />,
+    },
+    ambulance_fleet: {
+      badge: isNepali ? 'एम्बुलेन्स प्रत्यक्ष ट्र्याकिङ र CCTV टेलिमेडिसिन' : 'Live Ambulance Fleet GPS Tracking & Telemedicine CCTV',
+      badgeIcon: <Truck size={16} color="#ef4444" />,
+      title: isNepali ? 'गाउँपालिका एम्बुलेन्स प्रत्यक्ष ट्र्याकिङ तथा अन-बोर्ड क्यामेरा' : 'Panchpokhari Rural Municipality Live Ambulance Telemetry & CCTV',
+      desc: isNepali
+        ? 'पाँचपोखरी थाङपाल गाउँपालिकाका सम्पूर्ण सक्रिय एम्बुलेन्सहरूको वास्तविक जीपीएस स्थान, गति, बिरामी टेलिमेडिसिन भिडियो तथा अस्पताल समन्वय'
+        : 'Real-time GPS telemetry, forward dashcam, cabin telemedicine video feed, and emergency pre-arrival triage for all municipal ambulances',
+      bannerGradient: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #b91c1c 100%)',
+      iconWatermark: <Truck size={360} color="#ffffff" style={{ opacity: 0.12 }} />,
     },
   };
   const [selectedRiverSensor, setSelectedRiverSensor] = useState<string>('SEN-MEL-01');
@@ -1744,6 +1759,13 @@ export const Disaster: React.FC = () => {
       {/* ========================================================================= */}
       {activePublicTab === 'offline_mesh' && (
         <OfflineVaultSyncManager />
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 11: AMBULANCE FLEET GPS & TELEMEDICINE CCTV */}
+      {/* ========================================================================= */}
+      {activePublicTab === 'ambulance_fleet' && (
+        <AmbulanceTrackingCctvPage />
       )}
     </div>
   );

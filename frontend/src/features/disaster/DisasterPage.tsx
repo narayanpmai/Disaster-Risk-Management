@@ -65,6 +65,7 @@ import { MicroVulnerabilityTab } from './components/MicroVulnerabilityTab';
 import { RdraAssessmentTab } from './components/RdraAssessmentTab';
 import { HeavyEquipmentSarTab } from './components/HeavyEquipmentSarTab';
 import { OfflineMeshRadioTab } from './components/OfflineMeshRadioTab';
+import { AmbulanceTrackingCctvPage } from '../ambulance/AmbulanceTrackingCctvPage';
 
 interface BroadcastRecord {
   id: string;
@@ -131,7 +132,8 @@ export const DisasterPage: React.FC = () => {
     | 'micro_vulnerability'
     | 'rdra_damage'
     | 'heavy_equipment'
-    | 'offline_mesh';
+    | 'offline_mesh'
+    | 'ambulance_fleet';
 
   const mapParamToTab = (param: string | null): AdminTabType | null => {
     if (!param) return null;
@@ -142,6 +144,7 @@ export const DisasterPage: React.FC = () => {
     if (param === 'rdra_damage' || param === 'rdra' || param === 'damage') return 'rdra_damage';
     if (param === 'heavy_equipment' || param === 'sar') return 'heavy_equipment';
     if (param === 'offline_mesh' || param === 'offline' || param === 'radio') return 'offline_mesh';
+    if (param === 'ambulance_fleet' || param === 'ambulance' || param === 'ems') return 'ambulance_fleet';
     if (param === 'shelters') return 'shelters';
     if (param === 'cameras' || param === 'cctv') return 'cameras';
     if (param === 'bipad_sync' || param === 'bipad') return 'bipad_sync';
@@ -777,6 +780,17 @@ export const DisasterPage: React.FC = () => {
       badgeBg: '#e0e7ff',
       badgeColor: '#4338ca',
     },
+    ambulance_fleet: {
+      titleNp: 'एम्बुलेन्स प्रत्यक्ष ट्र्याकिङ तथा अन-बोर्ड CCTV निगरानी',
+      titleEn: 'Live Ambulance Fleet GPS Tracking & On-board CCTV Monitoring',
+      descNp: 'गाउँपालिकाका एम्बुलेन्सहरूको जीपीएस लोकेशन, गति, बिरामी टेलिमेडिसिन भिडियो फिड र आपतकालीन डिस्प्याच',
+      descEn: 'Real-time vehicle telemetry, roadside dashcam, telemedicine cabin audio/video and dispatch coordination',
+      icon: <Truck size={26} color="#ef4444" />,
+      badgeNp: 'GPS र CCTV प्रत्यक्ष',
+      badgeEn: 'GPS & CCTV Live',
+      badgeBg: '#fee2e2',
+      badgeColor: '#dc2626',
+    },
   };
 
   const currentHeader = MODULE_HEADERS[activeTab] || MODULE_HEADERS.events;
@@ -922,6 +936,16 @@ export const DisasterPage: React.FC = () => {
             >
               <Plus size={16} /> {isNepali ? 'नयाँ जोखिम बस्ती दर्ता' : 'Add Vulnerable Settlement'}
             </button>
+          )}
+
+          {activeTab === 'ambulance_fleet' && (
+            <a
+              href="tel:102"
+              className="dt-btn dt-btn-primary"
+              style={{ backgroundColor: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, textDecoration: 'none' }}
+            >
+              <PhoneCall size={16} /> {isNepali ? '२४/७ एम्बुलेन्स हटलाइन: १०२' : '24/7 Ambulance Hotline: 102'}
+            </a>
           )}
         </div>
       </div>
@@ -3427,6 +3451,11 @@ export const DisasterPage: React.FC = () => {
       {/* Tab 15: Offline Mesh & VHF Radio (अफलाइन सञ्चालन) */}
       {activeTab === 'offline_mesh' && (
         <OfflineMeshRadioTab />
+      )}
+
+      {/* Tab 16: Live Ambulance Fleet GPS & CCTV Telemedicine Monitoring */}
+      {activeTab === 'ambulance_fleet' && (
+        <AmbulanceTrackingCctvPage />
       )}
 
       {/* Disaster Event Modal */}

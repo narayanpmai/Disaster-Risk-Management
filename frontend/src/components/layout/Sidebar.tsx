@@ -181,6 +181,13 @@ export const adminNavSections: NavSection[] = [
             badgeColor: '#f59e0b',
           },
           {
+            label: 'एम्बुलेन्स ट्र्याकिङ र CCTV',
+            path: '/app/disaster?tab=ambulance_fleet',
+            icon: <Truck size={14} style={{ color: '#ef4444' }} />,
+            badge: 'GPS',
+            badgeColor: '#ef4444',
+          },
+          {
             label: 'आश्रयस्थल तथा राहत',
             path: '/app/disaster?tab=shelters',
             icon: <Tent size={14} style={{ color: '#10b981' }} />,
@@ -444,6 +451,13 @@ export const publicNavSections: NavSection[] = [
             badgeColor: '#f59e0b',
           },
           {
+            label: 'एम्बुलेन्स ट्र्याकिङ र CCTV',
+            path: '/disaster?tab=ambulance_fleet',
+            icon: <Truck size={14} style={{ color: '#ef4444' }} />,
+            badge: 'GPS',
+            badgeColor: '#ef4444',
+          },
+          {
             label: 'अफलाइन र VHF रेडियो',
             path: '/disaster?tab=offline_mesh',
             icon: <WifiOff size={14} style={{ color: '#6366f1' }} />,
@@ -580,6 +594,7 @@ const EN_LABELS: Record<string, { label: string; badge?: string; title?: string 
   'जोखिमयुक्त नागरिक': { label: 'Vulnerable Citizens', badge: '5,805' },
   'RDRA क्षति मूल्याङ्कन': { label: 'Damage Assessment', badge: 'RDRA' },
   'खोज-उद्धार (SAR)': { label: 'SAR & Medevac', badge: 'SAR' },
+  'एम्बुलेन्स ट्र्याकिङ र CCTV': { label: 'Ambulance Tracking & CCTV', badge: 'GPS' },
   'अफलाइन र VHF रेडियो': { label: 'Offline PWA & VHF', badge: 'PWA' },
   'आश्रयस्थल तथा राहत': { label: 'Shelters & Relief', badge: 'Shelter' },
   'राहत सामग्री जिन्सी': { label: 'Relief Inventory Stocks', badge: 'Stock' },
