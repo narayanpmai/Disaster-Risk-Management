@@ -53,6 +53,8 @@ import {
   Globe,
   Truck,
   WifiOff,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { DisasterModal } from './components/DisasterModal';
 import { EmergencyContactModal } from './components/EmergencyContactModal';
@@ -227,6 +229,7 @@ export const DisasterPage: React.FC = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [filterWard, setFilterWard] = useState<number | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isHotlinesExpanded, setIsHotlinesExpanded] = useState(false);
 
   // Shelter states
   const [isShelterModalOpen, setIsShelterModalOpen] = useState(false);
@@ -955,61 +958,119 @@ export const DisasterPage: React.FC = () => {
       {/* Tab 1: Events & Hotlines */}
       {activeTab === 'events' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Emergency Hotlines Row */}
-          <div className="dt-card" style={{ background: '#fff1f2', border: '1px solid #fecdd3', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#9f1239', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <PhoneCall size={20} /> आपतकालीन सम्पर्क नम्बरहरू (Emergency Hotlines)
-              </h2>
-              <button
-                onClick={() => setIsContactModalOpen(true)}
-                className="dt-btn"
-                style={{ backgroundColor: '#ffffff', border: '1px solid #fecdd3', color: '#9f1239', fontSize: '0.8rem', padding: '0.3rem 0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+          {/* Emergency Hotlines Row (Collapsible & Compact) */}
+          <div
+            className="dt-card"
+            style={{
+              background: '#fff1f2',
+              border: '1px solid #fecdd3',
+              padding: isHotlinesExpanded ? '1.25rem' : '0.75rem 1.25rem',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div
+                onClick={() => setIsHotlinesExpanded(!isHotlinesExpanded)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
               >
-                <Plus size={14} /> नयाँ सम्पर्क थप्नुहोस्
-              </button>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
-              {contacts.map((c: EmergencyContact) => (
                 <div
-                  key={c.id}
                   style={{
-                    backgroundColor: '#ffffff',
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid #ffe4e6',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '8px',
+                    backgroundColor: '#ffe4e6',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
+                    justifyContent: 'center',
+                    color: '#e11d48',
                   }}
                 >
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{c.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.role} {c.wardNumber ? `(वडा ${c.wardNumber})` : ''}</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <a
-                      href={`tel:${c.phone}`}
-                      className="dt-btn dt-btn-primary"
-                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', backgroundColor: '#e11d48' }}
-                    >
-                      {c.phone}
-                    </a>
-                    <button
-                      onClick={() => {
-                        if (confirm(`के तपाईं "${c.name}" हटाउन निश्चित हुनुहुन्छ?`)) {
-                          deleteContactMutation.mutate(c.id!);
-                        }
-                      }}
-                      style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: '0.2rem' }}
-                      title="हटाउनुहोस्"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                  <PhoneCall size={18} />
                 </div>
-              ))}
+                <div>
+                  <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#9f1239', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    {isNepali ? 'आपतकालीन सम्पर्क नम्बरहरू' : 'Emergency Hotlines'}
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#e11d48', backgroundColor: '#ffffff', padding: '1px 8px', borderRadius: '10px', border: '1px solid #fecdd3' }}>
+                      {contacts.length} {isNepali ? 'सम्पर्क' : 'Contacts'}
+                    </span>
+                  </h2>
+                  {!isHotlinesExpanded && (
+                    <div style={{ fontSize: '0.78rem', color: '#be123c', marginTop: '2px' }}>
+                      {isNepali ? 'एम्बुलेन्स (१०२), प्रहरी (१००), दमकल (१०१) तथा फोकल पर्सनहरूको सूची हेर्न क्लिक गर्नुहोस्' : 'Click to view 24/7 Police, Ambulance, Fire, and Ward Focal Persons'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <button
+                  onClick={() => setIsContactModalOpen(true)}
+                  className="dt-btn"
+                  style={{ backgroundColor: '#ffffff', border: '1px solid #fecdd3', color: '#9f1239', fontSize: '0.8rem', padding: '0.3rem 0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}
+                >
+                  <Plus size={14} /> {isNepali ? 'नयाँ सम्पर्क थप्नुहोस्' : 'Add Contact'}
+                </button>
+                <button
+                  onClick={() => setIsHotlinesExpanded(!isHotlinesExpanded)}
+                  className="dt-btn"
+                  style={{ backgroundColor: '#ffffff', border: '1px solid #fecdd3', color: '#9f1239', fontSize: '0.8rem', padding: '0.3rem 0.6rem', display: 'flex', alignItems: 'center', gap: '0.3rem', fontWeight: 600 }}
+                >
+                  {isHotlinesExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  <span>{isHotlinesExpanded ? (isNepali ? 'लुकाउनुहोस्' : 'Collapse') : (isNepali ? 'विस्तार गर्नुहोस्' : 'Expand')}</span>
+                </button>
+              </div>
             </div>
+
+            {isHotlinesExpanded && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem', marginTop: '1rem', animation: 'fadeIn 0.2s ease' }}>
+                {contacts.map((c: EmergencyContact) => (
+                  <div
+                    key={c.id}
+                    style={{
+                      backgroundColor: '#ffffff',
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius-sm)',
+                      border: '1px solid #ffe4e6',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#0f172a' }}>{c.name}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{c.role} {c.wardNumber ? `(वडा ${c.wardNumber})` : ''}</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <a
+                        href={`tel:${c.phone}`}
+                        className="dt-btn dt-btn-primary"
+                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', backgroundColor: '#e11d48', textDecoration: 'none', fontWeight: 700 }}
+                      >
+                        {c.phone}
+                      </a>
+                      <button
+                        onClick={() => {
+                          if (confirm(`के तपाईं "${c.name}" हटाउन निश्चित हुनुहुन्छ?`)) {
+                            deleteContactMutation.mutate(c.id!);
+                          }
+                        }}
+                        style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', padding: '0.2rem' }}
+                        title="हटाउनुहोस्"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Recent Disaster Alerts Table */}

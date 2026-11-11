@@ -12,6 +12,7 @@ import { citizenServicesApi } from '../../api/citizenServices';
 import { sectoralApi } from '../../api/sectoral';
 import { api } from '../../api/client';
 import { cooperativesApi } from '../../api/cooperatives';
+import { useTenant } from '../../context/TenantContext';
 import { PalikaMap } from '../../components/maps/PalikaMap';
 import { Terrain3DView } from '../../components/maps/Terrain3DView';
 import { AddHazardZoneModal } from './AddHazardZoneModal';
@@ -106,6 +107,15 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
                         ? 'citizen_service'
                         : 'all')))))));
 
+
+  const { tenantId } = useTenant();
+  const [activePalikaKey, setActivePalikaKey] = useState<string>(tenantId || 'panchpokhari');
+
+  useEffect(() => {
+    if (tenantId) {
+      setActivePalikaKey(tenantId);
+    }
+  }, [tenantId]);
 
   const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
   const [selectedWard, setSelectedWard] = useState<number | 'all'>(urlWard ? Number(urlWard) : 'all');
@@ -1789,6 +1799,8 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
               showRiverRedZone={showRiverRedZone}
               riverBufferMeters={riverBufferMeters}
               onToggleRiverRedZone={setShowRiverRedZone}
+              activePalikaKey={activePalikaKey}
+              onPalikaChange={setActivePalikaKey}
               onSelectLocation={(lat, lng, name) => {
                 setSelectedLocation({ lat, lng, name });
                 setActiveSideTab('simulation');
@@ -2920,6 +2932,8 @@ export const GisMapPage: React.FC<{ isPublic?: boolean }> = ({ isPublic = false 
                 showRiverRedZone={showRiverRedZone}
                 riverBufferMeters={riverBufferMeters}
                 onToggleRiverRedZone={setShowRiverRedZone}
+                activePalikaKey={activePalikaKey}
+                onPalikaChange={setActivePalikaKey}
                 onSelectLocation={(lat, lng, name) => {
                   setSelectedLocation({ lat, lng, name });
                   setActiveSideTab('simulation');

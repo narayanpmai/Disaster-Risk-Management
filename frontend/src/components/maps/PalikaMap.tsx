@@ -25,6 +25,14 @@ import {
   CRITICAL_RIPARIAN_FACILITIES,
 } from '../../data/riverCorridorData';
 import {
+  PALIKA_METADATA_REGISTRY,
+  PANCHPOKHARI_WARDS_GEOJSON,
+  SINDHUPALCHOK_PALIKAS_GEOJSON,
+  SINDHUPALCHOK_DISTRICT_BOUNDARY,
+  NEPAL_PROVINCES_GEOJSON,
+  type PalikaBoundaryMetadata,
+} from '../../data/nepalMunicipalBoundaries';
+import {
   Compass,
   Phone,
   MapPin,
@@ -38,6 +46,10 @@ import {
   Calendar,
   Users,
   Sparkles,
+  Globe,
+  Building2,
+  Layers,
+  RotateCcw,
 } from 'lucide-react';
 
 interface PalikaMapProps {
@@ -58,6 +70,13 @@ interface PalikaMapProps {
   showRiverRedZone?: boolean;
   riverBufferMeters?: number;
   onToggleRiverRedZone?: (active: boolean) => void;
+  // Dynamic Palika Jurisdiction & Boundary Map Props
+  activePalikaKey?: string;
+  onPalikaChange?: (palikaKey: string) => void;
+  showWardBoundaries?: boolean;
+  showPalikaBoundaries?: boolean;
+  showDistrictBoundaries?: boolean;
+  showNepalProvinces?: boolean;
 }
 
 interface PendingMoveInfo {
@@ -90,6 +109,12 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
   showRiverRedZone = false,
   riverBufferMeters = 200,
   onToggleRiverRedZone,
+  activePalikaKey = 'panchpokhari',
+  onPalikaChange,
+  showWardBoundaries = true,
+  showPalikaBoundaries = true,
+  showDistrictBoundaries = true,
+  showNepalProvinces = false,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -99,7 +124,24 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
   const trekkingLayerRef = useRef<L.LayerGroup | null>(null);
   const riverLayerRef = useRef<L.LayerGroup | null>(null);
   const bufferLayerRef = useRef<L.GeoJSON | null>(null);
+  const wardBoundariesLayerRef = useRef<L.LayerGroup | null>(null);
+  const palikaBoundariesLayerRef = useRef<L.LayerGroup | null>(null);
+  const districtBoundaryLayerRef = useRef<L.LayerGroup | null>(null);
+  const nepalProvincesLayerRef = useRef<L.LayerGroup | null>(null);
   const facilityMarkersMapRef = useRef<Map<string, L.Marker>>(new Map());
+
+  // Dynamic Palika Jurisdiction & Boundary State
+  const [currentPalikaKey, setCurrentPalikaKey] = useState<string>(activePalikaKey);
+  const [isWardBoundariesActive, setIsWardBoundariesActive] = useState<boolean>(showWardBoundaries);
+  const [isPalikaBoundariesActive, setIsPalikaBoundariesActive] = useState<boolean>(showPalikaBoundaries);
+  const [isDistrictBoundariesActive, setIsDistrictBoundariesActive] = useState<boolean>(showDistrictBoundaries);
+  const [isNepalProvincesActive, setIsNepalProvincesActive] = useState<boolean>(showNepalProvinces);
+
+  useEffect(() => {
+    if (activePalikaKey && activePalikaKey !== currentPalikaKey) {
+      setCurrentPalikaKey(activePalikaKey);
+    }
+  }, [activePalikaKey]);
 
   // River Corridor 200m Red Zone State
   const [isRiverRedZoneActive, setIsRiverRedZoneActive] = useState<boolean>(showRiverRedZone);
@@ -178,7 +220,7 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
     const map = L.map(mapContainerRef.current, {
       center,
       zoom,
-      minZoom: 8,
+      minZoom: 5,
       maxZoom: 22, // Deep building-level and rooftop zoom
       zoomControl: true,
       layers: [initialLayer], // Satellite (स्याटेलाइट) as default!
@@ -186,6 +228,11 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
 
     baseLayersRef.current = { satellite, esri, osm, topo };
 
+    // Instantiate Boundary & Feature Layers
+    wardBoundariesLayerRef.current = L.layerGroup().addTo(map);
+    palikaBoundariesLayerRef.current = L.layerGroup().addTo(map);
+    districtBoundaryLayerRef.current = L.layerGroup().addTo(map);
+    nepalProvincesLayerRef.current = L.layerGroup();
     trekkingLayerRef.current = L.layerGroup().addTo(map);
 
     // Layer Switcher Control: Satellite, Esri, Streets, Terrain + Overlays
@@ -198,6 +245,10 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
           '🏔️ टोपो धरातल (Terrain)': topo,
         },
         {
+          '📍 वडा सिमाना (Wards 1-8)': wardBoundariesLayerRef.current,
+          '🏛️ पालिका सिमाना (Municipalities)': palikaBoundariesLayerRef.current,
+          '🗺️ सिन्धुपाल्चोक जिल्ला (District)': districtBoundaryLayerRef.current,
+          '🇳🇵 नेपाल प्रदेश (Provinces)': nepalProvincesLayerRef.current,
           '🥾 पाँचपोखरी पदमार्ग र होटल': trekkingLayerRef.current,
         },
         { position: 'topright', collapsed: true }
@@ -1422,6 +1473,205 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
     });
   }, [selectedLocation]);
 
+  // ── 1. Render Ward Boundaries Layer (Panchpokhari Wards 1 to 8 + Alpine Zone) ──
+  useEffect(() => {
+    if (!mapInstanceRef.current || !wardBoundariesLayerRef.current) return;
+    wardBoundariesLayerRef.current.clearLayers();
+
+    if (!isWardBoundariesActive) return;
+
+    if (currentPalikaKey === 'panchpokhari' || currentPalikaKey === 'all') {
+      const WARD_COLOR_PALETTE: Record<number, string> = {
+        1: '#2563eb', // बाँसखर्क
+        2: '#059669', // बरुवा
+        3: '#7c3aed', // भोताङ
+        4: '#d97706', // थाङपालकोट
+        5: '#db2777', // गुन्सा
+        6: '#0891b2', // थाङपालधाप
+        7: '#4f46e5', // तिपेनी
+        8: '#0d9488', // लाँगर्चे
+        99: '#15803d', // लाङटाङ निकुञ्ज
+      };
+
+      const geojsonLayer = L.geoJSON(PANCHPOKHARI_WARDS_GEOJSON as any, {
+        style: (feature: any) => {
+          const wardNo = feature.properties?.ward_no || 0;
+          const isSelected = selectedWard === 'all' || selectedWard === wardNo;
+          const baseColor = WARD_COLOR_PALETTE[wardNo] || '#64748b';
+
+          return {
+            color: isSelected ? (selectedWard === wardNo ? '#ef4444' : baseColor) : '#cbd5e1',
+            weight: selectedWard === wardNo ? 3.5 : 2,
+            opacity: isSelected ? 0.95 : 0.35,
+            fillColor: baseColor,
+            fillOpacity: isSelected ? (selectedWard === wardNo ? 0.35 : 0.16) : 0.04,
+            dashArray: selectedWard === wardNo ? '' : '3, 4',
+          };
+        },
+        onEachFeature: (feature: any, layer: L.Layer) => {
+          const p = feature.properties || {};
+          const wardNo = p.ward_no;
+          const wardName = p.ward_name || `वडा नं. ${wardNo}`;
+          const areaHa = p.area_hectare ? `${p.area_hectare.toLocaleString()} हेक्टर` : 'उपलब्ध छैन';
+          const areaSqKm = p.area_sqm ? (p.area_sqm / 1000000).toFixed(2) : '';
+
+          layer.bindTooltip(
+            `<div style="font-weight:700; color:#0f172a;">${wardName}</div><div style="font-size:11px; color:#475569;">क्षेत्रफल: ${areaHa} (${areaSqKm} km²)</div>`,
+            { sticky: true, className: 'palika-ward-tooltip' }
+          );
+
+          layer.bindPopup(`
+            <div style="font-family: inherit; padding: 6px; min-width: 220px;">
+              <div style="display:flex; align-items:center; gap:6px; color:#0f172a; font-weight:800; font-size:14px; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:6px;">
+                <span>📍 ${wardName}</span>
+              </div>
+              <div style="font-size:12px; color:#334155; line-height:1.5;">
+                • क्षेत्रफल: <strong>${areaHa}</strong> (${areaSqKm} वर्ग कि.मी.)<br/>
+                • केन्द्र निर्देशांक: <strong>${p.center ? p.center[0].toFixed(4) + '°N, ' + p.center[1].toFixed(4) + '°E' : 'उपलब्ध'}</strong><br/>
+                • पालिका: <strong>पाँचपोखरी थाङपाल गाउँपालिका</strong><br/>
+                • जिल्ला: <strong>सिन्धुपाल्चोक (बागमती प्रदेश)</strong><br/>
+                • विपद् जोखिम: <strong style="color: #dc2626;">बाढी, पहिरो तथा भिरालो उच्च संवेदनशीलता</strong>
+              </div>
+            </div>
+          `);
+        },
+      });
+
+      geojsonLayer.addTo(wardBoundariesLayerRef.current);
+    }
+  }, [currentPalikaKey, selectedWard, isWardBoundariesActive, isMapReady]);
+
+  // ── 2. Render Neighboring Palika Boundaries Layer (Sindhupalchok 12 Local Levels) ──
+  useEffect(() => {
+    if (!mapInstanceRef.current || !palikaBoundariesLayerRef.current) return;
+    palikaBoundariesLayerRef.current.clearLayers();
+
+    if (!isPalikaBoundariesActive) return;
+
+    SINDHUPALCHOK_PALIKAS_GEOJSON.features.forEach((feature) => {
+      const p = feature.properties;
+      const isCurrent = feature.id === `palika-${currentPalikaKey}` || (currentPalikaKey === 'panchpokhari' && feature.id === 'palika-panchpokhari');
+
+      const poly = L.polygon(feature.geometry.coordinates as any, {
+        color: isCurrent ? '#dc2626' : p.color || '#4f46e5',
+        weight: isCurrent ? 3.5 : 2,
+        dashArray: isCurrent ? '' : '6, 5',
+        fillColor: p.color || '#4f46e5',
+        fillOpacity: isCurrent ? 0.08 : 0.03,
+      });
+
+      poly.bindTooltip(
+        `<div style="font-weight:700; color:#0f172a;">🏛️ ${p.nameNepali}</div><div style="font-size:11px; color:#475569;">सदरमुकाम: ${p.headquarters} • वडा: ${p.wards} वटा</div>`,
+        { sticky: true }
+      );
+
+      poly.bindPopup(`
+        <div style="font-family: inherit; padding: 6px; min-width: 230px;">
+          <div style="font-size: 14px; font-weight: 800; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
+            🏛️ ${p.nameNepali}
+          </div>
+          <div style="font-size: 12px; color: #334155; line-height: 1.5;">
+            • प्रकार: <strong>${p.type}</strong><br/>
+            • सदरमुकाम: <strong>${p.headquarters}</strong><br/>
+            • वडा संख्या: <strong>${p.wards} वटा</strong><br/>
+            • विपद् जोखिम स्तर: <strong style="color: #dc2626;">${p.riskLevel}</strong><br/>
+            • जिल्ला: <strong>सिन्धुपाल्चोक (बागमती प्रदेश)</strong>
+          </div>
+        </div>
+      `);
+
+      poly.addTo(palikaBoundariesLayerRef.current!);
+    });
+  }, [currentPalikaKey, isPalikaBoundariesActive, isMapReady]);
+
+  // ── 3. Render District Boundary Layer (Sindhupalchok District) ──
+  useEffect(() => {
+    if (!mapInstanceRef.current || !districtBoundaryLayerRef.current) return;
+    districtBoundaryLayerRef.current.clearLayers();
+
+    if (!isDistrictBoundariesActive) return;
+
+    const p = SINDHUPALCHOK_DISTRICT_BOUNDARY.properties;
+    const poly = L.polygon(SINDHUPALCHOK_DISTRICT_BOUNDARY.geometry.coordinates as any, {
+      color: '#f59e0b',
+      weight: 3.5,
+      dashArray: '8, 6',
+      fillColor: '#fef3c7',
+      fillOpacity: 0.03,
+    });
+
+    poly.bindTooltip(
+      `<div style="font-weight:800; color:#92400e;">🗺️ ${p.districtNameNp}</div><div style="font-size:11px; color:#78350f;">क्षेत्रफल: ${p.areaSqKm} km² • ${p.totalPalikas} स्थानीय तहहरू</div>`,
+      { sticky: true }
+    );
+
+    poly.addTo(districtBoundaryLayerRef.current);
+  }, [isDistrictBoundariesActive, isMapReady]);
+
+  // ── 4. Render Nepal Provinces Layer ──
+  useEffect(() => {
+    if (!mapInstanceRef.current || !nepalProvincesLayerRef.current) return;
+    nepalProvincesLayerRef.current.clearLayers();
+
+    if (!isNepalProvincesActive) {
+      if (mapInstanceRef.current.hasLayer(nepalProvincesLayerRef.current)) {
+        mapInstanceRef.current.removeLayer(nepalProvincesLayerRef.current);
+      }
+      return;
+    }
+
+    if (!mapInstanceRef.current.hasLayer(nepalProvincesLayerRef.current)) {
+      mapInstanceRef.current.addLayer(nepalProvincesLayerRef.current);
+    }
+
+    NEPAL_PROVINCES_GEOJSON.features.forEach((feature) => {
+      const p = feature.properties;
+      const poly = L.polygon(feature.geometry.coordinates as any, {
+        color: p.color || '#0284c7',
+        weight: p.isCurrent ? 3 : 1.5,
+        dashArray: p.isCurrent ? '' : '4, 4',
+        fillColor: p.color || '#0284c7',
+        fillOpacity: p.isCurrent ? 0.12 : 0.04,
+      });
+
+      poly.bindTooltip(
+        `<div style="font-weight:700; color:#0f172a;">🇳🇵 ${p.nameNp}</div><div style="font-size:11px; color:#475569;">राजधानी: ${p.capital}</div>`,
+        { sticky: true }
+      );
+
+      poly.addTo(nepalProvincesLayerRef.current!);
+    });
+  }, [isNepalProvincesActive, isMapReady]);
+
+  // ── 5. Palika Switching & Fly-to Navigation ──
+  const handleSwitchPalika = (palikaKey: string) => {
+    setCurrentPalikaKey(palikaKey);
+    onPalikaChange?.(palikaKey);
+
+    if (!mapInstanceRef.current) return;
+
+    if (palikaKey === 'sindhupalchok_district') {
+      setIsDistrictBoundariesActive(true);
+      mapInstanceRef.current.setView([27.9124, 85.7981], 10);
+      return;
+    }
+
+    if (palikaKey === 'nepal_country') {
+      setIsNepalProvincesActive(true);
+      mapInstanceRef.current.setView([28.3949, 84.1240], 7);
+      return;
+    }
+
+    const targetMeta = PALIKA_METADATA_REGISTRY[palikaKey];
+    if (targetMeta) {
+      if (targetMeta.bounds) {
+        mapInstanceRef.current.fitBounds(targetMeta.bounds, { padding: [40, 40] });
+      } else {
+        mapInstanceRef.current.setView(targetMeta.center, targetMeta.defaultZoom);
+      }
+    }
+  };
+
   // Handle Buffer Polygon updates
   useEffect(() => {
     if (!mapInstanceRef.current) return;
@@ -1760,6 +2010,169 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
         >
           {isTrailActive ? '✓ सक्रिय' : '✗ बन्द'}
         </button>
+      </div>
+
+      {/* ── Floating Palika Jurisdiction & Boundary Map Control Bar ── */}
+      <div
+        className="palika-boundary-floating-bar"
+        style={{
+          position: 'absolute',
+          top: height === '100vh' ? '120px' : '56px',
+          left: '52px',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          background: 'rgba(15, 23, 42, 0.94)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1.5px solid #38bdf8',
+          borderRadius: '30px',
+          padding: '4px 12px',
+          boxShadow: '0 8px 28px rgba(0, 0, 0, 0.5)',
+          maxWidth: 'calc(100% - 110px)',
+          flexWrap: 'wrap',
+        }}
+      >
+        {/* Palika Dropdown */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Building2 size={15} color="#38bdf8" />
+          <span style={{ color: '#94a3b8', fontSize: '11px', fontWeight: 600 }}>पालिका:</span>
+          <select
+            value={currentPalikaKey}
+            onChange={(e) => handleSwitchPalika(e.target.value)}
+            style={{
+              background: '#1e293b',
+              color: '#ffffff',
+              border: '1px solid #475569',
+              borderRadius: '16px',
+              padding: '3px 10px',
+              fontSize: '11.5px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              outline: 'none',
+            }}
+          >
+            <optgroup label="सिन्धुपाल्चोक स्थानीय तहहरू (Sindhupalchok)">
+              <option value="panchpokhari">🏛️ पाँचपोखरी थाङपाल गाउँपालिका (८ वडा)</option>
+              <option value="helambu">🏛️ हेलम्बु गाउँपालिका (७ वडा)</option>
+              <option value="melamchi">🏛️ मेलम्ची नगरपालिका (१३ वडा)</option>
+              <option value="indrawati">🏛️ इन्द्रावती गाउँपालिका (१२ वडा)</option>
+            </optgroup>
+            <optgroup label="अन्य जिल्ला/पालिका">
+              <option value="kathmandu">🏛️ काठमाडौँ महानगरपालिका (३२ वडा)</option>
+              <option value="barpak_sulikot">🏛️ बारपाक सुलिकोट गाउँपालिका (गोरखा)</option>
+            </optgroup>
+            <optgroup label="क्षेत्रीय तथा राष्ट्रिय परिप्रेक्ष्य">
+              <option value="sindhupalchok_district">🗺️ सम्पूर्ण सिन्धुपाल्चोक जिल्ला (१२ पालिका)</option>
+              <option value="nepal_country">🇳🇵 सम्पूर्ण नेपाल (७ प्रदेश)</option>
+            </optgroup>
+          </select>
+        </div>
+
+        {/* Boundary Layer Toggles */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <button
+            onClick={() => setIsWardBoundariesActive((prev) => !prev)}
+            style={{
+              background: isWardBoundariesActive ? '#0284c7' : 'rgba(30, 41, 59, 0.8)',
+              color: '#ffffff',
+              border: isWardBoundariesActive ? '1px solid #38bdf8' : '1px solid #475569',
+              borderRadius: '16px',
+              padding: '3px 9px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="वडा १ देखि ८ का आधिकारिक सिमाना बहुभुज (GeoJSON Polygons)"
+          >
+            <span>📍 वडा सिमाना {isWardBoundariesActive ? '✓' : ''}</span>
+          </button>
+
+          <button
+            onClick={() => setIsPalikaBoundariesActive((prev) => !prev)}
+            style={{
+              background: isPalikaBoundariesActive ? '#7c3aed' : 'rgba(30, 41, 59, 0.8)',
+              color: '#ffffff',
+              border: isPalikaBoundariesActive ? '1px solid #a855f7' : '1px solid #475569',
+              borderRadius: '16px',
+              padding: '3px 9px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="सिन्धुपाल्चोकका १२ वटै स्थानीय तहका सिमाना"
+          >
+            <span>🏛️ पालिका सिमाना {isPalikaBoundariesActive ? '✓' : ''}</span>
+          </button>
+
+          <button
+            onClick={() => setIsDistrictBoundariesActive((prev) => !prev)}
+            style={{
+              background: isDistrictBoundariesActive ? '#d97706' : 'rgba(30, 41, 59, 0.8)',
+              color: '#ffffff',
+              border: isDistrictBoundariesActive ? '1px solid #f59e0b' : '1px solid #475569',
+              borderRadius: '16px',
+              padding: '3px 9px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="सिन्धुपाल्चोक जिल्ला बाह्य सिमाना"
+          >
+            <span>🗺️ जिल्ला सिमाना {isDistrictBoundariesActive ? '✓' : ''}</span>
+          </button>
+
+          <button
+            onClick={() => setIsNepalProvincesActive((prev) => !prev)}
+            style={{
+              background: isNepalProvincesActive ? '#059669' : 'rgba(30, 41, 59, 0.8)',
+              color: '#ffffff',
+              border: isNepalProvincesActive ? '1px solid #10b981' : '1px solid #475569',
+              borderRadius: '16px',
+              padding: '3px 9px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="नेपालका ७ वटै प्रदेश सिमाना"
+          >
+            <span>🇳🇵 नेपाल प्रदेश {isNepalProvincesActive ? '✓' : ''}</span>
+          </button>
+
+          <button
+            onClick={() => handleSwitchPalika('panchpokhari')}
+            style={{
+              background: 'transparent',
+              color: '#94a3b8',
+              border: '1px solid #475569',
+              borderRadius: '16px',
+              padding: '3px 8px',
+              fontSize: '11px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px',
+            }}
+            title="पाँचपोखरी थाङपालमा पुनः रिसेट गर्नुहोस्"
+          >
+            <RotateCcw size={11} />
+            <span>रिसेट</span>
+          </button>
+        </div>
       </div>
 
       {/* Floating Action Banner when a pin is dragged to a new GPS location */}

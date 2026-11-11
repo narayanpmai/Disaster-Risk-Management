@@ -30,8 +30,8 @@ export const MunicipalGISMap: React.FC = () => {
   const [riskData, setRiskData] = useState<any>(null);
   const [activeTool, setActiveTool] = useState<'buffer' | 'risk'>('buffer');
 
-  // Center of Narayan Municipality (approximate)
-  const mapCenter: [number, number] = [28.7667, 81.6500];
+  // Center of Panchpokhari Thangpal Rural Municipality (सिन्धुपाल्चोक)
+  const mapCenter: [number, number] = [27.9736, 85.6425];
 
   const handleMapClick = async (lat: number, lng: number) => {
     if (activeTool !== 'buffer') return;
