@@ -2429,13 +2429,15 @@ export const DisasterPage: React.FC = () => {
 
           {/* Live Sensor Cards Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
-            {sensors.map((s) => {
+            {sensors.map((s: any) => {
               const isCritical = s.status === 'Critical';
               const isWarning = s.status === 'Warning';
               const statusColor = isCritical ? '#ef4444' : isWarning ? '#f59e0b' : '#10b981';
               const statusBg = isCritical ? '#fef2f2' : isWarning ? '#fffbeb' : '#f0fdf4';
-              const threshold = s.dangerThreshold || (s.type === 'river_level' ? 5.0 : 80.0);
-              const percentage = Math.min(Math.round((s.lastValue / threshold) * 100), 100);
+              const val = s.lastValue ?? s.last_value ?? s.currentValue ?? 0;
+              const threshold = s.dangerThreshold ?? s.danger_threshold ?? (s.type === 'river_level' ? 5.0 : 80.0);
+              const percentage = threshold > 0 ? Math.min(Math.round((val / threshold) * 100), 100) : 0;
+              const sensorCode = s.sensorId ?? s.sensor_id ?? 'SEN-01';
 
               let icon = <Waves size={24} color="#2563eb" />;
               let typeNepali = 'नदी जलसतह सेन्सर';
@@ -2452,7 +2454,7 @@ export const DisasterPage: React.FC = () => {
 
               return (
                 <div
-                  key={s.id || s.sensorId}
+                  key={s.id || sensorCode}
                   className="dt-card"
                   style={{
                     backgroundColor: '#ffffff',
@@ -2476,7 +2478,7 @@ export const DisasterPage: React.FC = () => {
                         </div>
                         <div>
                           <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            {s.sensorId} • {typeNepali}
+                            {sensorCode} • {typeNepali}
                           </span>
                           <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-main)', margin: '0.1rem 0 0' }}>
                             {s.name}
@@ -2520,7 +2522,7 @@ export const DisasterPage: React.FC = () => {
                       <div>
                         <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>हालको मापन (Live Reading)</div>
                         <div style={{ fontSize: '2.2rem', fontWeight: 800, color: statusColor, lineHeight: 1.1 }}>
-                          {s.lastValue} <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>{s.unit}</span>
+                          {val} <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>{s.unit}</span>
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>

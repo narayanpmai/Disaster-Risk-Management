@@ -527,3 +527,4 @@ export const NEPAL_PROVINCES_GEOJSON = {
     },
   ],
 };
+

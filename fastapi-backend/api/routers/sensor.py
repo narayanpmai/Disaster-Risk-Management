@@ -95,19 +95,55 @@ DEFAULT_SENSORS = [
         "danger_threshold": -15.0,
         "status": "Normal",
     },
+    {
+        "sensor_id": "SEN-YAN-06",
+        "name": "याङ्ग्री खोला र्याडार जलसतह सेन्सर (Yangri Khola FMCW Radar)",
+        "type": "river_level",
+        "location": "याङ्ग्री बगर तथा बरुवा दोभान (Ward 2)",
+        "latitude": 27.9750,
+        "longitude": 85.6450,
+        "last_value": 2.1,
+        "unit": "m",
+        "danger_threshold": 4.2,
+        "status": "Normal",
+    },
+    {
+        "sensor_id": "SEN-LAR-07",
+        "name": "लार्के खोला स्वचालित बाढी मापन गेज (Larke Khola River Gauge)",
+        "type": "river_level",
+        "location": "लार्के झोलुङ्गे पुल खण्ड (Ward 3/7)",
+        "latitude": 27.9380,
+        "longitude": 85.6120,
+        "last_value": 1.8,
+        "unit": "m",
+        "danger_threshold": 3.9,
+        "status": "Normal",
+    },
+    {
+        "sensor_id": "SEN-IND-08",
+        "name": "इन्द्रावती-मेलम्ची संगम जलसतह सेन्सर (Indrawati River Confluence Gauge)",
+        "type": "river_level",
+        "location": "तिपेनी बजार दोभान (Ward 7)",
+        "latitude": 27.9150,
+        "longitude": 85.5800,
+        "last_value": 2.4,
+        "unit": "m",
+        "danger_threshold": 4.6,
+        "status": "Normal",
+    },
 ]
 
 def seed_sensors_if_empty(db: Session):
-    count = db.query(Sensor).count()
-    if count == 0:
-        for s in DEFAULT_SENSORS:
+    for s in DEFAULT_SENSORS:
+        existing = db.query(Sensor).filter(Sensor.sensor_id == s["sensor_id"]).first()
+        if not existing:
             db_s = Sensor(
                 id=str(uuid.uuid4()),
                 last_ping=datetime.utcnow(),
                 **s
             )
             db.add(db_s)
-        db.commit()
+    db.commit()
 
 @router.get("", response_model=List[SensorSchema])
 def get_sensors(db: Session = Depends(get_db)):
