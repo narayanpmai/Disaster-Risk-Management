@@ -1721,39 +1721,77 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
       const group = L.layerGroup();
 
       RIVER_CORRIDORS.forEach((corridor) => {
-        // 1. Buffer Hazard Corridor (200m or activeRiverBuffer on both flanks)
-        const polyCoords = generateCorridorPolygon(corridor.coordinates, activeRiverBuffer);
-        const polygon = L.polygon(polyCoords, {
+        // 1. Outer 200m Buffer (Severe Red Zone - Rasuwa Bhotekoshi / Melamchi 2078 Model)
+        const polyCoords200 = generateCorridorPolygon(corridor.coordinates, 200);
+        const polygon200 = L.polygon(polyCoords200, {
           color: '#dc2626',
           weight: 2,
           dashArray: '6, 6',
           fillColor: '#ef4444',
-          fillOpacity: 0.32,
+          fillOpacity: 0.22,
         });
 
-        polygon.bindPopup(`
-          <div style="font-family: inherit; padding: 6px; min-width: 210px;">
-            <div style="display: flex; align-items: center; gap: 6px; color: #dc2626; font-weight: 700; font-size: 13px;">
+        polygon200.bindTooltip(
+          `<div style="font-weight:700; color:#dc2626;">🌊 ${corridor.nameNepali} (२००m रेड जोन)</div><div style="font-size:11px;">रसुवा भोटेकोशी/मेलम्ची मोडल • ३८४ घरधुरी जोखिम</div>`,
+          { sticky: true }
+        );
+
+        polygon200.bindPopup(`
+          <div style="font-family: inherit; padding: 6px; min-width: 260px;">
+            <div style="display: flex; align-items: center; gap: 6px; color: #dc2626; font-weight: 800; font-size: 13.5px;">
               <span>🌊 ${corridor.nameNepali}</span>
             </div>
-            <div style="background: #fee2e2; color: #991b1b; padding: 3px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; margin: 5px 0;">
-              🔴 ${activeRiverBuffer} मिटर रेड जोन (भवन निर्माण निषेधित क्षेत्र)
+            <div style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin: 6px 0; border: 1px solid #fecdd3;">
+              🔴 २०० मिटर गेग्रान बाढी रेड जोन (रसुवा भोटेकोशी / मेलम्ची मोडल)
             </div>
-            <div style="font-size: 12px; color: #334155; line-height: 1.45;">
-              बफर दायरा: <strong>${activeRiverBuffer} मिटर (दुबै किनार)</strong><br/>
-              नदी लम्बाइ: <strong>${corridor.lengthKm} कि.मी.</strong><br/>
-              औसत बहाव: <strong>${corridor.averageDischargeCumec} m³/s</strong><br/>
-              <span style="color: #64748b; font-size: 11px;">${corridor.floodHistory}</span>
+            <div style="font-size: 11.5px; color: #334155; line-height: 1.5;">
+              • <strong>जोखिम स्तर:</strong> अति उच्च (Extreme Debris Flood)<br/>
+              • <strong>अनुमानित प्रभावित घरधुरी:</strong> ३८४ घरधुरी<br/>
+              • <strong>जोखिममा पर्ने जनसंख्या:</strong> १,८५० जना (२६८ अति संवेदनशील)<br/>
+              • <strong>भौतिक पूर्वाधार:</strong> ७ वटा झोलुङ्गे तथा मोटरेबल पुल, तिपेनी बजार, २,१०० रोपनी बगर कटान<br/>
+              • <strong>नदी लम्बाइ:</strong> ${corridor.lengthKm} कि.मी. (औसत बहाव: ${corridor.averageDischargeCumec} m³/s)
             </div>
           </div>
         `);
-        polygon.addTo(group);
+        polygon200.addTo(group);
 
-        // 2. River Centerline
+        // 2. Inner 100m Buffer (Immediate Floodway & Direct Erosion Corridor)
+        const polyCoords100 = generateCorridorPolygon(corridor.coordinates, 100);
+        const polygon100 = L.polygon(polyCoords100, {
+          color: '#ea580c',
+          weight: 2,
+          fillColor: '#f97316',
+          fillOpacity: 0.38,
+        });
+
+        polygon100.bindTooltip(
+          `<div style="font-weight:700; color:#ea580c;">🚨 ${corridor.nameNepali} (१००m प्रत्यक्ष कटान)</div><div style="font-size:11px;">१९५ घरधुरी • ९५० नागरिक तत्काल विस्थापन</div>`,
+          { sticky: true }
+        );
+
+        polygon100.bindPopup(`
+          <div style="font-family: inherit; padding: 6px; min-width: 250px;">
+            <div style="display: flex; align-items: center; gap: 6px; color: #ea580c; font-weight: 800; font-size: 13.5px;">
+              <span>🚨 १०० मिटर प्रत्यक्ष कटान तथा बाढी क्षेत्र</span>
+            </div>
+            <div style="background: #ffedd5; color: #9a3412; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; margin: 6px 0; border: 1px solid #fed7aa;">
+              ⚠️ १०० मिटर बाढी बहाव खण्ड (${corridor.nameNepali})
+            </div>
+            <div style="font-size: 11.5px; color: #334155; line-height: 1.5;">
+              • <strong>जोखिम स्तर:</strong> प्रत्यक्ष विस्थापन (Immediate Evacuation)<br/>
+              • <strong>अनुमानित प्रभावित घरधुरी:</strong> १९५ घरधुरी (तटीय कच्ची आवास)<br/>
+              • <strong>जोखिममा पर्ने जनसंख्या:</strong> ९५० जना<br/>
+              • <strong>भौतिक क्षति:</strong> ६ झोलुङ्गे पुल, २ पक्की पुल, याङ्ग्री बगर विद्यालय, ८५० रोपनी खेतबारी
+            </div>
+          </div>
+        `);
+        polygon100.addTo(group);
+
+        // 3. River Centerline
         const centerline = L.polyline(corridor.coordinates, {
           color: '#0284c7',
           weight: 3.5,
-          opacity: 0.9,
+          opacity: 0.95,
         });
         centerline.bindPopup(`<strong>${corridor.nameNepali}</strong><br/>प्राकृतिक बहाव धार (River Centerline)`);
         centerline.addTo(group);
@@ -1989,9 +2027,9 @@ export const PalikaMap: React.FC<PalikaMapProps> = ({
             gap: '5px',
             boxShadow: isRiverRedZoneActive ? '0 2px 10px rgba(220, 38, 38, 0.65)' : 'none',
           }}
-          title="खोला तथा नदीको दुबै तर्फ २०० मिटर सम्मको रेड जोन र जोखिम मूल्याङ्कन"
+          title="रसुवा भोटेकोशी/मेलम्ची जस्तै १०० मिटर र २०० मिटर बाढी आउँदा हुने कटान तथा क्षतिको अनुमानित नक्सांकन"
         >
-          <span>🌊 नदी {activeRiverBuffer}m रेड जोन {isRiverRedZoneActive ? '✓ सक्रिय' : ''}</span>
+          <span>🌊 खोला १००m/२००m बाढी क्षेत्र {isRiverRedZoneActive ? '✓ सक्रिय' : ''}</span>
         </button>
 
         <button
